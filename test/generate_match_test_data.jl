@@ -1,0 +1,344 @@
+#!/usr/bin/env julia
+# Generate test data for match tests by computing routes and adding noise.
+# Run this script to regenerate the test coordinates stored in fixtures.jl.
+
+include("test_data.jl")
+include("fixtures.jl")
+using OpenSourceRoutingMachine
+using Random
+
+"""
+    generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat; noise_meters=10.0, max_points=50)
+
+Compute a route between two points, extract the path coordinates, and add random noise.
+Returns a vector of (longitude, latitude) tuples suitable for match testing.
+If routing fails, falls back to interpolating along a straight line with noise.
+"""
+function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat; noise_meters=10.0, max_points=50)
+    # First, try to snap points using nearest service
+    start_snapped = try
+        np = NearestParams()
+        add_coordinate!(np, start_lon, start_lat)
+        nearest_resp = nearest(osrm, np)
+        if count(nearest_resp) > 0
+            (longitude(nearest_resp, 0), latitude(nearest_resp, 0))
+        else
+            (start_lon, start_lat)
+        end
+    catch
+        (start_lon, start_lat)
+    end
+
+    end_snapped = try
+        np = NearestParams()
+        add_coordinate!(np, end_lon, end_lat)
+        nearest_resp = nearest(osrm, np)
+        if count(nearest_resp) > 0
+            (longitude(nearest_resp, 0), latitude(nearest_resp, 0))
+        else
+            (end_lon, end_lat)
+        end
+    catch
+        (end_lon, end_lat)
+    end
+
+    # Try to compute route between snapped points
+    route_coords = try
+        route_params = RouteParams()
+        add_coordinate!(route_params, start_snapped[1], start_snapped[2])
+        add_coordinate!(route_params, end_snapped[1], end_snapped[2])
+
+        route_response = route(osrm, route_params)
+
+        # Extract geometry coordinates
+        coord_count = geometry_coordinate_count(route_response, 0)
+        if coord_count > 0
+            # Sample coordinates (take every Nth coordinate if too many)
+            step = max(1, coord_count ÷ max_points)
+            sampled_indices = 1:step:coord_count
+
+            coords = Vector{Tuple{Float32, Float32}}()
+            for i in sampled_indices
+                lat = geometry_coordinate_latitude(route_response, 0, i - 1)  # 0-indexed
+                lon = geometry_coordinate_longitude(route_response, 0, i - 1)
+                push!(coords, (lon, lat))
+            end
+            coords
+        else
+            nothing
+        end
+    catch
+        nothing
+    end
+
+    # If routing failed, interpolate along a straight line
+    if route_coords === nothing
+        num_points = max_points
+        coords = Vector{Tuple{Float32, Float32}}()
+        for i in 0:(num_points-1)
+            t = i / (num_points - 1)
+            lat = start_snapped[2] + t * (end_snapped[2] - start_snapped[2])
+            lon = start_snapped[1] + t * (end_snapped[1] - start_snapped[1])
+            push!(coords, (lon, lat))
+        end
+        route_coords = coords
+    end
+
+    # Add random noise to all coordinates
+    noisy_coords = Vector{Tuple{Float32, Float32}}()
+    for (lon, lat) in route_coords
+        # Add random noise (convert meters to approximate degrees)
+        # Rough approximation: 1 degree latitude ≈ 111km, 1 degree longitude ≈ 111km * cos(latitude)
+        lat_noise = noise_meters / 111000.0 * (2 * rand() - 1)  # ±noise_meters in degrees
+        lon_noise = noise_meters / (111000.0 * cos(deg2rad(lat))) * (2 * rand() - 1)
+
+        push!(noisy_coords, (Float32(lon + lon_noise), Float32(lat + lat_noise)))
+    end
+
+    return noisy_coords
+end
+
+# Set random seed for reproducibility
+Random.seed!(42)
+
+# Generate test coordinates
+osrm = Fixtures.get_test_osrm()
+
+println("Generating match test coordinates...")
+
+# Helper to get coordinates from a route (without noise)
+function get_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat, max_points=20)
+    # Snap points using nearest
+    start_snapped = try
+        np = NearestParams()
+        add_coordinate!(np, start_lon, start_lat)
+        nearest_resp = nearest(osrm, np)
+        if count(nearest_resp) > 0
+            (longitude(nearest_resp, 0), latitude(nearest_resp, 0))
+        else
+            (start_lon, start_lat)
+        end
+    catch
+        (start_lon, start_lat)
+    end
+
+    end_snapped = try
+        np = NearestParams()
+        add_coordinate!(np, end_lon, end_lat)
+        nearest_resp = nearest(osrm, np)
+        if count(nearest_resp) > 0
+            (longitude(nearest_resp, 0), latitude(nearest_resp, 0))
+        else
+            (end_lon, end_lat)
+        end
+    catch
+        (end_lon, end_lat)
+    end
+
+    # Try to compute route
+    try
+        route_params = RouteParams()
+        add_coordinate!(route_params, start_snapped[1], start_snapped[2])
+        add_coordinate!(route_params, end_snapped[1], end_snapped[2])
+
+        route_response = route(osrm, route_params)
+
+        coord_count = geometry_coordinate_count(route_response, 0)
+        if coord_count > 0
+            step = max(1, coord_count ÷ max_points)
+            sampled_indices = 1:step:coord_count
+
+            coords = Vector{Tuple{Float32, Float32}}()
+            for i in sampled_indices
+                lat = geometry_coordinate_latitude(route_response, 0, i - 1)
+                lon = geometry_coordinate_longitude(route_response, 0, i - 1)
+                push!(coords, (lon, lat))
+            end
+            return coords
+        end
+    catch
+    end
+
+    # Fallback: interpolate between snapped points
+    num_points = max_points
+    coords = Vector{Tuple{Float32, Float32}}()
+    for i in 0:(num_points-1)
+        t = i / (num_points - 1)
+        lat = start_snapped[2] + t * (end_snapped[2] - start_snapped[2])
+        lon = start_snapped[1] + t * (end_snapped[1] - start_snapped[1])
+        push!(coords, (lon, lat))
+    end
+    return coords
+end
+
+# Helper to validate coordinates produce a valid match
+function validate_match_coordinates(osrm, coords)
+    params = MatchParams()
+    for (lon, lat) in coords
+        add_coordinate!(params, lon, lat)
+    end
+    try
+        response = match(osrm, params)
+        route_cnt = route_count(response)
+        return route_cnt > 0
+    catch
+        return false
+    end
+end
+
+# Helper to find working coordinates by trying nearby points
+function find_working_match_coordinates(osrm, center_lon, center_lat, max_distance_km=5.0)
+    # Start from center and try to find a route to nearby points
+    np = NearestParams()
+    add_coordinate!(np, center_lon, center_lat)
+    nearest_resp = nearest(osrm, np)
+    if count(nearest_resp) == 0
+        return nothing
+    end
+
+    center_snapped = (longitude(nearest_resp, 0), latitude(nearest_resp, 0))
+
+    # Try points in different directions
+    for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]
+        angle_rad = deg2rad(angle_deg)
+        # Try different distances
+        for dist_km in [1.0, 2.0, 3.0, 5.0]
+            # Calculate destination point
+            lat_offset = dist_km / 111.0  # rough km to degrees
+            lon_offset = dist_km / (111.0 * cos(deg2rad(center_snapped[2])))
+
+            dest_lon = center_snapped[1] + lon_offset * cos(angle_rad)
+            dest_lat = center_snapped[2] + lat_offset * sin(angle_rad)
+
+            # Try to get route coordinates
+            coords = get_route_coordinates(osrm, center_snapped[1], center_snapped[2], dest_lon, dest_lat, 15)
+
+            # Validate match
+            if validate_match_coordinates(osrm, coords)
+                return coords
+            end
+        end
+    end
+    return nothing
+end
+
+# Generate coordinates by finding working routes from city center
+println("Generating CITY_CENTER_TO_AIRPORT...")
+global MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT = find_working_match_coordinates(
+    osrm, Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2], 5.0
+)
+if MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT === nothing
+    # Fallback: use route coordinates without noise
+    coords = get_route_coordinates(
+        osrm,
+        Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2],
+        Fixtures.HAMBURG_AIRPORT[1], Fixtures.HAMBURG_AIRPORT[2],
+        15
+    )
+    # Add minimal noise
+    coords = [(lon + 0.0001f0 * (2 * rand() - 1), lat + 0.0001f0 * (2 * rand() - 1)) for (lon, lat) in coords]
+    if validate_match_coordinates(osrm, coords)
+        global MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT = coords
+    else
+        error("Failed to generate valid match coordinates for CITY_CENTER_TO_AIRPORT")
+    end
+else
+    println("  ✓ Found working coordinates")
+end
+
+println("Generating CITY_CENTER_TO_PORT...")
+global MATCH_TEST_COORDS_CITY_CENTER_TO_PORT = find_working_match_coordinates(
+    osrm, Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2], 5.0
+)
+if MATCH_TEST_COORDS_CITY_CENTER_TO_PORT === nothing
+    coords = get_route_coordinates(
+        osrm,
+        Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2],
+        Fixtures.HAMBURG_PORT[1], Fixtures.HAMBURG_PORT[2],
+        15
+    )
+    coords = [(lon + 0.0001f0 * (2 * rand() - 1), lat + 0.0001f0 * (2 * rand() - 1)) for (lon, lat) in coords]
+    if validate_match_coordinates(osrm, coords)
+        global MATCH_TEST_COORDS_CITY_CENTER_TO_PORT = coords
+    else
+        error("Failed to generate valid match coordinates for CITY_CENTER_TO_PORT")
+    end
+else
+    println("  ✓ Found working coordinates")
+end
+
+println("Generating CITY_CENTER_TO_ALTONA...")
+global MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA = find_working_match_coordinates(
+    osrm, Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2], 5.0
+)
+if MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA === nothing
+    coords = get_route_coordinates(
+        osrm,
+        Fixtures.HAMBURG_CITY_CENTER[1], Fixtures.HAMBURG_CITY_CENTER[2],
+        Fixtures.HAMBURG_ALTONA[1], Fixtures.HAMBURG_ALTONA[2],
+        15
+    )
+    coords = [(lon + 0.0001f0 * (2 * rand() - 1), lat + 0.0001f0 * (2 * rand() - 1)) for (lon, lat) in coords]
+    if validate_match_coordinates(osrm, coords)
+        global MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA = coords
+    else
+        error("Failed to generate valid match coordinates for CITY_CENTER_TO_ALTONA")
+    end
+else
+    println("  ✓ Found working coordinates")
+end
+
+# Generate multi-segment from working coordinates
+println("Generating MULTI_SEGMENT...")
+if MATCH_TEST_COORDS_CITY_CENTER_TO_PORT !== nothing && MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA !== nothing
+    # Use first half of PORT route and second half of ALTONA route
+    mid = length(MATCH_TEST_COORDS_CITY_CENTER_TO_PORT) ÷ 2
+    global MATCH_TEST_COORDS_MULTI_SEGMENT = vcat(
+        MATCH_TEST_COORDS_CITY_CENTER_TO_PORT[1:mid],
+        MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA[(mid+1):end]
+    )
+    if !validate_match_coordinates(osrm, MATCH_TEST_COORDS_MULTI_SEGMENT)
+        # Try simpler approach
+        global MATCH_TEST_COORDS_MULTI_SEGMENT = vcat(
+            MATCH_TEST_COORDS_CITY_CENTER_TO_PORT,
+            MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA[2:end]
+        )
+    end
+    println("  ✓ Created multi-segment route")
+else
+    error("Failed to generate valid match coordinates for MULTI_SEGMENT")
+end
+
+println("Generated test coordinates:")
+println("  CITY_CENTER_TO_AIRPORT: $(length(MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT)) points")
+println("  CITY_CENTER_TO_PORT: $(length(MATCH_TEST_COORDS_CITY_CENTER_TO_PORT)) points")
+println("  CITY_CENTER_TO_ALTONA: $(length(MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA)) points")
+println("  MULTI_SEGMENT: $(length(MATCH_TEST_COORDS_MULTI_SEGMENT)) points")
+
+# Output as Julia code that can be pasted into fixtures.jl
+println("\n=== Copy the following into fixtures.jl ===")
+println()
+println("# Match test coordinates (generated by generate_match_test_data.jl)")
+println("const MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT = [")
+for (lon, lat) in MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
+    println("    ($lon, $lat),")
+end
+println("]")
+println()
+println("const MATCH_TEST_COORDS_CITY_CENTER_TO_PORT = [")
+for (lon, lat) in MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
+    println("    ($lon, $lat),")
+end
+println("]")
+println()
+println("const MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA = [")
+for (lon, lat) in MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA
+    println("    ($lon, $lat),")
+end
+println("]")
+println()
+println("const MATCH_TEST_COORDS_MULTI_SEGMENT = [")
+for (lon, lat) in MATCH_TEST_COORDS_MULTI_SEGMENT
+    println("    ($lon, $lat),")
+end
+println("]")
