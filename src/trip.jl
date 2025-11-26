@@ -55,8 +55,9 @@ waypoint_count(response::TripResponse) =
     waypoint_latitude(response::TripResponse, index) -> Float32
 """
 function waypoint_latitude(response::TripResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_trip_response_waypoint_latitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_trip_response_waypoint_latitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -64,8 +65,9 @@ end
     waypoint_longitude(response::TripResponse, index) -> Float32
 """
 function waypoint_longitude(response::TripResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 

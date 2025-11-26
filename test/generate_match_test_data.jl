@@ -21,7 +21,7 @@ function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, e
         add_coordinate!(np, LatLon(start_lat, start_lon))
         nearest_resp = nearest(osrm, np)
         if count(nearest_resp) > 0
-            LatLon(latitude(nearest_resp, 0), longitude(nearest_resp, 0))
+            LatLon(latitude(nearest_resp, 1), longitude(nearest_resp, 1))
         else
             LatLon(start_lat, start_lon)
         end
@@ -34,7 +34,7 @@ function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, e
         add_coordinate!(np, LatLon(end_lat, end_lon))
         nearest_resp = nearest(osrm, np)
         if count(nearest_resp) > 0
-            LatLon(latitude(nearest_resp, 0), longitude(nearest_resp, 0))
+            LatLon(latitude(nearest_resp, 1), longitude(nearest_resp, 1))
         else
             LatLon(end_lat, end_lon)
         end
@@ -51,7 +51,7 @@ function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, e
         route_response = route(osrm, route_params)
 
         # Extract geometry coordinates
-        coord_count = geometry_coordinate_count(route_response, 0)
+        coord_count = geometry_coordinate_count(route_response, 1)
         if coord_count > 0
             # Sample coordinates (take every Nth coordinate if too many)
             step = max(1, coord_count ÷ max_points)
@@ -59,8 +59,8 @@ function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, e
 
             coords = Vector{LatLon}()
             for i in sampled_indices
-                lat = geometry_coordinate_latitude(route_response, 0, i - 1)  # 0-indexed
-                lon = geometry_coordinate_longitude(route_response, 0, i - 1)
+                lat = geometry_coordinate_latitude(route_response, 1, i)  # 1-based indexing
+                lon = geometry_coordinate_longitude(route_response, 1, i)
                 push!(coords, LatLon(lat, lon))
             end
             coords
@@ -75,7 +75,7 @@ function generate_noisy_route_coordinates(osrm, start_lon, start_lat, end_lon, e
     if route_coords === nothing
         num_points = max_points
         coords = Vector{LatLon}()
-        for i in 0:(num_points-1)
+        for i in 1:num_points
             t = i / (num_points - 1)
             lat = start_snapped.lat + t * (end_snapped.lat - start_snapped.lat)
             lon = start_snapped.lon + t * (end_snapped.lon - start_snapped.lon)
@@ -114,7 +114,7 @@ function get_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat, max
         add_coordinate!(np, LatLon(start_lat, start_lon))
         nearest_resp = nearest(osrm, np)
         if count(nearest_resp) > 0
-            LatLon(latitude(nearest_resp, 0), longitude(nearest_resp, 0))
+            LatLon(latitude(nearest_resp, 1), longitude(nearest_resp, 1))
         else
             LatLon(start_lat, start_lon)
         end
@@ -127,7 +127,7 @@ function get_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat, max
         add_coordinate!(np, LatLon(end_lat, end_lon))
         nearest_resp = nearest(osrm, np)
         if count(nearest_resp) > 0
-            LatLon(latitude(nearest_resp, 0), longitude(nearest_resp, 0))
+            LatLon(latitude(nearest_resp, 1), longitude(nearest_resp, 1))
         else
             LatLon(end_lat, end_lon)
         end
@@ -143,15 +143,15 @@ function get_route_coordinates(osrm, start_lon, start_lat, end_lon, end_lat, max
 
         route_response = route(osrm, route_params)
 
-        coord_count = geometry_coordinate_count(route_response, 0)
+        coord_count = geometry_coordinate_count(route_response, 1)
         if coord_count > 0
             step = max(1, coord_count ÷ max_points)
             sampled_indices = 1:step:coord_count
 
             coords = Vector{LatLon}()
             for i in sampled_indices
-                lat = geometry_coordinate_latitude(route_response, 0, i - 1)
-                lon = geometry_coordinate_longitude(route_response, 0, i - 1)
+                lat = geometry_coordinate_latitude(route_response, 1, i)
+                lon = geometry_coordinate_longitude(route_response, 1, i)
                 push!(coords, LatLon(lat, lon))
             end
             return coords

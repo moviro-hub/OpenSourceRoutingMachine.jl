@@ -191,24 +191,27 @@ function add_coordinate_with!(params::OSRMParams, coord::LatLon, radius::Real, b
 end
 
 function set_hint!(params::OSRMParams, coordinate_index::Integer, hint::AbstractString)
+    @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_hint(params.ptr, Csize_t(coordinate_index), _cstring(hint), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_hint(params.ptr, Csize_t(coordinate_index - 1), _cstring(hint), _error_ptr(error_ptr))
         nothing
     end
     params
 end
 
 function set_radius!(params::OSRMParams, coordinate_index::Integer, radius::Real)
+    @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_radius(params.ptr, Csize_t(coordinate_index), Cdouble(radius), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_radius(params.ptr, Csize_t(coordinate_index - 1), Cdouble(radius), _error_ptr(error_ptr))
         nothing
     end
     params
 end
 
 function set_bearing!(params::OSRMParams, coordinate_index::Integer, value::Integer, range::Integer)
+    @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_bearing(params.ptr, Csize_t(coordinate_index), Cint(value), Cint(range), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_bearing(params.ptr, Csize_t(coordinate_index - 1), Cint(value), Cint(range), _error_ptr(error_ptr))
         nothing
     end
     params
@@ -221,9 +224,10 @@ Hints OSRM about which side of the road is acceptable, reducing snapped routes
 that require U-turns when curb constraints matter.
 """
 function set_approach!(params::OSRMParams, coordinate_index::Integer, approach)
+    @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     code = to_cint(approach, Approach)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index), code, _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index - 1), code, _error_ptr(error_ptr))
         nothing
     end
     params
@@ -397,8 +401,9 @@ Marks the current coordinate as a waypoint so OSRM reports where routes diverge
 or visit intermediate stops.
 """
 function add_waypoint!(params::RouteParams, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_add_waypoint(params.ptr, Csize_t(index), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
     params
@@ -425,8 +430,9 @@ Selects which coordinate acts as a source so you can build sparse matrices
 without reallocating params for each subset.
 """
 function add_source!(params::TableParams, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_add_source(params.ptr, Csize_t(index), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_add_source(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
     params
@@ -439,8 +445,9 @@ Same as `add_source!` but for destinations, enabling asymmetric matrices when
 needed.
 """
 function add_destination!(params::TableParams, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_add_destination(params.ptr, Csize_t(index), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_add_destination(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
     params
@@ -627,8 +634,9 @@ Locks a coordinate index as a fixed visit, which is necessary when mixing
 mandatory stops with OSRM's optimized order.
 """
 function add_waypoint!(params::TripParams, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_trip_params_add_waypoint(params.ptr, Csize_t(index), _error_ptr(error_ptr))
+        CWrapper.osrmc_trip_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
     params

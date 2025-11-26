@@ -37,10 +37,10 @@ using .Fixtures
 
         # If we have results, check their properties
         if result_cnt > 0
-            result_lat = latitude(response, 0)
-            result_lon = longitude(response, 0)
-            result_dist = distance(response, 0)
-            result_name = name(response, 0)
+            result_lat = latitude(response, 1)
+            result_lon = longitude(response, 1)
+            result_dist = distance(response, 1)
+            result_name = name(response, 1)
 
             @test -90.0f0 <= result_lat <= 90.0f0
             @test -180.0f0 <= result_lon <= 180.0f0
@@ -136,10 +136,10 @@ end
 
         if result_cnt > 0
             # Test accessing first result
-            result_lat = latitude(response, 0)
-            result_lon = longitude(response, 0)
-            result_dist = distance(response, 0)
-            result_name = name(response, 0)
+            result_lat = latitude(response, 1)
+            result_lon = longitude(response, 1)
+            result_dist = distance(response, 1)
+            result_name = name(response, 1)
 
             @test -90.0f0 <= result_lat <= 90.0f0
             @test -180.0f0 <= result_lon <= 180.0f0
@@ -176,8 +176,8 @@ end
 
         if result_cnt > 1
             # Check that distances are in ascending order
-            prev_dist = distance(response, 0)
-            for i in 1:(result_cnt - 1)
+            prev_dist = distance(response, 1)
+            for i in 2:result_cnt
                 curr_dist = distance(response, i)
                 @test curr_dist >= prev_dist
                 prev_dist = curr_dist
@@ -254,7 +254,7 @@ end
         if result_cnt == 0
             # If no results, accessing index 0 should either throw or return a default value
             try
-                lat = latitude(response, 0)
+                lat = latitude(response, 1)
                 @test true  # If it doesn't throw, that's acceptable
             catch e
                 @test e isa OSRMError
@@ -292,9 +292,9 @@ end
             @test result_cnt >= 0
 
             if result_cnt > 0
-                result_lat = latitude(response, 0)
-                result_lon = longitude(response, 0)
-                result_dist = distance(response, 0)
+                result_lat = latitude(response, 1)
+                result_lon = longitude(response, 1)
+                result_dist = distance(response, 1)
 
                 @test -90.0f0 <= result_lat <= 90.0f0
                 @test -180.0f0 <= result_lon <= 180.0f0
@@ -355,7 +355,7 @@ end
         result_cnt = count(response)
 
         if result_cnt > 0
-            result_dist = distance(response, 0)
+            result_dist = distance(response, 1)
             # For a coordinate in a city center, the nearest road should be very close
             # (typically within a few hundred meters)
             @test result_dist < 1000.0f0  # Less than 1km

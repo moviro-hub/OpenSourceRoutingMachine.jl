@@ -67,8 +67,9 @@ Fetch the distance for a specific alternative instead of assuming the primary
 route is always desired.
 """
 function distance_at(response::RouteResponse, route_index::Integer)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_distance_at(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_route_response_distance_at(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
@@ -79,38 +80,43 @@ Per-alternative durations help heuristics compare ETA differences before
 downloading geometries.
 """
 function duration_at(response::RouteResponse, route_index::Integer)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_duration_at(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_route_response_duration_at(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
 """
-    geometry_polyline(response, route_index=0) -> String
+    geometry_polyline(response, route_index=1) -> String
 
 Return the encoded polyline OSRM generated so clients can render it without
 reconstructing geometries.
 """
-function geometry_polyline(response::RouteResponse, route_index::Integer = 0)
+function geometry_polyline(response::RouteResponse, route_index::Integer = 1)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
-        CWrapper.osrmc_route_response_geometry_polyline(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_route_response_geometry_polyline(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
     return unsafe_string(cstr)
 end
 
-geometry_coordinate_count(response::RouteResponse, route_index::Integer = 0) =
+geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     Int(with_error() do err
-        CWrapper.osrmc_route_response_geometry_coordinate_count(response.ptr, Cuint(route_index), error_pointer(err))
+        @assert route_index >= 1 "Julia uses 1-based indexing"
+        CWrapper.osrmc_route_response_geometry_coordinate_count(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end)
 
 function geometry_coordinate_latitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
+    @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_geometry_coordinate_latitude(response.ptr, Cuint(route_index), Cuint(coord_index), error_pointer(err))
+        CWrapper.osrmc_route_response_geometry_coordinate_latitude(response.ptr, Cuint(route_index - 1), Cuint(coord_index - 1), error_pointer(err))
     end
 end
 
 function geometry_coordinate_longitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
+    @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_geometry_coordinate_longitude(response.ptr, Cuint(route_index), Cuint(coord_index), error_pointer(err))
+        CWrapper.osrmc_route_response_geometry_coordinate_longitude(response.ptr, Cuint(route_index - 1), Cuint(coord_index - 1), error_pointer(err))
     end
 end
 
@@ -120,51 +126,59 @@ waypoint_count(response::RouteResponse) =
     end)
 
 function waypoint_latitude(response::RouteResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_waypoint_latitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_route_response_waypoint_latitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
 function waypoint_longitude(response::RouteResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_waypoint_longitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_route_response_waypoint_longitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
 function waypoint_name(response::RouteResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
-        CWrapper.osrmc_route_response_waypoint_name(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_route_response_waypoint_name(response.ptr, Cuint(index - 1), error_pointer(err))
     end
     return unsafe_string(cstr)
 end
 
-function leg_count(response::RouteResponse, route_index::Integer = 0)
+function leg_count(response::RouteResponse, route_index::Integer = 1)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     Int(with_error() do err
-        CWrapper.osrmc_route_response_leg_count(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_route_response_leg_count(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end)
 end
 
 function step_count(response::RouteResponse, route_index::Integer, leg_index::Integer)
+    @assert route_index >= 1 && leg_index >= 1 "Julia uses 1-based indexing"
     Int(with_error() do err
-        CWrapper.osrmc_route_response_step_count(response.ptr, Cuint(route_index), Cuint(leg_index), error_pointer(err))
+        CWrapper.osrmc_route_response_step_count(response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), error_pointer(err))
     end)
 end
 
 function step_distance(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+    @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_step_distance(response.ptr, Cuint(route_index), Cuint(leg_index), Cuint(step_index), error_pointer(err))
+        CWrapper.osrmc_route_response_step_distance(response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))
     end
 end
 
 function step_duration(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+    @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_route_response_step_duration(response.ptr, Cuint(route_index), Cuint(leg_index), Cuint(step_index), error_pointer(err))
+        CWrapper.osrmc_route_response_step_duration(response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))
     end
 end
 
 function step_instruction(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+    @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
-        CWrapper.osrmc_route_response_step_instruction(response.ptr, Cuint(route_index), Cuint(leg_index), Cuint(step_index), error_pointer(err))
+        CWrapper.osrmc_route_response_step_instruction(response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))
     end
     return unsafe_string(cstr)
 end
@@ -204,7 +218,7 @@ API without exposing raw pointers.
 function route_with(osrm::OSRM, params::RouteParams, handler::Function, data::Any)
     response = route(osrm, params)
     count = waypoint_count(response)
-    for idx in 0:(count - 1)
+    for idx in 1:count
         name = try
             waypoint_name(response, idx)
         catch

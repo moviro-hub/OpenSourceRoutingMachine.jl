@@ -46,8 +46,9 @@ count(response::NearestResponse) =
 Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
 """
 function latitude(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -57,8 +58,9 @@ end
 Pairs with `latitude` to reconstruct snapped coordinates for visualization.
 """
 function longitude(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -69,8 +71,9 @@ Pull the textual label directly from OSRM to keep UI strings consistent with
 the engine.
 """
 function name(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
-        CWrapper.osrmc_nearest_response_name(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_nearest_response_name(response.ptr, Cuint(index - 1), error_pointer(err))
     end
     return unsafe_string(cstr)
 end
@@ -81,8 +84,9 @@ end
 Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
 """
 function distance(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 

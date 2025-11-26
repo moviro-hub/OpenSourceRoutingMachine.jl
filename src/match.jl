@@ -57,8 +57,9 @@ Let OSRM be the source of truth for cumulative distance instead of re-integratin
 coordinates client-side.
 """
 function route_distance(response::MatchResponse, route_index::Integer)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_match_response_route_distance(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_match_response_route_distance(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
@@ -69,8 +70,9 @@ Reuses OSRM's travel time heuristics so Julia callers stay aligned with server
 estimates.
 """
 function route_duration(response::MatchResponse, route_index::Integer)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_match_response_route_duration(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_match_response_route_duration(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
@@ -81,8 +83,9 @@ Surface OSRM's built-in confidence metric so applications can fall back when a
 match looks unreliable.
 """
 function route_confidence(response::MatchResponse, route_index::Integer)
+    @assert route_index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_match_response_route_confidence(response.ptr, Cuint(route_index), error_pointer(err))
+        CWrapper.osrmc_match_response_route_confidence(response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
@@ -93,8 +96,9 @@ Inspect where OSRM snapped a point without leaving Julia, useful for debugging
 GPS drift.
 """
 function tracepoint_latitude(response::MatchResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_match_response_tracepoint_latitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_match_response_tracepoint_latitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -105,8 +109,9 @@ Pairs with `tracepoint_latitude` to reconstruct snapped coordinates for
 visualization layers.
 """
 function tracepoint_longitude(response::MatchResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     with_error() do err
-        CWrapper.osrmc_match_response_tracepoint_longitude(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_match_response_tracepoint_longitude(response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -117,8 +122,9 @@ Flags unmatched points so callers can remove or interpolate them before further
 processing.
 """
 function tracepoint_is_null(response::MatchResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
     result = with_error() do err
-        CWrapper.osrmc_match_response_tracepoint_is_null(response.ptr, Cuint(index), error_pointer(err))
+        CWrapper.osrmc_match_response_tracepoint_is_null(response.ptr, Cuint(index - 1), error_pointer(err))
     end
     return result != 0
 end

@@ -45,9 +45,9 @@ using .Fixtures
 
         # If we have routes, check their properties
         if route_cnt > 0
-            dist = route_distance(response, 0)
-            dur = route_duration(response, 0)
-            conf = route_confidence(response, 0)
+            dist = route_distance(response, 1)
+            dur = route_duration(response, 1)
+            conf = route_confidence(response, 1)
 
             @test dist >= 0.0f0
             @test dur >= 0.0f0
@@ -61,7 +61,7 @@ using .Fixtures
 
         # Check tracepoints
         if tracepoint_cnt > 0
-            for i in 0:(tracepoint_cnt - 1)
+            for i in 1:tracepoint_cnt
                 is_null = tracepoint_is_null(response, i)
                 @test isa(is_null, Bool)
 
@@ -215,9 +215,9 @@ end
 
         if route_cnt > 0
             # Test accessing first route
-            dist = route_distance(response, 0)
-            dur = route_duration(response, 0)
-            conf = route_confidence(response, 0)
+            dist = route_distance(response, 1)
+            dur = route_duration(response, 1)
+            conf = route_confidence(response, 1)
 
             @test dist >= 0.0f0
             @test dur >= 0.0f0
@@ -245,8 +245,8 @@ end
             @test isa(is_null, Bool)
 
             if !is_null
-                lat = tracepoint_latitude(response, 0)
-                lon = tracepoint_longitude(response, 0)
+                lat = tracepoint_latitude(response, 1)
+                lon = tracepoint_longitude(response, 1)
 
                 @test -90.0f0 <= lat <= 90.0f0
                 @test -180.0f0 <= lon <= 180.0f0
@@ -333,7 +333,7 @@ end
         if route_cnt == 0
             # If no routes, accessing index 0 should either throw or return a default value
             try
-                dist = route_distance(response, 0)
+                dist = route_distance(response, 1)
                 @test true  # If it doesn't throw, that's acceptable
             catch e
                 @test e isa OSRMError
@@ -401,7 +401,7 @@ end
 
         if route_cnt > 0
             dist = route_distance(response, 0)
-            dur = route_duration(response, 0)
+            dur = route_duration(response, 1)
             @test dist >= 0.0f0
             @test dur >= 0.0f0
             @test isfinite(dist)

@@ -59,9 +59,9 @@ response = nearest(osrm, params)
 count(response)  # Number of results
 
 # Access first result
-lat = latitude(response, 0)
-lon = longitude(response, 0)
-name_str = name(response, 0)
+lat = latitude(response, 1)
+lon = longitude(response, 1)
+name_str = name(response, 1)
 ```
 
 ### Map Matching
@@ -75,8 +75,8 @@ add_coordinate!(params, LatLon(53.5513, 9.9945))
 response = match(osrm, params)
 route_cnt = route_count(response)
 if route_cnt > 0
-    dist = route_distance(response, 0)
-    conf = route_confidence(response, 0)
+    dist = route_distance(response, 1)
+    conf = route_confidence(response, 1)
 end
 ```
 
@@ -91,10 +91,10 @@ add_coordinate!(params, LatLon(53.5417, 9.9667))  # Index 2
 add_coordinate!(params, LatLon(53.5528, 9.9352))  # Index 3
 
 # Mark which coordinates are sources and destinations
-add_source!(params, 0)
 add_source!(params, 1)
-add_destination!(params, 2)
+add_source!(params, 2)
 add_destination!(params, 3)
+add_destination!(params, 4)
 
 response = table(osrm, params)
 # Access distance/duration between sources and destinations

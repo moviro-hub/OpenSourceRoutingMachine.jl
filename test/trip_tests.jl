@@ -42,8 +42,8 @@ import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_lat
     @test count >= 2
 
     try
-        lat = waypoint_latitude(response, 0)
-        lon = waypoint_longitude(response, 0)
+        lat = waypoint_latitude(response, 1)
+        lon = waypoint_longitude(response, 1)
         @test -90.0f0 <= lat <= 90.0f0
         @test -180.0f0 <= lon <= 180.0f0
         @test isfinite(lat)
@@ -71,7 +71,7 @@ end
     add_source!(params, "first")
     add_destination!(params, "last")
     clear_waypoints!(params)
-    add_waypoint!(params, 0)
+    add_waypoint!(params, 1)
     add_waypoint!(params, 1)
 
     osrm = Fixtures.get_test_osrm()
