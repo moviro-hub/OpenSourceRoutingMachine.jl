@@ -6,13 +6,12 @@ module Enums
 using EnumX: @enumx
 # byname is used via EnumX.byname() call
 
-export Algorithm, OutputFormat, Snapping, Approach, Profile
-export to_cint
+export Algorithm, OutputFormat, Snapping, Approach, Profile, to_cint
 
 @enumx Algorithm::Cint begin
     ch = Cint(0)
     mld = Cint(1)
-end # module Enums
+end
 
 @enumx OutputFormat::Cint begin
     json = Cint(0)

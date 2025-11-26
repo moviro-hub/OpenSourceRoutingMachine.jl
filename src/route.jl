@@ -9,7 +9,30 @@ using ..Error: Error
 using ..Utils: Utils
 using ..Config: Config
 using ..Params: Params
-import ..OpenSourceRoutingMachine: distance, duration
+import ..OpenSourceRoutingMachine: distance, duration, as_json
+
+export
+    RouteResponse,
+    route,
+    as_json,
+    distance,
+    duration,
+    alternative_count,
+    distance_at,
+    duration_at,
+    geometry_polyline,
+    geometry_coordinate_count,
+    geometry_coordinate_latitude,
+    geometry_coordinate_longitude,
+    waypoint_count,
+    waypoint_latitude,
+    waypoint_longitude,
+    waypoint_name,
+    leg_count,
+    step_count,
+    step_distance,
+    step_duration,
+    step_instruction
 
 """
     RouteResponse
@@ -26,6 +49,32 @@ mutable struct RouteResponse
         Utils._finalize_response!(response, CWrapper.osrmc_route_response_destruct)
         return response
     end
+end
+
+"""
+    route(osrm::OSRM, params::RouteParams) -> RouteResponse
+
+Calls the libosrmc Route endpoint directly, avoiding HTTP and keeping responses
+in-memory.
+"""
+function route(osrm::Config.OSRM, params::Params.RouteParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_route(osrm.ptr, params.ptr, Error.error_pointer(err))
+    end
+    return RouteResponse(ptr)
+end
+
+"""
+    as_json(response::RouteResponse) -> String
+
+Provide the canonical OSRM JSON payload for logging or interoperability with
+existing tooling.
+"""
+function as_json(response::RouteResponse)
+    blob = Error.with_error() do err
+        CWrapper.osrmc_route_response_json(response.ptr, Error.error_pointer(err))
+    end
+    return Utils.blob_to_string(blob)
 end
 
 """
@@ -194,54 +243,6 @@ function step_instruction(response::RouteResponse, route_index::Integer, leg_ind
         CWrapper.osrmc_route_response_step_instruction(response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), Error.error_pointer(err))
     end
     return unsafe_string(cstr)
-end
-
-"""
-    route(osrm::OSRM, params::RouteParams) -> RouteResponse
-
-Calls the libosrmc Route endpoint directly, avoiding HTTP and keeping responses
-in-memory.
-"""
-function route(osrm::Config.OSRM, params::Params.RouteParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_route(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return RouteResponse(ptr)
-end
-
-"""
-    as_json(response::RouteResponse) -> String
-
-Provide the canonical OSRM JSON payload for logging or interoperability with
-existing tooling.
-"""
-function as_json(response::RouteResponse)
-    blob = Error.with_error() do err
-        CWrapper.osrmc_route_response_json(response.ptr, Error.error_pointer(err))
-    end
-    return Utils.blob_to_string(blob)
-end
-
-"""
-    route_with(osrm::OSRM, params::RouteParams, handler::Function, data::Any)
-
-Streams each waypoint into a Julia callback, which mimics libosrm's C callback
-API without exposing raw pointers.
-"""
-function route_with(osrm::Config.OSRM, params::Params.RouteParams, handler::Function, data::Any)
-    response = route(osrm, params)
-    count = waypoint_count(response)
-    for idx in 1:count
-        name = try
-            waypoint_name(response, idx)
-        catch
-            ""
-        end
-        lat = waypoint_latitude(response, idx)
-        lon = waypoint_longitude(response, idx)
-        handler(data, name, Float32(lat), Float32(lon))
-    end
-    return nothing
 end
 
 end # module Route

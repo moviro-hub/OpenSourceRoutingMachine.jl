@@ -107,22 +107,20 @@ Before using OSRM services, you need to build a graph from OpenStreetMap data:
 ```julia
 using OpenSourceRoutingMachine
 
-# Build MLD graph (default, recommended)
+osm_path = "hamburg-latest.osm.pbf"
+
 # Output files are created in the same directory as the input with the same base name
-build_mld_graph(
-    osm_path = "hamburg-latest.osm.pbf",
-    profile = Profile.car
-)
+
+
+# Build MLD graph (recommended for most use cases)
+extract(osm_path; profile = Profile.car)
+partition(osm_path)
+customize(osm_path)
 
 # Or build CH graph
-build_ch_graph(
-    osm_path = "hamburg-latest.osm.pbf",
-    profile = Profile.car
-)
+extract(osm_path; profile = Profile.car)
+contract(osm_path)
 
-# Then create config pointing to the graph (base name without extensions)
-config = OSRMConfig("hamburg-latest")
-osrm = OSRM(config)
 ```
 
 ## API Overview

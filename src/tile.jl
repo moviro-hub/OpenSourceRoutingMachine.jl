@@ -8,6 +8,8 @@ using ..Error: Error
 using ..Config: Config
 using ..Params: Params
 
+export TileResponse, tile, data, size
+
 """
     TileResponse
 
@@ -31,16 +33,17 @@ mutable struct TileResponse
 end
 
 """
-    size(response::TileResponse) -> Int
+    tile(osrm::OSRM, params::TileParams) -> TileResponse
 
-Get the raw byte size of the vector tile payload.
+Query the Tile service and return a response object.
 """
-size(response::TileResponse) =
-    Int(
-    Error.with_error() do err
-        CWrapper.osrmc_tile_response_size(response.ptr, Error.error_pointer(err))
+function tile(osrm::Config.OSRM, params::Params.TileParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_tile(osrm.ptr, params.ptr, Error.error_pointer(err))
     end
-)
+    return TileResponse(ptr)
+end
+
 
 """
     data(response::TileResponse) -> Vector{UInt8}
@@ -60,15 +63,15 @@ function data(response::TileResponse)
 end
 
 """
-    tile(osrm::OSRM, params::TileParams) -> TileResponse
+    size(response::TileResponse) -> Int
 
-Query the Tile service and return a response object.
+Get the raw byte size of the vector tile payload.
 """
-function tile(osrm::Config.OSRM, params::Params.TileParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_tile(osrm.ptr, params.ptr, Error.error_pointer(err))
+size(response::TileResponse) =
+    Int(
+    Error.with_error() do err
+        CWrapper.osrmc_tile_response_size(response.ptr, Error.error_pointer(err))
     end
-    return TileResponse(ptr)
-end
+)
 
 end # module Tile

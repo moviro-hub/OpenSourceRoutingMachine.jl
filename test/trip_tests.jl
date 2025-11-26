@@ -1,9 +1,8 @@
 using Test
 using OpenSourceRoutingMachine: TripParams, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, LatLon, OSRMError
-using Base: C_NULL
+using Base: C_NULL, length, isfinite
 using .Fixtures
-import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_latitude,
-    waypoint_longitude, as_json
+import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
 
 @testset "Trip - Basic" begin
     params = TripParams()
@@ -11,8 +10,7 @@ import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_lat
     @test params.ptr != C_NULL
 
     osrm = Fixtures.get_test_osrm()
-    coords = Fixtures.hamburg_coordinates()
-    for coord in coords
+    for coord in Fixtures.hamburg_coordinates()
         add_coordinate!(params, coord)
     end
 
@@ -75,8 +73,7 @@ end
     add_waypoint!(params, 1)
 
     osrm = Fixtures.get_test_osrm()
-    coords = Fixtures.hamburg_coordinates()
-    for coord in coords
+    for coord in Fixtures.hamburg_coordinates()
         add_coordinate!(params, coord)
     end
 
@@ -87,7 +84,6 @@ end
 @testset "Trip - Error Handling" begin
     osrm = Fixtures.get_test_osrm()
     params = TripParams()
-
     add_coordinate!(params, LatLon(0.0f0, 0.0f0))
     add_coordinate!(params, LatLon(1.0f0, 1.0f0))
 

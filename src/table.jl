@@ -9,6 +9,18 @@ using ..Error: Error
 using ..Utils: Utils
 using ..Config: Config
 using ..Params: Params
+import ..OpenSourceRoutingMachine: duration, distance, as_json
+
+export
+    TableResponse,
+    table,
+    as_json,
+    source_count,
+    destination_count,
+    duration,
+    distance,
+    duration_matrix!,
+    distance_matrix!
 
 """
     TableResponse
@@ -25,6 +37,31 @@ mutable struct TableResponse
         Utils._finalize_response!(response, CWrapper.osrmc_table_response_destruct)
         return response
     end
+end
+
+"""
+    table(osrm::OSRM, params::TableParams) -> TableResponse
+
+Calls libosrmc's Table endpoint directly, keeping the full response in-memory
+instead of going through osrm-routed.
+"""
+function table(osrm::Config.OSRM, params::Params.TableParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_table(osrm.ptr, params.ptr, Error.error_pointer(err))
+    end
+    return TableResponse(ptr)
+end
+
+"""
+    as_json(response::TableResponse) -> String
+
+Retrieve the canonical OSRM JSON payload for logging or interoperability.
+"""
+function as_json(response::TableResponse)
+    blob = Error.with_error() do err
+        CWrapper.osrmc_table_response_json(response.ptr, Error.error_pointer(err))
+    end
+    return Utils.blob_to_string(blob)
 end
 
 """
@@ -59,7 +96,7 @@ the engine (returns `Inf` when no route exists).
 """
 function duration(response::TableResponse, from::Integer, to::Integer)
     return Error.with_error() do err
-        CWrapper.osrmc_table_response_duration(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
+        CWrapper.osrmc_table_response_duration(response.ptr, Culong(from - 1), Culong(to - 1), Error.error_pointer(err))
     end
 end
 
@@ -70,71 +107,44 @@ Expose the meters-between calculation OSRM already computed for the matrix.
 """
 function distance(response::TableResponse, from::Integer, to::Integer)
     return Error.with_error() do err
-        CWrapper.osrmc_table_response_distance(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
+        CWrapper.osrmc_table_response_distance(response.ptr, Culong(from - 1), Culong(to - 1), Error.error_pointer(err))
     end
 end
 
 """
-    duration_matrix!(buffer, response) -> buffer
+    duration_matrix(response) -> Matrix{Float32}
 
 Fill an existing `Float32` buffer (vector or matrix, row-major) with durations
 so callers can avoid allocations when repeatedly querying OSRM.
 """
-function duration_matrix!(buffer::AbstractVector{Float32}, response::TableResponse)
-    status = Error.with_error() do err
-        CWrapper.osrmc_table_response_get_duration_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
+function duration_matrix(response::TableResponse)
+    n = source_count(response)
+    m = destination_count(response)
+    expected = n * m
+    buffer = Vector{Float32}(undef, expected)
+    count = Error.with_error() do err
+        CWrapper.osrmc_table_response_get_duration_matrix(response.ptr, pointer(buffer), Csize_t(expected), Error.error_pointer(err))
     end
-    status == 0 || error("Duration matrix buffer too small")
-    return buffer
-end
-
-function duration_matrix!(buffer::AbstractMatrix{Float32}, response::TableResponse)
-    duration_matrix!(vec(buffer), response)
-    return buffer
+    count == expected || error("Duration matrix: expected $expected elements, got $count")
+    return transpose(reshape(buffer, m, n))
 end
 
 """
-    distance_matrix!(buffer, response) -> buffer
+    distance_matrix(response) -> Matrix{Float32}
 
 In-place variant for distances, mirroring `duration_matrix!` to support
 allocation-free bulk work.
 """
-function distance_matrix!(buffer::AbstractVector{Float32}, response::TableResponse)
-    status = Error.with_error() do err
-        CWrapper.osrmc_table_response_get_distance_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
+function distance_matrix(response::TableResponse)
+    n = source_count(response)
+    m = destination_count(response)
+    expected = n * m
+    buffer = Vector{Float32}(undef, expected)
+    count = Error.with_error() do err
+        CWrapper.osrmc_table_response_get_distance_matrix(response.ptr, pointer(buffer), Csize_t(expected), Error.error_pointer(err))
     end
-    status == 0 || error("Distance matrix buffer too small")
-    return buffer
-end
-
-function distance_matrix!(buffer::AbstractMatrix{Float32}, response::TableResponse)
-    distance_matrix!(vec(buffer), response)
-    return buffer
-end
-
-"""
-    as_json(response::TableResponse) -> String
-
-Retrieve the canonical OSRM JSON payload for logging or interoperability.
-"""
-function as_json(response::TableResponse)
-    blob = Error.with_error() do err
-        CWrapper.osrmc_table_response_json(response.ptr, Error.error_pointer(err))
-    end
-    return Utils.blob_to_string(blob)
-end
-
-"""
-    table(osrm::OSRM, params::TableParams) -> TableResponse
-
-Calls libosrmc's Table endpoint directly, keeping the full response in-memory
-instead of going through osrm-routed.
-"""
-function table(osrm::Config.OSRM, params::Params.TableParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_table(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return TableResponse(ptr)
+    count == expected || error("Distance matrix: expected $expected elements, got $count")
+    return transpose(reshape(buffer, m, n))
 end
 
 end # module Table

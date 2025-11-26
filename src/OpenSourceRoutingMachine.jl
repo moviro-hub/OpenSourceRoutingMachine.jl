@@ -48,6 +48,8 @@ Compute duration from OSRM response objects. Methods are defined for:
 """
 function duration end
 
+function as_json end
+
 # Load all submodules up front so their symbols can be re-exported from this
 # entrypoint module without requiring callers to `include` anything manually.
 include("c_wrapper.jl")
@@ -78,9 +80,9 @@ import .Params: RouteParams, TableParams, NearestParams, MatchParams, TripParams
     set_continue_straight!, set_number_of_alternatives!, set_annotations_mask!,
     set_fallback_speed!, set_fallback_coordinate_type!, set_scale_factor!,
     set_gaps!, set_tidy!, add_roundtrip!, set_x!, set_y!, set_z!
-import .Graph: OSRMCommandError, profile_lua_path, osrm_extract, osrm_partition, osrm_customize,
-    osrm_contract, build_mld_graph, build_ch_graph
-import .Route: RouteResponse, route, route_with
+import .Graph: OSRMCommandError, profile_lua_path, extract, partition, customize,
+    contract
+import .Route: RouteResponse, route
 import .Nearest: NearestResponse, nearest, latitude, longitude, name
 import .Table: TableResponse, table
 import .Match: MatchResponse, match, route_count, tracepoint_count, route_distance,
@@ -88,7 +90,6 @@ import .Match: MatchResponse, match, route_count, tracepoint_count, route_distan
     tracepoint_is_null
 import .Trip: TripResponse, trip
 import .Tile: TileResponse, tile, data, size
-import .Trip: TripResponse, trip
 
 export LatLon
 
@@ -168,16 +169,12 @@ export
     tile,
     data,
     size,
-    TripResponse,
-    trip,
     # Graph helpers stay public so build pipelines can script the OSRM CLI flow.
     OSRMCommandError,
     profile_lua_path,
-    osrm_extract,
-    osrm_partition,
-    osrm_customize,
-    osrm_contract,
-    build_mld_graph,
-    build_ch_graph
+    extract,
+    partition,
+    customize,
+    contract
 
 end # module OpenSourceRoutingMachine

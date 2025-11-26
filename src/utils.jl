@@ -6,6 +6,8 @@ module Utils
 
 using ..CWrapper
 
+export blob_to_string, _finalize_response!
+
 """
     blob_to_string(blob) -> String
 

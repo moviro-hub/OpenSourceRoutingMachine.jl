@@ -4,7 +4,7 @@ Test data management for downloading and building OSRM graphs.
 module TestData
 
 using SHA
-using OpenSourceRoutingMachine: build_mld_graph, Profile
+using OpenSourceRoutingMachine: extract, partition, customize, Profile
 
 const TEST_DATA_DIR = joinpath(@__DIR__, "data")
 const HAMBURG_OSM_PATH = joinpath(TEST_DATA_DIR, "hamburg-latest.osm.pbf")
@@ -44,7 +44,7 @@ function build_osrm_graph(osm_path::String)
         name = name_no_ext
     end
     base = joinpath(dirname(osm_path), name)
-    osrm_partition_file = "$base.osrm.partition"
+    partition_file = "$base.osrm.partition"
     hashing_guard = "$base.osrm.hash"
 
     function _current_hash(path)
@@ -53,17 +53,28 @@ function build_osrm_graph(osm_path::String)
         end
     end
 
-    if isfile(osrm_partition_file) && isfile(hashing_guard)
+    if isfile(partition_file) && isfile(hashing_guard)
         recorded = strip(read(hashing_guard, String))
         current = _current_hash(osm_path)
         if recorded == current
-            @info "OSRM graph already up to date at $osrm_partition_file"
+            @info "OSRM graph already up to date at $partition_file"
             return base
         end
     end
 
     @info "Building OSRM MLD graph from $osm_path using OpenSourceRoutingMachine Graph wrappers"
-    build_mld_graph(osm_path; profile = Profile.car)
+    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
+    name = basename(osm_path)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    base = joinpath(dirname(osm_path), name)
+
+    extract(osm_path; profile = Profile.car)
+    partition(base)
+    customize(base)
 
     current = _current_hash(osm_path)
     open(hashing_guard, "w") do io

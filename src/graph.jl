@@ -2,18 +2,16 @@ module Graph
 
 using ..OpenSourceRoutingMachine: OSRM_jll
 using ..Enums: Enums
-# OSRM_jll functions used: osrm_extract_path, osrm_extract(), osrm_partition(), osrm_customize(), osrm_contract()
+# OSRM_jll symbols used: osrm_extract_path, osrm_extract, osrm_partition, osrm_customize, osrm_contract
 
 const ProfileType = Enums.Profile.T
 
 export OSRMCommandError,
     profile_lua_path,
-    osrm_extract,
-    osrm_partition,
-    osrm_customize,
-    osrm_contract,
-    build_mld_graph,
-    build_ch_graph
+    extract,
+    partition,
+    customize,
+    contract
 
 """
     OSRMCommandError(cmd, exitcode)
@@ -24,7 +22,7 @@ exact OSRM CLI error without scraping STDOUT.
 struct OSRMCommandError <: Exception
     cmd::Cmd
     exitcode::Int32
-end # module Graph
+end
 
 _profile_symbol(profile::ProfileType) = profile === Enums.Profile.car ? :car :
     profile === Enums.Profile.bicycle ? :bicycle :
@@ -113,7 +111,7 @@ function contract_cmd(osrm_base::AbstractString; extra_args::Vector{String} = St
 end
 
 """
-    osrm_extract(osm_path; profile=Profile.car, extra_args=String[])
+    extract(osm_path; profile=Profile.car, extra_args=String[])
 
 Runs the bundled `osrm-extract` with the correct Lua profile, ensuring graph
 builds behave the same on every machine.
@@ -121,7 +119,7 @@ builds behave the same on every machine.
 OSRM 6.0 automatically creates output files based on the input file name in the
 same directory as the input file.
 """
-function osrm_extract(
+function extract(
         osm_path::AbstractString;
         profile::ProfileType = Enums.Profile.car,
         extra_args::Vector{String} = String[]
@@ -131,12 +129,12 @@ function osrm_extract(
 end
 
 """
-    osrm_partition(osrm_base; extra_args=String[])
+    partition(osrm_base; extra_args=String[])
 
 Executes `osrm-partition` so MLD preparations stay in Julia scripts rather than
 shell pipelines.
 """
-function osrm_partition(
+function partition(
         osrm_base::AbstractString;
         extra_args::Vector{String} = String[]
     )
@@ -145,12 +143,12 @@ function osrm_partition(
 end
 
 """
-    osrm_customize(osrm_base; extra_args=String[])
+    customize(osrm_base; extra_args=String[])
 
 Calls `osrm-customize` to finish MLD setup, keeping the artifact-provided
 binary and flags centralized.
 """
-function osrm_customize(
+function customize(
         osrm_base::AbstractString;
         extra_args::Vector{String} = String[]
     )
@@ -159,12 +157,12 @@ function osrm_customize(
 end
 
 """
-    osrm_contract(osrm_base; extra_args=String[])
+    contract(osrm_base; extra_args=String[])
 
 Wraps `osrm-contract` so CH pipelines can be triggered from Julia without
 invoking shell scripts manually.
 """
-function osrm_contract(
+function contract(
         osrm_base::AbstractString;
         extra_args::Vector{String} = String[]
     )
@@ -172,65 +170,5 @@ function osrm_contract(
     _run_or_throw(cmd)
 end
 
-"""
-    build_mld_graph(osm_path; profile=Profile.car, extract_args=[], partition_args=[], customize_args=[])
-
-Run the extract → partition → customize pipeline for the given OSM input and
-return the base path to the generated `.osrm` files, sparing callers from
-hand-crafting the multi-step CLI workflow.
-
-Output files are created in the same directory as the input file with the same
-base name (OSRM 6.0 default behavior).
-"""
-function build_mld_graph(
-        osm_path::AbstractString;
-        profile::ProfileType = Enums.Profile.car,
-        extract_args::Vector{String} = String[],
-        partition_args::Vector{String} = String[],
-        customize_args::Vector{String} = String[]
-    )
-    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
-    name = basename(osm_path)
-    while true
-        name_no_ext, ext = splitext(name)
-        isempty(ext) && break
-        name = name_no_ext
-    end
-    base = joinpath(dirname(osm_path), name)
-
-    osrm_extract(osm_path; profile = profile, extra_args = extract_args)
-    osrm_partition(base; extra_args = partition_args)
-    osrm_customize(base; extra_args = customize_args)
-
-    return base
-end
-
-"""
-    build_ch_graph(osm_path; profile=Profile.car, extract_args=[], contract_args=[])
-
-Run the extract → contract pipeline for the given OSM input and return the base
-path to the generated `.osrm` files so callers can prepare CH data with a single
-function call.
-"""
-function build_ch_graph(
-        osm_path::AbstractString;
-        profile::ProfileType = Enums.Profile.car,
-        extract_args::Vector{String} = String[],
-        contract_args::Vector{String} = String[]
-    )
-    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
-    name = basename(osm_path)
-    while true
-        name_no_ext, ext = splitext(name)
-        isempty(ext) && break
-        name = name_no_ext
-    end
-    base = joinpath(dirname(osm_path), name)
-
-    osrm_extract(osm_path; profile = profile, extra_args = extract_args)
-    osrm_contract(base; extra_args = contract_args)
-
-    return base
-end
 
 end

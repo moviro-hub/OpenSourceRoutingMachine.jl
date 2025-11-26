@@ -11,6 +11,19 @@ using ..Config: Config
 using ..Params: Params
 import Base: match
 
+export
+    MatchResponse,
+    match,
+    as_json,
+    route_count,
+    tracepoint_count,
+    route_distance,
+    route_duration,
+    route_confidence,
+    tracepoint_latitude,
+    tracepoint_longitude,
+    tracepoint_is_null
+
 """
     MatchResponse
 
@@ -26,6 +39,32 @@ mutable struct MatchResponse
         Utils._finalize_response!(response, CWrapper.osrmc_match_response_destruct)
         return response
     end
+end
+
+"""
+    match(osrm::OSRM, params::MatchParams) -> MatchResponse
+
+Extends `Base.match` so callers can invoke OSRM's native matcher directly and
+receive a typed response without HTTP hops.
+"""
+function match(osrm::Config.OSRM, params::Params.MatchParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_match(osrm.ptr, params.ptr, Error.error_pointer(err))
+    end
+    return MatchResponse(ptr)
+end
+
+"""
+    as_json(response::MatchResponse) -> String
+
+Retrieve OSRM's canonical JSON payload for logging or compatibility with
+existing tooling.
+"""
+function as_json(response::MatchResponse)
+    blob = Error.with_error() do err
+        CWrapper.osrmc_match_response_json(response.ptr, Error.error_pointer(err))
+    end
+    return Utils.blob_to_string(blob)
 end
 
 """
@@ -61,7 +100,8 @@ Let OSRM be the source of truth for cumulative distance instead of re-integratin
 coordinates client-side.
 """
 function route_distance(response::MatchResponse, route_index::Integer)
-    @assert route_index >= 1 "Julia uses 1-based indexing"
+    count = route_count(response)
+    @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return Error.with_error() do err
         CWrapper.osrmc_match_response_route_distance(response.ptr, Cuint(route_index - 1), Error.error_pointer(err))
     end
@@ -74,7 +114,8 @@ Reuses OSRM's travel time heuristics so Julia callers stay aligned with server
 estimates.
 """
 function route_duration(response::MatchResponse, route_index::Integer)
-    @assert route_index >= 1 "Julia uses 1-based indexing"
+    count = route_count(response)
+    @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return Error.with_error() do err
         CWrapper.osrmc_match_response_route_duration(response.ptr, Cuint(route_index - 1), Error.error_pointer(err))
     end
@@ -87,7 +128,8 @@ Surface OSRM's built-in confidence metric so applications can fall back when a
 match looks unreliable.
 """
 function route_confidence(response::MatchResponse, route_index::Integer)
-    @assert route_index >= 1 "Julia uses 1-based indexing"
+    count = route_count(response)
+    @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return Error.with_error() do err
         CWrapper.osrmc_match_response_route_confidence(response.ptr, Cuint(route_index - 1), Error.error_pointer(err))
     end
@@ -100,7 +142,8 @@ Inspect where OSRM snapped a point without leaving Julia, useful for debugging
 GPS drift.
 """
 function tracepoint_latitude(response::MatchResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
+    count = tracepoint_count(response)
+    @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return Error.with_error() do err
         CWrapper.osrmc_match_response_tracepoint_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
@@ -113,7 +156,8 @@ Pairs with `tracepoint_latitude` to reconstruct snapped coordinates for
 visualization layers.
 """
 function tracepoint_longitude(response::MatchResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
+    count = tracepoint_count(response)
+    @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return Error.with_error() do err
         CWrapper.osrmc_match_response_tracepoint_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
@@ -126,39 +170,12 @@ Flags unmatched points so callers can remove or interpolate them before further
 processing.
 """
 function tracepoint_is_null(response::MatchResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
+    count = tracepoint_count(response)
+    @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     result = Error.with_error() do err
         CWrapper.osrmc_match_response_tracepoint_is_null(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
     return result != 0
 end
-
-"""
-    match(osrm::OSRM, params::MatchParams) -> MatchResponse
-
-Extends `Base.match` so callers can invoke OSRM's native matcher directly and
-receive a typed response without HTTP hops.
-"""
-function match(osrm::Config.OSRM, params::Params.MatchParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_match(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return MatchResponse(ptr)
-end
-
-"""
-    as_json(response::MatchResponse) -> String
-
-Retrieve OSRM's canonical JSON payload for logging or compatibility with
-existing tooling.
-"""
-function as_json(response::MatchResponse)
-    blob = Error.with_error() do err
-        CWrapper.osrmc_match_response_json(response.ptr, Error.error_pointer(err))
-    end
-    return Utils.blob_to_string(blob)
-end
-
-is_supported() = true
 
 end # module Match

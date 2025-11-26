@@ -9,7 +9,51 @@ using ..Error: Error
 using ..Enums: Enums
 using ..OpenSourceRoutingMachine: LatLon
 
-@inline _error_ptr(ref::Ref{Ptr{Cvoid}}) = Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
+export
+    RouteParams,
+    TableParams,
+    NearestParams,
+    MatchParams,
+    TripParams,
+    TileParams,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!,
+    add_steps!,
+    add_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_source!,
+    add_destination!,
+    set_annotations_mask!,
+    set_fallback_speed!,
+    set_fallback_coordinate_type!,
+    set_scale_factor!,
+    set_number_of_results!,
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    add_roundtrip!,
+    add_source!,
+    add_destination!,
+    clear_waypoints!,
+    add_waypoint!,
+    set_x!,
+    set_y!,
+    set_z!
 
 @inline function _call_with_error(f::Function)
     error_ref = Ref{Ptr{Cvoid}}(C_NULL)
@@ -29,7 +73,6 @@ end
 
 @inline _bool_to_cint(flag::Bool) = flag ? Cint(1) : Cint(0)
 
-abstract type OSRMParams end
 
 function _finalize_param!(params, destructor)
     return finalizer(params) do p
@@ -39,6 +82,14 @@ function _finalize_param!(params, destructor)
         end
     end
 end
+
+"""
+    OSRMParams
+
+Abstract base type for all OSRM parameter types, providing a common interface
+for coordinate management and request configuration.
+"""
+abstract type OSRMParams end
 
 """
     RouteParams()
@@ -51,7 +102,7 @@ mutable struct RouteParams <: OSRMParams
 
     function RouteParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_route_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_route_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_route_params_destruct)
@@ -70,7 +121,7 @@ mutable struct TableParams <: OSRMParams
 
     function TableParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_table_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_table_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_table_params_destruct)
@@ -89,7 +140,7 @@ mutable struct NearestParams <: OSRMParams
 
     function NearestParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_nearest_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_nearest_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_nearest_params_destruct)
@@ -108,7 +159,7 @@ mutable struct MatchParams <: OSRMParams
 
     function MatchParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_match_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_match_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_match_params_destruct)
@@ -127,7 +178,7 @@ mutable struct TripParams <: OSRMParams
 
     function TripParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_trip_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_trip_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_trip_params_destruct)
@@ -146,7 +197,7 @@ mutable struct TileParams <: OSRMParams
 
     function TileParams()
         ptr = _call_with_error() do error_ptr
-            CWrapper.osrmc_tile_params_construct(_error_ptr(error_ptr))
+            CWrapper.osrmc_tile_params_construct(Error.error_pointer(error_ptr))
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_tile_params_destruct)
@@ -162,10 +213,10 @@ service-specific copies of the same ccall.
 """
 function add_coordinate!(params::OSRMParams, coord::LatLon)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_add_coordinate(params.ptr, Cfloat(coord.lon), Cfloat(coord.lat), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_add_coordinate(params.ptr, Cfloat(coord.lon), Cfloat(coord.lat), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -183,38 +234,38 @@ function add_coordinate_with!(params::OSRMParams, coord::LatLon, radius::Real, b
             Cfloat(radius),
             Cint(bearing),
             Cint(range),
-            _error_ptr(error_ptr),
+            Error.error_pointer(error_ptr),
         )
         nothing
     end
-    return params
+    return nothing
 end
 
 function set_hint!(params::OSRMParams, coordinate_index::Integer, hint::AbstractString)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_hint(params.ptr, Csize_t(coordinate_index - 1), _cstring(hint), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_hint(params.ptr, Csize_t(coordinate_index - 1), _cstring(hint), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 function set_radius!(params::OSRMParams, coordinate_index::Integer, radius::Real)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_radius(params.ptr, Csize_t(coordinate_index - 1), Cdouble(radius), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_radius(params.ptr, Csize_t(coordinate_index - 1), Cdouble(radius), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 function set_bearing!(params::OSRMParams, coordinate_index::Integer, value::Integer, range::Integer)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_bearing(params.ptr, Csize_t(coordinate_index - 1), Cint(value), Cint(range), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_bearing(params.ptr, Csize_t(coordinate_index - 1), Cint(value), Cint(range), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -227,10 +278,10 @@ function set_approach!(params::OSRMParams, coordinate_index::Integer, approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     code = Enums.to_cint(approach, Enums.Approach)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index - 1), code, _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index - 1), code, Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -241,10 +292,10 @@ experiments with different restrictions stay cheap.
 """
 function add_exclude!(params::OSRMParams, profile::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_add_exclude(params.ptr, _cstring(profile), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_add_exclude(params.ptr, _cstring(profile), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -255,7 +306,7 @@ lookups when the same waypoints are requested.
 """
 function set_generate_hints!(params::OSRMParams, on::Bool)
     CWrapper.osrmc_params_set_generate_hints(params.ptr, _bool_to_cint(on))
-    return params
+    return nothing
 end
 
 """
@@ -266,7 +317,7 @@ response size for high-volume routing.
 """
 function set_skip_waypoints!(params::OSRMParams, on::Bool)
     CWrapper.osrmc_params_set_skip_waypoints(params.ptr, _bool_to_cint(on))
-    return params
+    return nothing
 end
 
 """
@@ -278,10 +329,10 @@ stabilize results for noisy GPS traces.
 function set_snapping!(params::OSRMParams, snapping)
     code = Enums.to_cint(snapping, Enums.Snapping)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_snapping(params.ptr, code, _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_snapping(params.ptr, code, Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -293,10 +344,10 @@ size without reconstructing params.
 function set_format!(params::OSRMParams, format)
     code = Enums.to_cint(format, Enums.OutputFormat)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_set_format(params.ptr, code, _error_ptr(error_ptr))
+        CWrapper.osrmc_params_set_format(params.ptr, code, Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 # Route-specific options stay grouped together so this file mirrors the OSRM
@@ -310,7 +361,7 @@ turn-by-turn guidance layers.
 """
 function add_steps!(params::RouteParams, on::Bool)
     CWrapper.osrmc_route_params_add_steps(params.ptr, _bool_to_cint(on))
-    return params
+    return nothing
 end
 
 """
@@ -321,7 +372,7 @@ producing alternates instead of pruning early.
 """
 function add_alternatives!(params::RouteParams, on::Bool)
     CWrapper.osrmc_route_params_add_alternatives(params.ptr, _bool_to_cint(on))
-    return params
+    return nothing
 end
 
 """
@@ -332,10 +383,10 @@ vs. polyline6) without rebuilding the request object.
 """
 function set_geometries!(params::RouteParams, geometries::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_set_geometries(params.ptr, _cstring(geometries), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_set_geometries(params.ptr, _cstring(geometries), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -346,10 +397,10 @@ which directly impacts payload size.
 """
 function set_overview!(params::RouteParams, overview::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_set_overview(params.ptr, _cstring(overview), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_set_overview(params.ptr, _cstring(overview), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -360,10 +411,10 @@ requires staying aligned with the current heading.
 """
 function set_continue_straight!(params::RouteParams, on::Bool)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_set_continue_straight(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_set_continue_straight(params.ptr, _bool_to_cint(on), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -374,10 +425,10 @@ interactive use cases.
 """
 function set_number_of_alternatives!(params::RouteParams, count::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_set_number_of_alternatives(params.ptr, Cuint(count), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_set_number_of_alternatives(params.ptr, Cuint(count), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -388,10 +439,10 @@ can inspect costs at a finer granularity.
 """
 function set_annotations!(params::RouteParams, annotations::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_set_annotations(params.ptr, _cstring(annotations), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_set_annotations(params.ptr, _cstring(annotations), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -403,10 +454,10 @@ or visit intermediate stops.
 function add_waypoint!(params::RouteParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_route_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
+        CWrapper.osrmc_route_params_add_waypoint(params.ptr, Csize_t(index - 1), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -417,7 +468,7 @@ for multiple experiments without reconstructing coordinates.
 """
 function clear_waypoints!(params::RouteParams)
     CWrapper.osrmc_route_params_clear_waypoints(params.ptr)
-    return params
+    return nothing
 end
 
 # Table service helpers get their own section to match the libosrm
@@ -432,10 +483,10 @@ without reallocating params for each subset.
 function add_source!(params::TableParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_add_source(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_add_source(params.ptr, Csize_t(index - 1), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -447,10 +498,10 @@ needed.
 function add_destination!(params::TableParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_add_destination(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_add_destination(params.ptr, Csize_t(index - 1), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -461,10 +512,10 @@ only include the metrics you plan to consume.
 """
 function set_annotations_mask!(params::TableParams, mask::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_set_annotations_mask(params.ptr, _cstring(mask), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_set_annotations_mask(params.ptr, _cstring(mask), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -475,10 +526,10 @@ you distinguish true disconnections from missing data.
 """
 function set_fallback_speed!(params::TableParams, speed::Real)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_set_fallback_speed(params.ptr, Cdouble(speed), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_set_fallback_speed(params.ptr, Cdouble(speed), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -489,10 +540,10 @@ snaps, ensuring downstream code interprets placeholders correctly.
 """
 function set_fallback_coordinate_type!(params::TableParams, coord_type::Union{AbstractString, Nothing})
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_set_fallback_coordinate_type(params.ptr, _cstring_or_null(coord_type), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_set_fallback_coordinate_type(params.ptr, _cstring_or_null(coord_type), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -503,10 +554,10 @@ than treating them as raw infinity.
 """
 function set_scale_factor!(params::TableParams, factor::Real)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_table_params_set_scale_factor(params.ptr, Cdouble(factor), _error_ptr(error_ptr))
+        CWrapper.osrmc_table_params_set_scale_factor(params.ptr, Cdouble(factor), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 # Nearest service exposes only a single extra knob, but we still dedicate a
@@ -520,10 +571,10 @@ for UIs that only display the top-k matches.
 """
 function set_number_of_results!(params::NearestParams, n::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_nearest_set_number_of_results(params.ptr, Cuint(n), _error_ptr(error_ptr))
+        CWrapper.osrmc_nearest_set_number_of_results(params.ptr, Cuint(n), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 # Match service options include extra metadata (timestamps, tidy), so we group
@@ -537,10 +588,10 @@ which improves matching on sparse GPS data.
 """
 function add_timestamp!(params::MatchParams, timestamp::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_match_params_add_timestamp(params.ptr, Cuint(timestamp), _error_ptr(error_ptr))
+        CWrapper.osrmc_match_params_add_timestamp(params.ptr, Cuint(timestamp), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -551,10 +602,10 @@ pipelines encode their tolerance for GPS outages.
 """
 function set_gaps!(params::MatchParams, gaps::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_match_params_set_gaps(params.ptr, _cstring(gaps), _error_ptr(error_ptr))
+        CWrapper.osrmc_match_params_set_gaps(params.ptr, _cstring(gaps), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -565,10 +616,10 @@ when high-frequency logs are matched.
 """
 function set_tidy!(params::MatchParams, on::Bool)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_match_params_set_tidy(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
+        CWrapper.osrmc_match_params_set_tidy(params.ptr, _bool_to_cint(on), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 # Trip service controls (roundtrips, waypoint overrides) are kept together to
@@ -582,10 +633,10 @@ optimizing delivery tours vs. point-to-point trips.
 """
 function add_roundtrip!(params::TripParams, on::Bool)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_trip_params_add_roundtrip(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
+        CWrapper.osrmc_trip_params_add_roundtrip(params.ptr, _bool_to_cint(on), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -596,10 +647,10 @@ business constraints like fixed depots.
 """
 function add_source!(params::TripParams, source::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_trip_params_add_source(params.ptr, _cstring(source), _error_ptr(error_ptr))
+        CWrapper.osrmc_trip_params_add_source(params.ptr, _cstring(source), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -610,10 +661,10 @@ can be modeled explicitly.
 """
 function add_destination!(params::TripParams, destination::AbstractString)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_trip_params_add_destination(params.ptr, _cstring(destination), _error_ptr(error_ptr))
+        CWrapper.osrmc_trip_params_add_destination(params.ptr, _cstring(destination), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -624,7 +675,7 @@ ordering without reallocating params.
 """
 function clear_waypoints!(params::TripParams)
     CWrapper.osrmc_trip_params_clear_waypoints(params.ptr)
-    return params
+    return nothing
 end
 
 """
@@ -636,10 +687,10 @@ mandatory stops with OSRM's optimized order.
 function add_waypoint!(params::TripParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     _call_with_error() do error_ptr
-        CWrapper.osrmc_trip_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
+        CWrapper.osrmc_trip_params_add_waypoint(params.ptr, Csize_t(index - 1), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 # Tile service fields are listed together to emphasize the shared XYZ contract.
@@ -652,10 +703,10 @@ object while panning horizontally.
 """
 function set_x!(params::TileParams, x::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_tile_params_set_x(params.ptr, Cuint(x), _error_ptr(error_ptr))
+        CWrapper.osrmc_tile_params_set_x(params.ptr, Cuint(x), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -665,10 +716,10 @@ Companion to `set_x!`; keeps vertical tile changes allocation-free.
 """
 function set_y!(params::TileParams, y::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_tile_params_set_y(params.ptr, Cuint(y), _error_ptr(error_ptr))
+        CWrapper.osrmc_tile_params_set_y(params.ptr, Cuint(y), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 """
@@ -679,10 +730,10 @@ overlays snappy when zooming.
 """
 function set_z!(params::TileParams, z::Integer)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_tile_params_set_z(params.ptr, Cuint(z), _error_ptr(error_ptr))
+        CWrapper.osrmc_tile_params_set_z(params.ptr, Cuint(z), Error.error_pointer(error_ptr))
         nothing
     end
-    return params
+    return nothing
 end
 
 end # module Params

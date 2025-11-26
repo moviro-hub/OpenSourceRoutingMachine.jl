@@ -12,6 +12,16 @@ using ..Params: Params
 import ..OpenSourceRoutingMachine: distance
 import Base: count
 
+export
+    NearestResponse,
+    nearest,
+    as_json,
+    count,
+    latitude,
+    longitude,
+    name,
+    distance
+
 """
     NearestResponse
 
@@ -26,69 +36,6 @@ mutable struct NearestResponse
         response = new(ptr)
         Utils._finalize_response!(response, CWrapper.osrmc_nearest_response_destruct)
         return response
-    end
-end
-
-"""
-    count(response::NearestResponse) -> Int
-
-Extends `Base.count` so callers can ask how many nearest hits OSRM returned
-without parsing JSON payloads.
-"""
-count(response::NearestResponse) =
-    Int(
-    Error.with_error() do err
-        CWrapper.osrmc_nearest_response_count(response.ptr, Error.error_pointer(err))
-    end
-)
-
-"""
-    latitude(response::NearestResponse, index) -> Float32
-
-Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
-"""
-function latitude(response::NearestResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
-    end
-end
-
-"""
-    longitude(response::NearestResponse, index) -> Float32
-
-Pairs with `latitude` to reconstruct snapped coordinates for visualization.
-"""
-function longitude(response::NearestResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
-    end
-end
-
-"""
-    name(response::NearestResponse, index) -> String
-
-Pull the textual label directly from OSRM to keep UI strings consistent with
-the engine.
-"""
-function name(response::NearestResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    cstr = Error.with_error() do err
-        CWrapper.osrmc_nearest_response_name(response.ptr, Cuint(index - 1), Error.error_pointer(err))
-    end
-    return unsafe_string(cstr)
-end
-
-"""
-    distance(response::NearestResponse, index) -> Float32
-
-Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
-"""
-function distance(response::NearestResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
 
@@ -117,6 +64,71 @@ function as_json(response::NearestResponse)
     return Utils.blob_to_string(blob)
 end
 
-is_supported() = true
+"""
+    count(response::NearestResponse) -> Int
+
+Extends `Base.count` so callers can ask how many nearest hits OSRM returned
+without parsing JSON payloads.
+"""
+count(response::NearestResponse) =
+    Int(
+    Error.with_error() do err
+        CWrapper.osrmc_nearest_response_count(response.ptr, Error.error_pointer(err))
+    end
+)
+
+"""
+    latitude(response::NearestResponse, index) -> Float32
+
+Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
+"""
+function latitude(response::NearestResponse, index::Integer)
+    n = count(response)
+    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
+    return Error.with_error() do err
+        CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    end
+end
+
+"""
+    longitude(response::NearestResponse, index) -> Float32
+
+Pairs with `latitude` to reconstruct snapped coordinates for visualization.
+"""
+function longitude(response::NearestResponse, index::Integer)
+    n = count(response)
+    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
+    return Error.with_error() do err
+        CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    end
+end
+
+"""
+    name(response::NearestResponse, index) -> String
+
+Pull the textual label directly from OSRM to keep UI strings consistent with
+the engine.
+"""
+function name(response::NearestResponse, index::Integer)
+    n = count(response)
+    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
+    cstr = Error.with_error() do err
+        CWrapper.osrmc_nearest_response_name(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    end
+    return unsafe_string(cstr)
+end
+
+"""
+    distance(response::NearestResponse, index) -> Float32
+
+Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
+"""
+function distance(response::NearestResponse, index::Integer)
+    n = count(response)
+    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
+    return Error.with_error() do err
+        CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    end
+end
 
 end # module Nearest

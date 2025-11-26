@@ -8,7 +8,17 @@ using ..Error: Error
 using ..Utils: Utils
 using ..Config: Config
 using ..Params: Params
-import ..OpenSourceRoutingMachine: distance, duration
+import ..OpenSourceRoutingMachine: distance, duration, as_json
+
+export
+    TripResponse,
+    trip,
+    as_json,
+    distance,
+    duration,
+    waypoint_count,
+    waypoint_latitude,
+    waypoint_longitude
 
 """
     TripResponse
@@ -26,6 +36,29 @@ mutable struct TripResponse
         return response
     end
 end
+
+"""
+    trip(osrm::OSRM, params::TripParams) -> TripResponse
+
+Query the Trip service and return a response object.
+"""
+function trip(osrm::Config.OSRM, params::Params.TripParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_trip(osrm.ptr, params.ptr, Error.error_pointer(err))
+    end
+    return TripResponse(ptr)
+end
+
+"""
+    as_json(response::TripResponse) -> String
+"""
+function as_json(response::TripResponse)
+    blob = Error.with_error() do err
+        CWrapper.osrmc_trip_response_json(response.ptr, Error.error_pointer(err))
+    end
+    return Utils.blob_to_string(blob)
+end
+
 
 """
     distance(response::TripResponse) -> Float32
@@ -73,28 +106,6 @@ function waypoint_longitude(response::TripResponse, index::Integer)
     return Error.with_error() do err
         CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
-end
-
-"""
-    trip(osrm::OSRM, params::TripParams) -> TripResponse
-
-Query the Trip service and return a response object.
-"""
-function trip(osrm::Config.OSRM, params::Params.TripParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_trip(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return TripResponse(ptr)
-end
-
-"""
-    as_json(response::TripResponse) -> String
-"""
-function as_json(response::TripResponse)
-    blob = Error.with_error() do err
-        CWrapper.osrmc_trip_response_json(response.ptr, Error.error_pointer(err))
-    end
-    return Utils.blob_to_string(blob)
 end
 
 end # module Trip

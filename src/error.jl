@@ -16,7 +16,7 @@ instead of parsing raw strings.
 struct OSRMError <: Exception
     code::String
     message::String
-end # module Error
+end
 
 function Base.showerror(io::IO, e::OSRMError)
     return print(io, "OSRMError: [$(e.code)] $(e.message)")
