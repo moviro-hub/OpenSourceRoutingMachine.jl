@@ -16,7 +16,7 @@ end
     osrm = Fixtures.get_test_osrm()
     params = TileParams()
 
-    lon, lat = Fixtures.HAMBURG_CITY_CENTER
+    coord = Fixtures.HAMBURG_CITY_CENTER
     zoom = 14
     x, y = _slippy_tile(Float64(lat), Float64(lon), zoom)
 

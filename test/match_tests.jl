@@ -13,8 +13,8 @@ using .Fixtures
 
     @testset "Adding coordinates" begin
         params = MatchParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
         # Should not throw
         @test true
     end
@@ -27,8 +27,8 @@ using .Fixtures
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
 
         # Add coordinates to match params
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         # Calculate match
@@ -87,8 +87,8 @@ using .Fixtures
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -135,8 +135,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_ALTONA
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         # Add timestamps (in seconds since epoch or relative)
@@ -158,8 +158,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -176,8 +176,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -188,11 +188,11 @@ end
 
     @testset "add_coordinate_with!" begin
         params = MatchParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
+        coord = Fixtures.HAMBURG_CITY_CENTER
         radius = 10.0f0
         bearing = 0
         range = 180
-        add_coordinate_with!(params, lon, lat, radius, bearing, range)
+        add_coordinate_with!(params, coord, radius, bearing, range)
         # Should not throw
         @test true
     end
@@ -206,8 +206,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -232,8 +232,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -261,8 +261,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -281,8 +281,8 @@ end
         params = MatchParams()
 
         # Coordinates way outside Hamburg (somewhere in the ocean)
-        add_coordinate!(params, 0.0f0, 0.0f0)
-        add_coordinate!(params, 1.0f0, 1.0f0)
+        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
+        add_coordinate!(params, LatLon(1.0f0, 1.0f0))
 
         # Should either throw an error or return a valid response
         try
@@ -300,8 +300,8 @@ end
         params = MatchParams()
 
         # Try with clearly invalid coordinates
-        add_coordinate!(params, 200.0f0, 200.0f0)  # Invalid lat/lon
-        add_coordinate!(params, 201.0f0, 201.0f0)
+        add_coordinate!(params, LatLon(200.0f0, 200.0f0))  # Invalid lat/lon
+        add_coordinate!(params, LatLon(201.0f0, 201.0f0))
 
         try
             response = match(osrm, params)
@@ -322,8 +322,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -347,9 +347,9 @@ end
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
-        add_coordinate!(params, lon, lat)  # Same point
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
+        add_coordinate!(params, coord)  # Same point
 
         try
             response = match(osrm, params)
@@ -369,8 +369,8 @@ end
 
         # Use first 5 coordinates from validated test data (short but valid trace)
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT[1:5]
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -388,8 +388,8 @@ end
         # Use pre-generated multi-segment test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_MULTI_SEGMENT
 
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = match(osrm, params)
@@ -418,8 +418,8 @@ end
         # Use pre-generated test coordinates
         coords = Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
 
-        for (i, (lon, lat)) in enumerate(coords)
-            add_coordinate!(params, lon, lat)
+        for (i, coord) in enumerate(coords)
+            add_coordinate!(params, coord)
             # Add timestamps increasing by 10 seconds
             add_timestamp!(params, (i - 1) * 10)
         end

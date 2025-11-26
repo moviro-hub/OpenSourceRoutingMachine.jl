@@ -13,8 +13,8 @@ using .Fixtures
 
     @testset "Adding coordinates" begin
         params = NearestParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
         # Should not throw
         @test true
     end
@@ -24,8 +24,8 @@ using .Fixtures
         params = NearestParams()
 
         # Add a coordinate (city center)
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         # Query nearest
         response = nearest(osrm, params)
@@ -58,8 +58,8 @@ using .Fixtures
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
 
-        lon, lat = Fixtures.HAMBURG_PORT
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_PORT
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         @test response.ptr != C_NULL
@@ -85,8 +85,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 3)
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         @test response isa NearestResponse
@@ -100,8 +100,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 1)
 
-        lon, lat = Fixtures.HAMBURG_AIRPORT
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_AIRPORT
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         @test response isa NearestResponse
@@ -112,11 +112,11 @@ end
 
     @testset "add_coordinate_with!" begin
         params = NearestParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
+        coord = Fixtures.HAMBURG_CITY_CENTER
         radius = 10.0f0
         bearing = 0
         range = 180
-        add_coordinate_with!(params, lon, lat, radius, bearing, range)
+        add_coordinate_with!(params, coord, radius, bearing, range)
         # Should not throw
         @test true
     end
@@ -128,8 +128,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 2)
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         result_cnt = count(response)
@@ -168,8 +168,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 3)
 
-        lon, lat = Fixtures.HAMBURG_PORT
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_PORT
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         result_cnt = count(response)
@@ -189,8 +189,8 @@ end
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         json_str = OpenSourceRoutingMachine.Nearest.as_json(response)
@@ -208,7 +208,7 @@ end
         params = NearestParams()
 
         # Coordinates way outside Hamburg (somewhere in the ocean)
-        add_coordinate!(params, 0.0f0, 0.0f0)
+        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
 
         # Should either throw an error or return a valid response
         try
@@ -226,7 +226,7 @@ end
         params = NearestParams()
 
         # Try with clearly invalid coordinates
-        add_coordinate!(params, 200.0f0, 200.0f0)  # Invalid lat/lon
+        add_coordinate!(params, LatLon(200.0f0, 200.0f0))  # Invalid lat/lon
 
         try
             response = nearest(osrm, params)
@@ -244,8 +244,8 @@ end
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         result_cnt = count(response)
@@ -282,9 +282,9 @@ end
             Fixtures.HAMBURG_ALTONA,
         ]
 
-        for (lon, lat) in test_locations
+        for coord in test_locations
             params = NearestParams()
-            add_coordinate!(params, lon, lat)
+            add_coordinate!(params, coord)
 
             response = nearest(osrm, params)
             result_cnt = count(response)
@@ -315,8 +315,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 0)
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         # Should either return 0 results or throw an error
         try
@@ -333,8 +333,8 @@ end
         params = NearestParams()
         set_number_of_results!(params, 100)  # Request many results
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         result_cnt = count(response)
@@ -348,8 +348,8 @@ end
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         response = nearest(osrm, params)
         result_cnt = count(response)

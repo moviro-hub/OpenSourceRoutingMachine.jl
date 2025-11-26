@@ -12,8 +12,8 @@ import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_lat
 
     osrm = Fixtures.get_test_osrm()
     coords = Fixtures.hamburg_coordinates()
-    for (lon, lat) in coords
-        add_coordinate!(params, lon, lat)
+    for coord in coords
+        add_coordinate!(params, coord)
     end
 
     response = trip(osrm, params)
@@ -76,8 +76,8 @@ end
 
     osrm = Fixtures.get_test_osrm()
     coords = Fixtures.hamburg_coordinates()
-    for (lon, lat) in coords
-        add_coordinate!(params, lon, lat)
+    for coord in coords
+        add_coordinate!(params, coord)
     end
 
     response = trip(osrm, params)
@@ -88,8 +88,8 @@ end
     osrm = Fixtures.get_test_osrm()
     params = TripParams()
 
-    add_coordinate!(params, 0.0f0, 0.0f0)
-    add_coordinate!(params, 1.0f0, 1.0f0)
+    add_coordinate!(params, LatLon(0.0f0, 0.0f0))
+    add_coordinate!(params, LatLon(1.0f0, 1.0f0))
 
     maybe_response = try
         trip(osrm, params)

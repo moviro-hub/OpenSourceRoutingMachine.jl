@@ -210,9 +210,9 @@ function route_with(osrm::OSRM, params::RouteParams, handler::Function, data::An
         catch
             ""
         end
-        lon = waypoint_longitude(response, idx)
         lat = waypoint_latitude(response, idx)
-        handler(data, name, Float32(lon), Float32(lat))
+        lon = waypoint_longitude(response, idx)
+        handler(data, name, Float32(lat), Float32(lon))
     end
     return nothing
 end

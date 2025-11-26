@@ -20,6 +20,15 @@ function __init__()
     end
 end
 
+"""
+    LatLon
+
+A named tuple representing a latitude and longitude coordinate.
+"""
+const LatLon = NamedTuple{(:lat, :lon), Tuple{Float32, Float32}}
+LatLon(lat::Real, lon::Real) = (lat=Float32(lat), lon=Float32(lon))
+
+
 # Load all submodules up front so their symbols can be re-exported from this
 # entrypoint module without requiring callers to `include` anything manually.
 include("c_wrapper.jl")
@@ -61,6 +70,8 @@ import .Match: MatchResponse, match, route_count, tracepoint_count, route_distan
 import .Trip: TripResponse, trip
 import .Tile: TileResponse, tile, data, size
 import .Trip: TripResponse, trip
+
+export LatLon
 
 # Re-export the public API so downstream packages treat this module as the sole
 # integration surface, regardless of the internal module layout.

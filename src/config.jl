@@ -7,6 +7,7 @@ module Config
 using ..CWrapper
 using ..Error
 using ..Enums: Algorithm, to_cint
+using Libdl
 
 @inline function _error_ptr(ref::Ref{Ptr{Cvoid}})
     Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
@@ -49,8 +50,20 @@ mutable struct OSRMConfig
                 c.ptr = C_NULL
             end
         end
-        # default to MLD algorithm
-        set_algorithm!(config, Algorithm.mld)
+        # OSRM defaults to CH and doesn't auto-detect, so we detect from files and set it
+        if _check_algorithm_symbol_available()
+            try
+                dir = dirname(base_path)
+                base_name = basename(base_path)
+                files = readdir(dir)
+                if any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
+                    set_algorithm!(config, Algorithm.ch)
+                elseif any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
+                    set_algorithm!(config, Algorithm.mld)
+                end
+            catch
+            end
+        end
         return config
     end
 end
@@ -102,13 +115,35 @@ function is_abi_compatible()
     CWrapper.osrmc_is_abi_compatible() != 0
 end
 
+# Cache the result of symbol availability check
+const _algorithm_symbol_available = Ref{Union{Bool,Nothing}}(nothing)
+
+function _check_algorithm_symbol_available()
+    if _algorithm_symbol_available[] === nothing
+        handle = Libdl.dlopen(CWrapper.libosrmc)
+        sym = Libdl.dlsym_e(handle, :osrmc_config_set_algorithm)
+        _algorithm_symbol_available[] = (sym != C_NULL)
+    end
+    return _algorithm_symbol_available[]
+end
+
 """
     set_algorithm!(config::OSRMConfig, algorithm)
 
 Choose between CH and MLD at runtime so deployments can target the graph type
 they have prepared on disk.
+
+If the C library doesn't support algorithm selection (symbol not available),
+this function will silently return without setting the algorithm. The library
+will use its own auto-detection in that case.
 """
 function set_algorithm!(config::OSRMConfig, algorithm)
+    # Check if symbol exists before trying to call it
+    if !_check_algorithm_symbol_available()
+        # Symbol doesn't exist, library will use auto-detection
+        return config
+    end
+
     code = to_cint(algorithm, Algorithm)
     _call_with_error() do error_ptr
         CWrapper.osrmc_config_set_algorithm(config.ptr, code, _error_ptr(error_ptr))

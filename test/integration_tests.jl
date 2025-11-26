@@ -18,10 +18,10 @@ using .Fixtures
         @test params isa RouteParams
 
         # Step 4: Add coordinates
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_AIRPORT
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_AIRPORT
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         # Step 5: Calculate route
         response = route(osrm, params)
@@ -44,25 +44,26 @@ using .Fixtures
 
         # Route 1: City center to airport
         params1 = RouteParams()
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_AIRPORT
-        add_coordinate!(params1, lon1, lat1)
-        add_coordinate!(params1, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_AIRPORT
+        add_coordinate!(params1, coord1)
+        add_coordinate!(params1, coord2)
         response1 = route(osrm, params1)
         dist1 = distance(response1)
 
         # Route 2: Airport to port
         params2 = RouteParams()
-        lon3, lat3 = Fixtures.HAMBURG_PORT
-        add_coordinate!(params2, lon2, lat2)
-        add_coordinate!(params2, lon3, lat3)
+        coord3 = Fixtures.HAMBURG_PORT
+        add_coordinate!(params2, coord2)
+        add_coordinate!(params2, coord3)
         response2 = route(osrm, params2)
         dist2 = distance(response2)
 
         # Route 3: Port back to city center
         params3 = RouteParams()
-        add_coordinate!(params3, lon3, lat3)
-        add_coordinate!(params3, lon1, lat1)
+        coord4 = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params3, coord3)
+        add_coordinate!(params3, coord4)
         response3 = route(osrm, params3)
         dist3 = distance(response3)
 
@@ -80,10 +81,10 @@ using .Fixtures
             config = Fixtures.get_test_config()
             osrm = OSRM(config)
             params = RouteParams()
-            lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-            lon2, lat2 = Fixtures.HAMBURG_ALTONA
-            add_coordinate!(params, lon1, lat1)
-            add_coordinate!(params, lon2, lat2)
+            coord1 = Fixtures.HAMBURG_CITY_CENTER
+            coord2 = Fixtures.HAMBURG_ALTONA
+            add_coordinate!(params, coord1)
+            add_coordinate!(params, coord2)
             response = route(osrm, params)
             dist = distance(response)
             @test dist > 0.0f0
@@ -106,10 +107,10 @@ using .Fixtures
 
         for i in 1:length(coords)-1
             params = RouteParams()
-            lon1, lat1 = coords[i]
-            lon2, lat2 = coords[i+1]
-            add_coordinate!(params, lon1, lat1)
-            add_coordinate!(params, lon2, lat2)
+            coord1 = coords[i]
+            coord2 = coords[i+1]
+            add_coordinate!(params, coord1)
+            add_coordinate!(params, coord2)
             response = route(osrm, params)
             push!(routes, (distance(response), duration(response)))
         end

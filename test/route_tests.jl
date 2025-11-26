@@ -13,8 +13,8 @@ using .Fixtures
 
     @testset "Adding coordinates" begin
         params = RouteParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
         # Should not throw
         @test true
     end
@@ -24,12 +24,12 @@ using .Fixtures
         params = RouteParams()
 
         # Add start point (city center)
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon1, lat1)
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
 
         # Add end point (airport)
-        lon2, lat2 = Fixtures.HAMBURG_AIRPORT
-        add_coordinate!(params, lon2, lat2)
+        coord2 = Fixtures.HAMBURG_AIRPORT
+        add_coordinate!(params, coord2)
 
         # Calculate route
         response = route(osrm, params)
@@ -51,10 +51,10 @@ using .Fixtures
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
 
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_PORT
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_PORT
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         response = route(osrm, params)
         @test response.ptr != C_NULL
@@ -86,11 +86,11 @@ end
 
     @testset "add_coordinate_with!" begin
         params = RouteParams()
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
+        coord = Fixtures.HAMBURG_CITY_CENTER
         radius = 10.0f0
         bearing = 0
         range = 180
-        add_coordinate_with!(params, lon, lat, radius, bearing, range)
+        add_coordinate_with!(params, coord, radius, bearing, range)
         # Should not throw
         @test true
     end
@@ -100,10 +100,10 @@ end
         params = RouteParams()
         add_steps!(params, true)
 
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_ALTONA
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_ALTONA
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         response = route(osrm, params)
         @test response isa RouteResponse
@@ -116,10 +116,10 @@ end
         params = RouteParams()
         add_alternatives!(params, true)
 
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_AIRPORT
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_AIRPORT
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         response = route(osrm, params)
         @test response isa RouteResponse
@@ -134,8 +134,8 @@ end
         params = RouteParams()
 
         # Coordinates way outside Hamburg (somewhere in the ocean)
-        add_coordinate!(params, 0.0f0, 0.0f0)
-        add_coordinate!(params, 1.0f0, 1.0f0)
+        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
+        add_coordinate!(params, LatLon(1.0f0, 1.0f0))
 
         # Should either throw an error or return a valid response with no route
         try
@@ -153,8 +153,8 @@ end
         params = RouteParams()
 
         # Try with clearly invalid coordinates
-        add_coordinate!(params, 200.0f0, 200.0f0)  # Invalid lat/lon
-        add_coordinate!(params, 201.0f0, 201.0f0)
+        add_coordinate!(params, LatLon(200.0f0, 200.0f0))  # Invalid lat/lon
+        add_coordinate!(params, LatLon(201.0f0, 201.0f0))
 
         try
             response = route(osrm, params)
@@ -174,14 +174,14 @@ end
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
 
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_PORT
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_PORT
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         # Collect waypoints in a vector
         waypoints = []
-        handler(data, name, lon, lat) = push!(waypoints, (name, lon, lat))
+        handler(data, name, lat, lon) = push!(waypoints, (name, lat, lon))
 
         # Call route_with
         route_with(osrm, params, handler, nothing)
@@ -195,14 +195,14 @@ end
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
 
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2, lat2 = Fixtures.HAMBURG_ALTONA
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = Fixtures.HAMBURG_ALTONA
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         received_data = nothing
         test_data = "test_data_123"
-        handler(data, name, lon, lat) = (global received_data = data)
+        handler(data, name, lat, lon) = (global received_data = data)
 
         route_with(osrm, params, handler, test_data)
 
@@ -217,9 +217,9 @@ end
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
 
-        lon, lat = Fixtures.HAMBURG_CITY_CENTER
-        add_coordinate!(params, lon, lat)
-        add_coordinate!(params, lon, lat)  # Same point
+        coord = Fixtures.HAMBURG_CITY_CENTER
+        add_coordinate!(params, coord)
+        add_coordinate!(params, coord)  # Same point
 
         try
             response = route(osrm, params)
@@ -239,11 +239,10 @@ end
         params = RouteParams()
 
         # Two very close points
-        lon1, lat1 = Fixtures.HAMBURG_CITY_CENTER
-        lon2 = lon1 + 0.001f0  # Very close
-        lat2 = lat1 + 0.001f0
-        add_coordinate!(params, lon1, lat1)
-        add_coordinate!(params, lon2, lat2)
+        coord1 = Fixtures.HAMBURG_CITY_CENTER
+        coord2 = LatLon(coord1.lat + 0.001f0, coord1.lon + 0.001f0)  # Very close
+        add_coordinate!(params, coord1)
+        add_coordinate!(params, coord2)
 
         response = route(osrm, params)
         dist = distance(response)
@@ -261,8 +260,8 @@ end
 
         # Add multiple waypoints
         coords = Fixtures.hamburg_coordinates()
-        for (lon, lat) in coords
-            add_coordinate!(params, lon, lat)
+        for coord in coords
+            add_coordinate!(params, coord)
         end
 
         response = route(osrm, params)

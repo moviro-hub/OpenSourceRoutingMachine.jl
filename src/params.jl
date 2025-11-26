@@ -7,6 +7,7 @@ module Params
 using ..CWrapper
 using ..Error
 using ..Enums: OutputFormat, Snapping, Approach, to_cint
+using ..OpenSourceRoutingMachine: LatLon
 
 @inline _error_ptr(ref::Ref{Ptr{Cvoid}}) = Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
 
@@ -154,31 +155,31 @@ mutable struct TileParams <: OSRMParams
 end
 
 """
-    add_coordinate!(params::OSRMParams, lon, lat)
+    add_coordinate!(params::OSRMParams, coord::LatLon)
 
 Central entry point for feeding coordinates into any service, avoiding
 service-specific copies of the same ccall.
 """
-function add_coordinate!(params::OSRMParams, longitude::Real, latitude::Real)
+function add_coordinate!(params::OSRMParams, coord::LatLon)
     _call_with_error() do error_ptr
-        CWrapper.osrmc_params_add_coordinate(params.ptr, Cfloat(longitude), Cfloat(latitude), _error_ptr(error_ptr))
+        CWrapper.osrmc_params_add_coordinate(params.ptr, Cfloat(coord.lon), Cfloat(coord.lat), _error_ptr(error_ptr))
         nothing
     end
     params
 end
 
 """
-    add_coordinate_with!(params, lon, lat, radius, bearing, range)
+    add_coordinate_with!(params, coord::LatLon, radius, bearing, range)
 
 Extends `add_coordinate!` with snapping hints so callers don't have to juggle
 separate APIs for metadata-rich requests.
 """
-function add_coordinate_with!(params::OSRMParams, longitude::Real, latitude::Real, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::OSRMParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
     _call_with_error() do error_ptr
         CWrapper.osrmc_params_add_coordinate_with(
             params.ptr,
-            Cfloat(longitude),
-            Cfloat(latitude),
+            Cfloat(coord.lon),
+            Cfloat(coord.lat),
             Cfloat(radius),
             Cint(bearing),
             Cint(range),

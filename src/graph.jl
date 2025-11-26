@@ -84,14 +84,9 @@ end
 
 function extract_cmd(osm_path::AbstractString;
                      profile::ProfileType=Profile.car,
-                     output_base::Union{Nothing,String}=nothing,
                      extra_args::Vector{String}=String[])
     profile_path = profile_lua_path(profile)
     args = String["-p", profile_path, osm_path]
-    if output_base !== nothing
-        push!(args, "-o")
-        push!(args, "$(output_base).osrm")
-    end
     append!(args, extra_args)
     _command_with_args(OSRM_jll.osrm_extract(), args)
 end
@@ -119,12 +114,14 @@ end
 
 Runs the bundled `osrm-extract` with the correct Lua profile, ensuring graph
 builds behave the same on every machine.
+
+OSRM 6.0 automatically creates output files based on the input file name in the
+same directory as the input file.
 """
 function osrm_extract(osm_path::AbstractString;
                       profile::ProfileType=Profile.car,
-                      output_base::Union{Nothing,String}=nothing,
                       extra_args::Vector{String}=String[])
-    cmd = extract_cmd(osm_path; profile=profile, output_base=output_base, extra_args=extra_args)
+    cmd = extract_cmd(osm_path; profile=profile, extra_args=extra_args)
     _run_or_throw(cmd)
 end
 
@@ -165,21 +162,30 @@ function osrm_contract(osrm_base::AbstractString;
 end
 
 """
-    build_mld_graph(osm_path; profile=Profile.car, output_base=nothing, extract_args=[], partition_args=[], customize_args=[])
+    build_mld_graph(osm_path; profile=Profile.car, extract_args=[], partition_args=[], customize_args=[])
 
 Run the extract → partition → customize pipeline for the given OSM input and
 return the base path to the generated `.osrm` files, sparing callers from
 hand-crafting the multi-step CLI workflow.
+
+Output files are created in the same directory as the input file with the same
+base name (OSRM 6.0 default behavior).
 """
 function build_mld_graph(osm_path::AbstractString;
                          profile::ProfileType=Profile.car,
-                         output_base::Union{Nothing,String}=nothing,
                          extract_args::Vector{String}=String[],
                          partition_args::Vector{String}=String[],
                          customize_args::Vector{String}=String[])
-    base = output_base === nothing ? first(splitext(osm_path)) : output_base
+    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
+    name = basename(osm_path)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    base = joinpath(dirname(osm_path), name)
 
-    osrm_extract(osm_path; profile=profile, output_base=base, extra_args=extract_args)
+    osrm_extract(osm_path; profile=profile, extra_args=extract_args)
     osrm_partition(base; extra_args=partition_args)
     osrm_customize(base; extra_args=customize_args)
 
@@ -187,7 +193,7 @@ function build_mld_graph(osm_path::AbstractString;
 end
 
 """
-    build_ch_graph(osm_path; profile=Profile.car, output_base=nothing, extract_args=[], contract_args=[])
+    build_ch_graph(osm_path; profile=Profile.car, extract_args=[], contract_args=[])
 
 Run the extract → contract pipeline for the given OSM input and return the base
 path to the generated `.osrm` files so callers can prepare CH data with a single
@@ -195,12 +201,18 @@ function call.
 """
 function build_ch_graph(osm_path::AbstractString;
                         profile::ProfileType=Profile.car,
-                        output_base::Union{Nothing,String}=nothing,
                         extract_args::Vector{String}=String[],
                         contract_args::Vector{String}=String[])
-    base = output_base === nothing ? first(splitext(osm_path)) : output_base
+    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
+    name = basename(osm_path)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    base = joinpath(dirname(osm_path), name)
 
-    osrm_extract(osm_path; profile=profile, output_base=base, extra_args=extract_args)
+    osrm_extract(osm_path; profile=profile, extra_args=extract_args)
     osrm_contract(base; extra_args=contract_args)
 
     return base

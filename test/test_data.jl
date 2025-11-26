@@ -8,28 +8,44 @@ using OpenSourceRoutingMachine: build_mld_graph, Profile
 
 const TEST_DATA_DIR = joinpath(@__DIR__, "data")
 const HAMBURG_OSM_PATH = joinpath(TEST_DATA_DIR, "hamburg-latest.osm.pbf")
-const HAMBURG_OSRM_BASE = joinpath(TEST_DATA_DIR, "osrm-mld", "hamburg-latest")
+let name = basename(HAMBURG_OSM_PATH)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    global const HAMBURG_OSRM_BASE = joinpath(TEST_DATA_DIR, name)
+end
 
 
 """
-    build_osrm_graph(osm_path::String, output_base::String) -> String
+    build_osrm_graph(osm_path::String) -> String
 
-Build an OSRM routing graph from OSM data using the CH algorithm.
+Build an OSRM routing graph from OSM data using MLD algorithm.
 Returns the base path (without .osrm extension) to the built graph.
+
+Output files are created in the same directory as the input file (OSRM 6.0 default).
 
 Steps:
 1. osrm-extract: Extract routing data from OSM
-2. osrm-contract: Build contraction hierarchies
+2. osrm-partition: Partition the graph for MLD
+3. osrm-customize: Customize the graph for MLD
 """
-function build_osrm_graph(osm_path::String, output_base::String)
+function build_osrm_graph(osm_path::String)
     if !isfile(osm_path)
         error("OSM file not found: $osm_path")
     end
 
-    mkpath(dirname(output_base))
-
-    osrm_partition_file = "$output_base.osrm.partition"
-    hashing_guard = "$output_base.osrm.hash"
+    # Remove all extensions (e.g., "file.osm.pbf" -> "file")
+    name = basename(osm_path)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    base = joinpath(dirname(osm_path), name)
+    osrm_partition_file = "$base.osrm.partition"
+    hashing_guard = "$base.osrm.hash"
 
     function _current_hash(path)
         open(path, "r") do io
@@ -42,19 +58,19 @@ function build_osrm_graph(osm_path::String, output_base::String)
         current = _current_hash(osm_path)
         if recorded == current
             @info "OSRM graph already up to date at $osrm_partition_file"
-            return output_base
+            return base
         end
     end
 
     @info "Building OSRM MLD graph from $osm_path using OpenSourceRoutingMachine Graph wrappers"
-    build_mld_graph(osm_path; profile=Profile.car, output_base=output_base)
+    build_mld_graph(osm_path; profile=Profile.car)
 
     current = _current_hash(osm_path)
     open(hashing_guard, "w") do io
         write(io, current)
     end
 
-    return output_base
+    return base
 end
 
 """
@@ -64,7 +80,7 @@ Get the path to the test OSRM graph, building it if necessary.
 Returns the base path (without .osrm extension).
 """
 function get_test_osrm_path()
-    return build_osrm_graph(HAMBURG_OSM_PATH, HAMBURG_OSRM_BASE)
+    return build_osrm_graph(HAMBURG_OSM_PATH)
 end
 
 end # module

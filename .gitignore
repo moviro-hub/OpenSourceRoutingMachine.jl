@@ -38,4 +38,4 @@ JuliaLocalPreferences.toml
 tmp/
 
 # Test data
-test/data/osrm-mld/
+test/data/hamburg-latest.osrm*
