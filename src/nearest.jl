@@ -36,9 +36,11 @@ Extends `Base.count` so callers can ask how many nearest hits OSRM returned
 without parsing JSON payloads.
 """
 count(response::NearestResponse) =
-    Int(    Error.with_error() do err
+    Int(
+    Error.with_error() do err
         CWrapper.osrmc_nearest_response_count(response.ptr, Error.error_pointer(err))
-    end)
+    end
+)
 
 """
     latitude(response::NearestResponse, index) -> Float32
@@ -47,7 +49,7 @@ Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
 """
 function latitude(response::NearestResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
@@ -59,7 +61,7 @@ Pairs with `latitude` to reconstruct snapped coordinates for visualization.
 """
 function longitude(response::NearestResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
@@ -85,7 +87,7 @@ Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
 """
 function distance(response::NearestResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end

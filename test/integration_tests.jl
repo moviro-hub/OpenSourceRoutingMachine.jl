@@ -105,10 +105,10 @@ using .Fixtures
         routes = []
         coords = Fixtures.hamburg_coordinates()
 
-        for i in 1:length(coords)-1
+        for i in 1:(length(coords) - 1)
             params = RouteParams()
             coord1 = coords[i]
-            coord2 = coords[i+1]
+            coord2 = coords[i + 1]
             add_coordinate!(params, coord1)
             add_coordinate!(params, coord2)
             response = route(osrm, params)

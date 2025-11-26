@@ -33,9 +33,11 @@ end
 Helps verify how many origins OSRM accepted before attempting to read matrices.
 """
 source_count(response::TableResponse) =
-    Int(    Error.with_error() do err
+    Int(
+    Error.with_error() do err
         CWrapper.osrmc_table_response_source_count(response.ptr, Error.error_pointer(err))
-    end)
+    end
+)
 
 """
     destination_count(response) -> Int
@@ -43,9 +45,11 @@ source_count(response::TableResponse) =
 Same as `source_count` but for destinations, keeping sanity checks symmetric.
 """
 destination_count(response::TableResponse) =
-    Int(Error.with_error() do err
+    Int(
+    Error.with_error() do err
         CWrapper.osrmc_table_response_destination_count(response.ptr, Error.error_pointer(err))
-    end)
+    end
+)
 
 """
     duration(response, from, to) -> Float32
@@ -54,7 +58,7 @@ Return OSRM's travel time between two matrix indices so we stay consistent with
 the engine (returns `Inf` when no route exists).
 """
 function duration(response::TableResponse, from::Integer, to::Integer)
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_table_response_duration(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
     end
 end
@@ -65,7 +69,7 @@ end
 Expose the meters-between calculation OSRM already computed for the matrix.
 """
 function distance(response::TableResponse, from::Integer, to::Integer)
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_table_response_distance(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
     end
 end
@@ -81,12 +85,12 @@ function duration_matrix!(buffer::AbstractVector{Float32}, response::TableRespon
         CWrapper.osrmc_table_response_get_duration_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
     end
     status == 0 || error("Duration matrix buffer too small")
-    buffer
+    return buffer
 end
 
 function duration_matrix!(buffer::AbstractMatrix{Float32}, response::TableResponse)
     duration_matrix!(vec(buffer), response)
-    buffer
+    return buffer
 end
 
 """
@@ -100,12 +104,12 @@ function distance_matrix!(buffer::AbstractVector{Float32}, response::TableRespon
         CWrapper.osrmc_table_response_get_distance_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
     end
     status == 0 || error("Distance matrix buffer too small")
-    buffer
+    return buffer
 end
 
 function distance_matrix!(buffer::AbstractMatrix{Float32}, response::TableResponse)
     distance_matrix!(vec(buffer), response)
-    buffer
+    return buffer
 end
 
 """

@@ -19,7 +19,7 @@ struct OSRMError <: Exception
 end # module Error
 
 function Base.showerror(io::IO, e::OSRMError)
-    print(io, "OSRMError: [$(e.code)] $(e.message)")
+    return print(io, "OSRMError: [$(e.code)] $(e.message)")
 end
 
 """
@@ -29,7 +29,7 @@ libosrmc expects a `Ptr{Ptr{Cvoid}}`; this hides the conversion so the rest of
 the code can treat errors like normal `Ref`s.
 """
 @inline function error_pointer(error_ref::Ref{Ptr{Cvoid}})
-    Base.unsafe_convert(Ptr{Ptr{Cvoid}}, error_ref)
+    return Base.unsafe_convert(Ptr{Ptr{Cvoid}}, error_ref)
 end
 
 """
@@ -58,7 +58,7 @@ continuing with partially initialized state.
 """
 function check_error(error_ref::Ref{Ptr{Cvoid}})
     err = take_error!(error_ref)
-    err === nothing || throw(err)
+    return err === nothing || throw(err)
 end
 
 """
@@ -92,7 +92,7 @@ it harder to forget cleanup after `ccall`.
 """
 macro check_error(expr)
     error_mod = @__MODULE__
-    quote
+    return quote
         error_ptr = Ref{Ptr{Cvoid}}(C_NULL)
         result = $(esc(expr))
         $error_mod.check_error(error_ptr)

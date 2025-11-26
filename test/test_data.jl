@@ -48,7 +48,7 @@ function build_osrm_graph(osm_path::String)
     hashing_guard = "$base.osrm.hash"
 
     function _current_hash(path)
-        open(path, "r") do io
+        return open(path, "r") do io
             bytes2hex(sha256(io))
         end
     end
@@ -63,7 +63,7 @@ function build_osrm_graph(osm_path::String)
     end
 
     @info "Building OSRM MLD graph from $osm_path using OpenSourceRoutingMachine Graph wrappers"
-    build_mld_graph(osm_path; profile=Profile.car)
+    build_mld_graph(osm_path; profile = Profile.car)
 
     current = _current_hash(osm_path)
     open(hashing_guard, "w") do io

@@ -31,7 +31,7 @@ end
     distance(response::TripResponse) -> Float32
 """
 function distance(response::TripResponse)
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_trip_response_distance(response.ptr, Error.error_pointer(err))
     end
 end
@@ -40,7 +40,7 @@ end
     duration(response::TripResponse) -> Float32
 """
 function duration(response::TripResponse)
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_trip_response_duration(response.ptr, Error.error_pointer(err))
     end
 end
@@ -49,16 +49,18 @@ end
     waypoint_count(response::TripResponse) -> Int
 """
 waypoint_count(response::TripResponse) =
-    Int(Error.with_error() do err
+    Int(
+    Error.with_error() do err
         CWrapper.osrmc_trip_response_waypoint_count(response.ptr, Error.error_pointer(err))
-    end)
+    end
+)
 
 """
     waypoint_latitude(response::TripResponse, index) -> Float32
 """
 function waypoint_latitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_trip_response_waypoint_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
@@ -68,7 +70,7 @@ end
 """
 function waypoint_longitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    Error.with_error() do err
+    return Error.with_error() do err
         CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end

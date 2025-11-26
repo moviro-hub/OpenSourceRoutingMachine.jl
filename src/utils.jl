@@ -27,7 +27,7 @@ Installs a GC finalizer that runs the provided destructor so libosrm responses
 can't leak even if callers forget to free them.
 """
 function _finalize_response!(response, destructor)
-    finalizer(response) do r
+    return finalizer(response) do r
         if r.ptr != C_NULL
             destructor(r.ptr)
             r.ptr = C_NULL

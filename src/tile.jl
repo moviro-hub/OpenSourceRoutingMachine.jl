@@ -36,9 +36,11 @@ end
 Get the raw byte size of the vector tile payload.
 """
 size(response::TileResponse) =
-    Int(Error.with_error() do err
+    Int(
+    Error.with_error() do err
         CWrapper.osrmc_tile_response_size(response.ptr, Error.error_pointer(err))
-    end)
+    end
+)
 
 """
     data(response::TileResponse) -> Vector{UInt8}

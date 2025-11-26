@@ -10,7 +10,7 @@ using ..Enums: Enums
 using Libdl
 
 @inline function _error_ptr(ref::Ref{Ptr{Cvoid}})
-    Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
+    return Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
 end # module Config
 
 @inline function _call_with_error(f::Function)
@@ -22,11 +22,11 @@ end
 
 @inline function _cstring(str::AbstractString)
     cstr = Base.cconvert(Cstring, str)
-    Base.unsafe_convert(Cstring, cstr)
+    return Base.unsafe_convert(Cstring, cstr)
 end
 
-@inline function _cstring_or_null(str::Union{AbstractString,Nothing})
-    str === nothing ? C_NULL : _cstring(str)
+@inline function _cstring_or_null(str::Union{AbstractString, Nothing})
+    return str === nothing ? C_NULL : _cstring(str)
 end
 
 """
@@ -102,7 +102,7 @@ Expose libosrmc's build version so applications can log or gate behavior based
 on the engine they are linked against.
 """
 function get_version()
-    CWrapper.osrmc_get_version()
+    return CWrapper.osrmc_get_version()
 end
 
 """
@@ -112,11 +112,11 @@ Allows callers to verify that the currently loaded libosrmc matches the Julia
 wrapper's expectations before making calls.
 """
 function is_abi_compatible()
-    CWrapper.osrmc_is_abi_compatible() != 0
+    return CWrapper.osrmc_is_abi_compatible() != 0
 end
 
 # Cache the result of symbol availability check
-const _algorithm_symbol_available = Ref{Union{Bool,Nothing}}(nothing)
+const _algorithm_symbol_available = Ref{Union{Bool, Nothing}}(nothing)
 
 function _check_algorithm_symbol_available()
     if _algorithm_symbol_available[] === nothing
@@ -149,7 +149,7 @@ function set_algorithm!(config::OSRMConfig, algorithm)
         CWrapper.osrmc_config_set_algorithm(config.ptr, code, _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 """
@@ -163,7 +163,7 @@ function set_max_locations_trip!(config::OSRMConfig, max_locations::Integer)
         CWrapper.osrmc_config_set_max_locations_trip(config.ptr, Cint(max_locations), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_locations_viaroute!(config::OSRMConfig, max_locations::Integer)
@@ -171,7 +171,7 @@ function set_max_locations_viaroute!(config::OSRMConfig, max_locations::Integer)
         CWrapper.osrmc_config_set_max_locations_viaroute(config.ptr, Cint(max_locations), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_locations_distance_table!(config::OSRMConfig, max_locations::Integer)
@@ -179,7 +179,7 @@ function set_max_locations_distance_table!(config::OSRMConfig, max_locations::In
         CWrapper.osrmc_config_set_max_locations_distance_table(config.ptr, Cint(max_locations), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_locations_map_matching!(config::OSRMConfig, max_locations::Integer)
@@ -187,7 +187,7 @@ function set_max_locations_map_matching!(config::OSRMConfig, max_locations::Inte
         CWrapper.osrmc_config_set_max_locations_map_matching(config.ptr, Cint(max_locations), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_radius_map_matching!(config::OSRMConfig, radius::Real)
@@ -195,7 +195,7 @@ function set_max_radius_map_matching!(config::OSRMConfig, radius::Real)
         CWrapper.osrmc_config_set_max_radius_map_matching(config.ptr, Cdouble(radius), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_results_nearest!(config::OSRMConfig, max_results::Integer)
@@ -203,7 +203,7 @@ function set_max_results_nearest!(config::OSRMConfig, max_results::Integer)
         CWrapper.osrmc_config_set_max_results_nearest(config.ptr, Cint(max_results), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_default_radius!(config::OSRMConfig, radius::Real)
@@ -211,7 +211,7 @@ function set_default_radius!(config::OSRMConfig, radius::Real)
         CWrapper.osrmc_config_set_default_radius(config.ptr, Cdouble(radius), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_max_alternatives!(config::OSRMConfig, max_alternatives::Integer)
@@ -219,7 +219,7 @@ function set_max_alternatives!(config::OSRMConfig, max_alternatives::Integer)
         CWrapper.osrmc_config_set_max_alternatives(config.ptr, Cint(max_alternatives), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_use_mmap!(config::OSRMConfig, use_mmap::Bool)
@@ -227,7 +227,7 @@ function set_use_mmap!(config::OSRMConfig, use_mmap::Bool)
         CWrapper.osrmc_config_set_use_mmap(config.ptr, use_mmap, _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function set_use_shared_memory!(config::OSRMConfig, use_shm::Bool)
@@ -235,31 +235,31 @@ function set_use_shared_memory!(config::OSRMConfig, use_shm::Bool)
         CWrapper.osrmc_config_set_use_shared_memory(config.ptr, use_shm, _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
-function set_dataset_name!(config::OSRMConfig, dataset_name::Union{AbstractString,Nothing})
+function set_dataset_name!(config::OSRMConfig, dataset_name::Union{AbstractString, Nothing})
     _call_with_error() do error_ptr
         CWrapper.osrmc_config_set_dataset_name(config.ptr, _cstring_or_null(dataset_name), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
-function set_memory_file!(config::OSRMConfig, memory_file::Union{AbstractString,Nothing})
+function set_memory_file!(config::OSRMConfig, memory_file::Union{AbstractString, Nothing})
     _call_with_error() do error_ptr
         CWrapper.osrmc_config_set_memory_file(config.ptr, _cstring_or_null(memory_file), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
-function set_verbosity!(config::OSRMConfig, verbosity::Union{AbstractString,Nothing})
+function set_verbosity!(config::OSRMConfig, verbosity::Union{AbstractString, Nothing})
     _call_with_error() do error_ptr
         CWrapper.osrmc_config_set_verbosity(config.ptr, _cstring_or_null(verbosity), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function disable_feature_dataset!(config::OSRMConfig, dataset_name::AbstractString)
@@ -267,7 +267,7 @@ function disable_feature_dataset!(config::OSRMConfig, dataset_name::AbstractStri
         CWrapper.osrmc_config_disable_feature_dataset(config.ptr, _cstring(dataset_name), _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 function clear_disabled_feature_datasets!(config::OSRMConfig)
@@ -275,7 +275,7 @@ function clear_disabled_feature_datasets!(config::OSRMConfig)
         CWrapper.osrmc_config_clear_disabled_feature_datasets(config.ptr, _error_ptr(error_ptr))
         nothing
     end
-    config
+    return config
 end
 
 end

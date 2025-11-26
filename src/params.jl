@@ -15,16 +15,16 @@ using ..OpenSourceRoutingMachine: LatLon
     error_ref = Ref{Ptr{Cvoid}}(C_NULL)
     result = f(error_ref)
     Error.check_error(error_ref)
-    result
+    return result
 end
 
 @inline function _cstring(str::AbstractString)
     cstr = Base.cconvert(Cstring, str)
-    Base.unsafe_convert(Cstring, cstr)
+    return Base.unsafe_convert(Cstring, cstr)
 end
 
-@inline function _cstring_or_null(str::Union{AbstractString,Nothing})
-    str === nothing ? C_NULL : _cstring(str)
+@inline function _cstring_or_null(str::Union{AbstractString, Nothing})
+    return str === nothing ? C_NULL : _cstring(str)
 end
 
 @inline _bool_to_cint(flag::Bool) = flag ? Cint(1) : Cint(0)
@@ -32,7 +32,7 @@ end
 abstract type OSRMParams end
 
 function _finalize_param!(params, destructor)
-    finalizer(params) do p
+    return finalizer(params) do p
         if p.ptr != C_NULL
             destructor(p.ptr)
             p.ptr = C_NULL
@@ -55,7 +55,7 @@ mutable struct RouteParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_route_params_destruct)
-        params
+        return params
     end
 end
 
@@ -74,7 +74,7 @@ mutable struct TableParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_table_params_destruct)
-        params
+        return params
     end
 end
 
@@ -93,7 +93,7 @@ mutable struct NearestParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_nearest_params_destruct)
-        params
+        return params
     end
 end
 
@@ -112,7 +112,7 @@ mutable struct MatchParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_match_params_destruct)
-        params
+        return params
     end
 end
 
@@ -131,7 +131,7 @@ mutable struct TripParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_trip_params_destruct)
-        params
+        return params
     end
 end
 
@@ -150,7 +150,7 @@ mutable struct TileParams <: OSRMParams
         end
         params = new(ptr)
         _finalize_param!(params, CWrapper.osrmc_tile_params_destruct)
-        params
+        return params
     end
 end
 
@@ -165,7 +165,7 @@ function add_coordinate!(params::OSRMParams, coord::LatLon)
         CWrapper.osrmc_params_add_coordinate(params.ptr, Cfloat(coord.lon), Cfloat(coord.lat), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -187,7 +187,7 @@ function add_coordinate_with!(params::OSRMParams, coord::LatLon, radius::Real, b
         )
         nothing
     end
-    params
+    return params
 end
 
 function set_hint!(params::OSRMParams, coordinate_index::Integer, hint::AbstractString)
@@ -196,7 +196,7 @@ function set_hint!(params::OSRMParams, coordinate_index::Integer, hint::Abstract
         CWrapper.osrmc_params_set_hint(params.ptr, Csize_t(coordinate_index - 1), _cstring(hint), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 function set_radius!(params::OSRMParams, coordinate_index::Integer, radius::Real)
@@ -205,7 +205,7 @@ function set_radius!(params::OSRMParams, coordinate_index::Integer, radius::Real
         CWrapper.osrmc_params_set_radius(params.ptr, Csize_t(coordinate_index - 1), Cdouble(radius), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 function set_bearing!(params::OSRMParams, coordinate_index::Integer, value::Integer, range::Integer)
@@ -214,7 +214,7 @@ function set_bearing!(params::OSRMParams, coordinate_index::Integer, value::Inte
         CWrapper.osrmc_params_set_bearing(params.ptr, Csize_t(coordinate_index - 1), Cint(value), Cint(range), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -230,7 +230,7 @@ function set_approach!(params::OSRMParams, coordinate_index::Integer, approach)
         CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index - 1), code, _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -244,7 +244,7 @@ function add_exclude!(params::OSRMParams, profile::AbstractString)
         CWrapper.osrmc_params_add_exclude(params.ptr, _cstring(profile), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -255,7 +255,7 @@ lookups when the same waypoints are requested.
 """
 function set_generate_hints!(params::OSRMParams, on::Bool)
     CWrapper.osrmc_params_set_generate_hints(params.ptr, _bool_to_cint(on))
-    params
+    return params
 end
 
 """
@@ -266,7 +266,7 @@ response size for high-volume routing.
 """
 function set_skip_waypoints!(params::OSRMParams, on::Bool)
     CWrapper.osrmc_params_set_skip_waypoints(params.ptr, _bool_to_cint(on))
-    params
+    return params
 end
 
 """
@@ -281,7 +281,7 @@ function set_snapping!(params::OSRMParams, snapping)
         CWrapper.osrmc_params_set_snapping(params.ptr, code, _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -296,7 +296,7 @@ function set_format!(params::OSRMParams, format)
         CWrapper.osrmc_params_set_format(params.ptr, code, _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 # Route-specific options stay grouped together so this file mirrors the OSRM
@@ -310,7 +310,7 @@ turn-by-turn guidance layers.
 """
 function add_steps!(params::RouteParams, on::Bool)
     CWrapper.osrmc_route_params_add_steps(params.ptr, _bool_to_cint(on))
-    params
+    return params
 end
 
 """
@@ -321,7 +321,7 @@ producing alternates instead of pruning early.
 """
 function add_alternatives!(params::RouteParams, on::Bool)
     CWrapper.osrmc_route_params_add_alternatives(params.ptr, _bool_to_cint(on))
-    params
+    return params
 end
 
 """
@@ -335,7 +335,7 @@ function set_geometries!(params::RouteParams, geometries::AbstractString)
         CWrapper.osrmc_route_params_set_geometries(params.ptr, _cstring(geometries), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -349,7 +349,7 @@ function set_overview!(params::RouteParams, overview::AbstractString)
         CWrapper.osrmc_route_params_set_overview(params.ptr, _cstring(overview), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -363,7 +363,7 @@ function set_continue_straight!(params::RouteParams, on::Bool)
         CWrapper.osrmc_route_params_set_continue_straight(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -377,7 +377,7 @@ function set_number_of_alternatives!(params::RouteParams, count::Integer)
         CWrapper.osrmc_route_params_set_number_of_alternatives(params.ptr, Cuint(count), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -391,7 +391,7 @@ function set_annotations!(params::RouteParams, annotations::AbstractString)
         CWrapper.osrmc_route_params_set_annotations(params.ptr, _cstring(annotations), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -406,7 +406,7 @@ function add_waypoint!(params::RouteParams, index::Integer)
         CWrapper.osrmc_route_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -417,7 +417,7 @@ for multiple experiments without reconstructing coordinates.
 """
 function clear_waypoints!(params::RouteParams)
     CWrapper.osrmc_route_params_clear_waypoints(params.ptr)
-    params
+    return params
 end
 
 # Table service helpers get their own section to match the libosrm
@@ -435,7 +435,7 @@ function add_source!(params::TableParams, index::Integer)
         CWrapper.osrmc_table_params_add_source(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -450,7 +450,7 @@ function add_destination!(params::TableParams, index::Integer)
         CWrapper.osrmc_table_params_add_destination(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -464,7 +464,7 @@ function set_annotations_mask!(params::TableParams, mask::AbstractString)
         CWrapper.osrmc_table_params_set_annotations_mask(params.ptr, _cstring(mask), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -478,7 +478,7 @@ function set_fallback_speed!(params::TableParams, speed::Real)
         CWrapper.osrmc_table_params_set_fallback_speed(params.ptr, Cdouble(speed), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -487,12 +487,12 @@ end
 Controls whether fallback results snap to input coordinates or to network
 snaps, ensuring downstream code interprets placeholders correctly.
 """
-function set_fallback_coordinate_type!(params::TableParams, coord_type::Union{AbstractString,Nothing})
+function set_fallback_coordinate_type!(params::TableParams, coord_type::Union{AbstractString, Nothing})
     _call_with_error() do error_ptr
         CWrapper.osrmc_table_params_set_fallback_coordinate_type(params.ptr, _cstring_or_null(coord_type), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -506,7 +506,7 @@ function set_scale_factor!(params::TableParams, factor::Real)
         CWrapper.osrmc_table_params_set_scale_factor(params.ptr, Cdouble(factor), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 # Nearest service exposes only a single extra knob, but we still dedicate a
@@ -523,7 +523,7 @@ function set_number_of_results!(params::NearestParams, n::Integer)
         CWrapper.osrmc_nearest_set_number_of_results(params.ptr, Cuint(n), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 # Match service options include extra metadata (timestamps, tidy), so we group
@@ -540,7 +540,7 @@ function add_timestamp!(params::MatchParams, timestamp::Integer)
         CWrapper.osrmc_match_params_add_timestamp(params.ptr, Cuint(timestamp), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -554,7 +554,7 @@ function set_gaps!(params::MatchParams, gaps::AbstractString)
         CWrapper.osrmc_match_params_set_gaps(params.ptr, _cstring(gaps), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -568,7 +568,7 @@ function set_tidy!(params::MatchParams, on::Bool)
         CWrapper.osrmc_match_params_set_tidy(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 # Trip service controls (roundtrips, waypoint overrides) are kept together to
@@ -585,7 +585,7 @@ function add_roundtrip!(params::TripParams, on::Bool)
         CWrapper.osrmc_trip_params_add_roundtrip(params.ptr, _bool_to_cint(on), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -599,7 +599,7 @@ function add_source!(params::TripParams, source::AbstractString)
         CWrapper.osrmc_trip_params_add_source(params.ptr, _cstring(source), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -613,7 +613,7 @@ function add_destination!(params::TripParams, destination::AbstractString)
         CWrapper.osrmc_trip_params_add_destination(params.ptr, _cstring(destination), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -624,7 +624,7 @@ ordering without reallocating params.
 """
 function clear_waypoints!(params::TripParams)
     CWrapper.osrmc_trip_params_clear_waypoints(params.ptr)
-    params
+    return params
 end
 
 """
@@ -639,7 +639,7 @@ function add_waypoint!(params::TripParams, index::Integer)
         CWrapper.osrmc_trip_params_add_waypoint(params.ptr, Csize_t(index - 1), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 # Tile service fields are listed together to emphasize the shared XYZ contract.
@@ -655,7 +655,7 @@ function set_x!(params::TileParams, x::Integer)
         CWrapper.osrmc_tile_params_set_x(params.ptr, Cuint(x), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -668,7 +668,7 @@ function set_y!(params::TileParams, y::Integer)
         CWrapper.osrmc_tile_params_set_y(params.ptr, Cuint(y), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 """
@@ -682,7 +682,7 @@ function set_z!(params::TileParams, z::Integer)
         CWrapper.osrmc_tile_params_set_z(params.ptr, Cuint(z), _error_ptr(error_ptr))
         nothing
     end
-    params
+    return params
 end
 
 end # module Params

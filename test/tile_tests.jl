@@ -4,7 +4,7 @@ using .Fixtures
 import OpenSourceRoutingMachine.Tile: TileResponse, data, size
 
 function _slippy_tile(lat::Float64, lon::Float64, zoom::Integer)
-    n = 2.0 ^ zoom
+    n = 2.0^zoom
     xtile = floor(Int, (lon + 180.0) / 360.0 * n)
     lat_rad = deg2rad(lat)
     ytile = floor(Int, (1.0 - log(tan(lat_rad) + sec(lat_rad)) / π) / 2.0 * n)
