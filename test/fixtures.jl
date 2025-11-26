@@ -4,7 +4,7 @@ Test fixtures and helpers for Route module tests.
 module Fixtures
 
 using ..TestData
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: OSRMConfig, OSRM, LatLon
 
 # Known coordinates in Hamburg for testing
 const HAMBURG_CITY_CENTER = LatLon(53.5511f0, 9.9937f0)  # Rathaus (latitude, longitude)

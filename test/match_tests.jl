@@ -1,6 +1,6 @@
 # Comprehensive tests for the Match module
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, match, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, LatLon, OSRMError
 using Base: C_NULL
 using .Fixtures
 
@@ -241,7 +241,7 @@ end
 
         if tracepoint_cnt > 0
             # Test accessing first tracepoint
-            is_null = tracepoint_is_null(response, 0)
+            is_null = tracepoint_is_null(response, 1)
             @test isa(is_null, Bool)
 
             if !is_null
@@ -400,7 +400,7 @@ end
         @test tracepoint_cnt >= 0
 
         if route_cnt > 0
-            dist = route_distance(response, 0)
+            dist = route_distance(response, 1)
             dur = route_duration(response, 1)
             @test dist >= 0.0f0
             @test dur >= 0.0f0

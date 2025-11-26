@@ -1,6 +1,6 @@
 # Integration tests for the Route module
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: OSRMConfig, OSRM, RouteParams, add_coordinate!, route, distance, duration, LatLon
 using .Fixtures
 
 @testset "Integration - Full Workflow" begin

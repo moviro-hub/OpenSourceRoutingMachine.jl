@@ -3,10 +3,10 @@ Tile service wrapper.
 """
 module Tile
 
-using ..CWrapper
-using ..Error: with_error, error_pointer
-import ..Config: OSRM
-import ..Params: TileParams
+using ..CWrapper: CWrapper
+using ..Error: Error
+using ..Config: Config
+using ..Params: Params
 
 """
     TileResponse
@@ -36,8 +36,8 @@ end
 Get the raw byte size of the vector tile payload.
 """
 size(response::TileResponse) =
-    Int(with_error() do err
-        CWrapper.osrmc_tile_response_size(response.ptr, error_pointer(err))
+    Int(Error.with_error() do err
+        CWrapper.osrmc_tile_response_size(response.ptr, Error.error_pointer(err))
     end)
 
 """
@@ -47,8 +47,8 @@ Copy the binary vector-tile payload into a Julia-owned buffer.
 """
 function data(response::TileResponse)
     len_ref = Ref{Csize_t}(0)
-    ptr = with_error() do err
-        CWrapper.osrmc_tile_response_data(response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), error_pointer(err))
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_tile_response_data(response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), Error.error_pointer(err))
     end
     len = Int(len_ref[])
     len == 0 && return UInt8[]
@@ -62,9 +62,9 @@ end
 
 Query the Tile service and return a response object.
 """
-function tile(osrm::OSRM, params::TileParams)
-    ptr = with_error() do err
-        CWrapper.osrmc_tile(osrm.ptr, params.ptr, error_pointer(err))
+function tile(osrm::Config.OSRM, params::Params.TileParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_tile(osrm.ptr, params.ptr, Error.error_pointer(err))
     end
     return TileResponse(ptr)
 end

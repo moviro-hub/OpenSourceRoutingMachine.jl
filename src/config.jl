@@ -4,9 +4,9 @@ libosrm handles safely.
 """
 module Config
 
-using ..CWrapper
-using ..Error
-using ..Enums: Algorithm, to_cint
+using ..CWrapper: CWrapper
+using ..Error: Error
+using ..Enums: Enums
 using Libdl
 
 @inline function _error_ptr(ref::Ref{Ptr{Cvoid}})
@@ -57,9 +57,9 @@ mutable struct OSRMConfig
                 base_name = basename(base_path)
                 files = readdir(dir)
                 if any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
-                    set_algorithm!(config, Algorithm.ch)
+                    set_algorithm!(config, Enums.Algorithm.ch)
                 elseif any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
-                    set_algorithm!(config, Algorithm.mld)
+                    set_algorithm!(config, Enums.Algorithm.mld)
                 end
             catch
             end
@@ -144,7 +144,7 @@ function set_algorithm!(config::OSRMConfig, algorithm)
         return config
     end
 
-    code = to_cint(algorithm, Algorithm)
+    code = Enums.to_cint(algorithm, Enums.Algorithm)
     _call_with_error() do error_ptr
         CWrapper.osrmc_config_set_algorithm(config.ptr, code, _error_ptr(error_ptr))
         nothing

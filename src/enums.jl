@@ -3,8 +3,8 @@ Centralized enum definitions and conversions for libosrmc.
 """
 module Enums
 
-using EnumX
-using ..CWrapper
+using EnumX: @enumx
+# byname is used via EnumX.byname() call
 
 export Algorithm, OutputFormat, Snapping, Approach, Profile
 export to_cint

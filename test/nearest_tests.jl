@@ -1,6 +1,6 @@
 # Comprehensive tests for the Nearest module
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: NearestParams, NearestResponse, add_coordinate!, nearest, latitude, longitude, name, distance, count, LatLon, OSRMError
 using Base: C_NULL
 using .Fixtures
 

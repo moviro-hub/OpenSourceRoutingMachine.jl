@@ -1,7 +1,6 @@
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: TileParams, set_x!, set_y!, set_z!, tile, OSRMError
 using .Fixtures
-
 import OpenSourceRoutingMachine.Tile: TileResponse, data, size
 
 function _slippy_tile(lat::Float64, lon::Float64, zoom::Integer)
@@ -18,7 +17,7 @@ end
 
     coord = Fixtures.HAMBURG_CITY_CENTER
     zoom = 14
-    x, y = _slippy_tile(Float64(lat), Float64(lon), zoom)
+    x, y = _slippy_tile(Float64(coord.lat), Float64(coord.lon), zoom)
 
     set_x!(params, x)
     set_y!(params, y)

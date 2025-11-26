@@ -3,12 +3,12 @@ Trip service wrapper.
 """
 module Trip
 
-using ..CWrapper
-using ..Error: with_error, error_pointer
-using ..Utils: blob_to_string, _finalize_response!
-import ..Config: OSRM
-import ..Params: TripParams
-import ..Route: distance, duration
+using ..CWrapper: CWrapper
+using ..Error: Error
+using ..Utils: Utils
+using ..Config: Config
+using ..Params: Params
+import ..OpenSourceRoutingMachine: distance, duration
 
 """
     TripResponse
@@ -22,7 +22,7 @@ mutable struct TripResponse
     function TripResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TripResponse from NULL pointer")
         response = new(ptr)
-        _finalize_response!(response, CWrapper.osrmc_trip_response_destruct)
+        Utils._finalize_response!(response, CWrapper.osrmc_trip_response_destruct)
         return response
     end
 end
@@ -30,25 +30,27 @@ end
 """
     distance(response::TripResponse) -> Float32
 """
-distance(response::TripResponse) =
-    with_error() do err
-        CWrapper.osrmc_trip_response_distance(response.ptr, error_pointer(err))
+function distance(response::TripResponse)
+    Error.with_error() do err
+        CWrapper.osrmc_trip_response_distance(response.ptr, Error.error_pointer(err))
     end
+end
 
 """
     duration(response::TripResponse) -> Float32
 """
-duration(response::TripResponse) =
-    with_error() do err
-        CWrapper.osrmc_trip_response_duration(response.ptr, error_pointer(err))
+function duration(response::TripResponse)
+    Error.with_error() do err
+        CWrapper.osrmc_trip_response_duration(response.ptr, Error.error_pointer(err))
     end
+end
 
 """
     waypoint_count(response::TripResponse) -> Int
 """
 waypoint_count(response::TripResponse) =
-    Int(with_error() do err
-        CWrapper.osrmc_trip_response_waypoint_count(response.ptr, error_pointer(err))
+    Int(Error.with_error() do err
+        CWrapper.osrmc_trip_response_waypoint_count(response.ptr, Error.error_pointer(err))
     end)
 
 """
@@ -56,8 +58,8 @@ waypoint_count(response::TripResponse) =
 """
 function waypoint_latitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    with_error() do err
-        CWrapper.osrmc_trip_response_waypoint_latitude(response.ptr, Cuint(index - 1), error_pointer(err))
+    Error.with_error() do err
+        CWrapper.osrmc_trip_response_waypoint_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
 
@@ -66,8 +68,8 @@ end
 """
 function waypoint_longitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
-    with_error() do err
-        CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index - 1), error_pointer(err))
+    Error.with_error() do err
+        CWrapper.osrmc_trip_response_waypoint_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
     end
 end
 
@@ -76,9 +78,9 @@ end
 
 Query the Trip service and return a response object.
 """
-function trip(osrm::OSRM, params::TripParams)
-    ptr = with_error() do err
-        CWrapper.osrmc_trip(osrm.ptr, params.ptr, error_pointer(err))
+function trip(osrm::Config.OSRM, params::Params.TripParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_trip(osrm.ptr, params.ptr, Error.error_pointer(err))
     end
     return TripResponse(ptr)
 end
@@ -87,10 +89,10 @@ end
     as_json(response::TripResponse) -> String
 """
 function as_json(response::TripResponse)
-    blob = with_error() do err
-        CWrapper.osrmc_trip_response_json(response.ptr, error_pointer(err))
+    blob = Error.with_error() do err
+        CWrapper.osrmc_trip_response_json(response.ptr, Error.error_pointer(err))
     end
-    return blob_to_string(blob)
+    return Utils.blob_to_string(blob)
 end
 
 end # module Trip

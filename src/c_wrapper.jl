@@ -5,7 +5,7 @@ This module provides direct ccall wrappers for all C functions in libosrmc.
 module CWrapper
 
 using ..OpenSourceRoutingMachine: libosrmc_jll
-using Libdl
+using Libdl: dlopen, dlsym, dlsym_e
 
 # Keep a direct pointer to the artifact-managed lib so we never resolve against
 # a user-installed libosrmc with a mismatched ABI.

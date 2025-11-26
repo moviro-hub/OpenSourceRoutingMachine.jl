@@ -4,9 +4,9 @@ lifetime management and string/enum conversions.
 """
 module Params
 
-using ..CWrapper
-using ..Error
-using ..Enums: OutputFormat, Snapping, Approach, to_cint
+using ..CWrapper: CWrapper
+using ..Error: Error
+using ..Enums: Enums
 using ..OpenSourceRoutingMachine: LatLon
 
 @inline _error_ptr(ref::Ref{Ptr{Cvoid}}) = Base.unsafe_convert(Ptr{Ptr{Cvoid}}, ref)
@@ -225,7 +225,7 @@ that require U-turns when curb constraints matter.
 """
 function set_approach!(params::OSRMParams, coordinate_index::Integer, approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Enums.to_cint(approach, Enums.Approach)
     _call_with_error() do error_ptr
         CWrapper.osrmc_params_set_approach(params.ptr, Csize_t(coordinate_index - 1), code, _error_ptr(error_ptr))
         nothing
@@ -276,7 +276,7 @@ Controls whether coordinates may snap to any edge or remain strict, which helps
 stabilize results for noisy GPS traces.
 """
 function set_snapping!(params::OSRMParams, snapping)
-    code = to_cint(snapping, Snapping)
+    code = Enums.to_cint(snapping, Enums.Snapping)
     _call_with_error() do error_ptr
         CWrapper.osrmc_params_set_snapping(params.ptr, code, _error_ptr(error_ptr))
         nothing
@@ -291,7 +291,7 @@ Switch between JSON and Flatbuffers so you can trade readability for transfer
 size without reconstructing params.
 """
 function set_format!(params::OSRMParams, format)
-    code = to_cint(format, OutputFormat)
+    code = Enums.to_cint(format, Enums.OutputFormat)
     _call_with_error() do error_ptr
         CWrapper.osrmc_params_set_format(params.ptr, code, _error_ptr(error_ptr))
         nothing

@@ -6,9 +6,10 @@ Thin wrapper around the libosrmc C API.
 """
 module OpenSourceRoutingMachine
 
+# Import modules (not specific functions) so submodules can access them
 using OSRM_jll
 using libosrmc_jll
-using Libdl
+using Libdl: dlopen
 
 function __init__()
     # building with dont_dlopen=true means the JLLs won't autoload so we have to do it manually here.
@@ -28,6 +29,24 @@ A named tuple representing a latitude and longitude coordinate.
 const LatLon = NamedTuple{(:lat, :lon), Tuple{Float32, Float32}}
 LatLon(lat::Real, lon::Real) = (lat=Float32(lat), lon=Float32(lon))
 
+"""
+    distance(response, ...) -> Float32
+
+Compute distance from OSRM response objects. Methods are defined for:
+- `RouteResponse`: returns total route distance
+- `NearestResponse`: returns distance to nearest point at given index
+- `TripResponse`: returns total trip distance
+"""
+function distance end
+
+"""
+    duration(response, ...) -> Float32
+
+Compute duration from OSRM response objects. Methods are defined for:
+- `RouteResponse`: returns total route duration
+- `TripResponse`: returns total trip duration
+"""
+function duration end
 
 # Load all submodules up front so their symbols can be re-exported from this
 # entrypoint module without requiring callers to `include` anything manually.
@@ -61,7 +80,7 @@ import .Params: RouteParams, TableParams, NearestParams, MatchParams, TripParams
                 set_gaps!, set_tidy!, add_roundtrip!, set_x!, set_y!, set_z!
 import .Graph: OSRMCommandError, profile_lua_path, osrm_extract, osrm_partition, osrm_customize,
     osrm_contract, build_mld_graph, build_ch_graph
-import .Route: RouteResponse, route, route_with, distance, duration
+import .Route: RouteResponse, route, route_with
 import .Nearest: NearestResponse, nearest, latitude, longitude, name
 import .Table: TableResponse, table
 import .Match: MatchResponse, match, route_count, tracepoint_count, route_distance,

@@ -4,11 +4,11 @@ JSON overhead.
 """
 module Table
 
-using ..CWrapper
-using ..Error: with_error, error_pointer
-using ..Utils: blob_to_string, _finalize_response!
-import ..Config: OSRM
-import ..Params: TableParams
+using ..CWrapper: CWrapper
+using ..Error: Error
+using ..Utils: Utils
+using ..Config: Config
+using ..Params: Params
 
 """
     TableResponse
@@ -22,7 +22,7 @@ mutable struct TableResponse
     function TableResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TableResponse from NULL pointer")
         response = new(ptr)
-        _finalize_response!(response, CWrapper.osrmc_table_response_destruct)
+        Utils._finalize_response!(response, CWrapper.osrmc_table_response_destruct)
         return response
     end
 end
@@ -33,8 +33,8 @@ end
 Helps verify how many origins OSRM accepted before attempting to read matrices.
 """
 source_count(response::TableResponse) =
-    Int(with_error() do err
-        CWrapper.osrmc_table_response_source_count(response.ptr, error_pointer(err))
+    Int(    Error.with_error() do err
+        CWrapper.osrmc_table_response_source_count(response.ptr, Error.error_pointer(err))
     end)
 
 """
@@ -43,8 +43,8 @@ source_count(response::TableResponse) =
 Same as `source_count` but for destinations, keeping sanity checks symmetric.
 """
 destination_count(response::TableResponse) =
-    Int(with_error() do err
-        CWrapper.osrmc_table_response_destination_count(response.ptr, error_pointer(err))
+    Int(Error.with_error() do err
+        CWrapper.osrmc_table_response_destination_count(response.ptr, Error.error_pointer(err))
     end)
 
 """
@@ -54,8 +54,8 @@ Return OSRM's travel time between two matrix indices so we stay consistent with
 the engine (returns `Inf` when no route exists).
 """
 function duration(response::TableResponse, from::Integer, to::Integer)
-    with_error() do err
-        CWrapper.osrmc_table_response_duration(response.ptr, Culong(from), Culong(to), error_pointer(err))
+    Error.with_error() do err
+        CWrapper.osrmc_table_response_duration(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
     end
 end
 
@@ -65,8 +65,8 @@ end
 Expose the meters-between calculation OSRM already computed for the matrix.
 """
 function distance(response::TableResponse, from::Integer, to::Integer)
-    with_error() do err
-        CWrapper.osrmc_table_response_distance(response.ptr, Culong(from), Culong(to), error_pointer(err))
+    Error.with_error() do err
+        CWrapper.osrmc_table_response_distance(response.ptr, Culong(from), Culong(to), Error.error_pointer(err))
     end
 end
 
@@ -77,8 +77,8 @@ Fill an existing `Float32` buffer (vector or matrix, row-major) with durations
 so callers can avoid allocations when repeatedly querying OSRM.
 """
 function duration_matrix!(buffer::AbstractVector{Float32}, response::TableResponse)
-    status = with_error() do err
-        CWrapper.osrmc_table_response_get_duration_matrix(response.ptr, pointer(buffer), length(buffer), error_pointer(err))
+    status = Error.with_error() do err
+        CWrapper.osrmc_table_response_get_duration_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
     end
     status == 0 || error("Duration matrix buffer too small")
     buffer
@@ -96,8 +96,8 @@ In-place variant for distances, mirroring `duration_matrix!` to support
 allocation-free bulk work.
 """
 function distance_matrix!(buffer::AbstractVector{Float32}, response::TableResponse)
-    status = with_error() do err
-        CWrapper.osrmc_table_response_get_distance_matrix(response.ptr, pointer(buffer), length(buffer), error_pointer(err))
+    status = Error.with_error() do err
+        CWrapper.osrmc_table_response_get_distance_matrix(response.ptr, pointer(buffer), length(buffer), Error.error_pointer(err))
     end
     status == 0 || error("Distance matrix buffer too small")
     buffer
@@ -114,10 +114,10 @@ end
 Retrieve the canonical OSRM JSON payload for logging or interoperability.
 """
 function as_json(response::TableResponse)
-    blob = with_error() do err
-        CWrapper.osrmc_table_response_json(response.ptr, error_pointer(err))
+    blob = Error.with_error() do err
+        CWrapper.osrmc_table_response_json(response.ptr, Error.error_pointer(err))
     end
-    return blob_to_string(blob)
+    return Utils.blob_to_string(blob)
 end
 
 """
@@ -126,9 +126,9 @@ end
 Calls libosrmc's Table endpoint directly, keeping the full response in-memory
 instead of going through osrm-routed.
 """
-function table(osrm::OSRM, params::TableParams)
-    ptr = with_error() do err
-        CWrapper.osrmc_table(osrm.ptr, params.ptr, error_pointer(err))
+function table(osrm::Config.OSRM, params::Params.TableParams)
+    ptr = Error.with_error() do err
+        CWrapper.osrmc_table(osrm.ptr, params.ptr, Error.error_pointer(err))
     end
     return TableResponse(ptr)
 end

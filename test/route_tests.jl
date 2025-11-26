@@ -1,6 +1,6 @@
 # Comprehensive tests for the Route module
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: RouteParams, RouteResponse, add_coordinate!, add_coordinate_with!, add_steps!, add_alternatives!, route, route_with, distance, duration, LatLon, OSRMError
 using Base: C_NULL
 using .Fixtures
 

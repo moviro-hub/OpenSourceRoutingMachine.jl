@@ -1,4 +1,5 @@
 # Main test runner for OpenSourceRoutingMachine.jl
+# Tests are organized to match the source file structure in src/
 using Test
 using OSRM_jll
 using boost_jll
@@ -14,40 +15,50 @@ using OpenSourceRoutingMachine
 include("test_data.jl")
 include("fixtures.jl")
 
-# Run all test suites
+# Run all test suites organized by source module
 @testset "OpenSourceRoutingMachine" begin
-    @info "\n" * "=" ^ 60
-    @info "Running Route Tests"
-    @info "=" ^ 60
+    # Tests organized to match src/ structure:
+    # - graph.jl → graph_tests.jl
+    # - route.jl → route_tests.jl
+    # - match.jl → match_tests.jl
+    # - nearest.jl → nearest_tests.jl
+    # - trip.jl → trip_tests.jl
+    # - tile.jl → tile_tests.jl
+    # - integration_tests.jl (cross-module tests)
 
-    # Include route tests - they will run their own testsets
+    @info "\n" * "=" ^ 60
+    @info "Running Graph Tests (src/graph.jl)"
+    @info "=" ^ 60
+    include("graph_tests.jl")
+
+    @info "\n" * "=" ^ 60
+    @info "Running Route Tests (src/route.jl)"
+    @info "=" ^ 60
     include("route_tests.jl")
 
     @info "\n" * "=" ^ 60
-    @info "Running Match Tests"
+    @info "Running Match Tests (src/match.jl)"
     @info "=" ^ 60
-
-    # Include match tests - they will run their own testsets
     include("match_tests.jl")
 
     @info "\n" * "=" ^ 60
-    @info "Running Nearest Tests"
+    @info "Running Nearest Tests (src/nearest.jl)"
     @info "=" ^ 60
-
-    # Include nearest tests - they will run their own testsets
     include("nearest_tests.jl")
 
     @info "\n" * "=" ^ 60
-    @info "Running Trip Tests"
+    @info "Running Trip Tests (src/trip.jl)"
     @info "=" ^ 60
-
     include("trip_tests.jl")
 
     @info "\n" * "=" ^ 60
-    @info "Running Integration Tests"
+    @info "Running Tile Tests (src/tile.jl)"
     @info "=" ^ 60
+    include("tile_tests.jl")
 
-    # Include integration tests - they will run their own testsets
+    @info "\n" * "=" ^ 60
+    @info "Running Integration Tests (cross-module)"
+    @info "=" ^ 60
     if isfile(joinpath(@__DIR__, "integration_tests.jl"))
         include("integration_tests.jl")
     end

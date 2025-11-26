@@ -1,5 +1,5 @@
 using Test
-using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine: TripParams, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, LatLon, OSRMError
 using Base: C_NULL
 using .Fixtures
 import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_latitude,

@@ -1,9 +1,10 @@
 module Graph
 
 using ..OpenSourceRoutingMachine: OSRM_jll
-using ..Enums: Profile
+using ..Enums: Enums
+# OSRM_jll functions used: osrm_extract_path, osrm_extract(), osrm_partition(), osrm_customize(), osrm_contract()
 
-const ProfileType = Profile.T
+const ProfileType = Enums.Profile.T
 
 export OSRMCommandError,
        profile_lua_path,
@@ -25,8 +26,8 @@ struct OSRMCommandError <: Exception
     exitcode::Int32
 end # module Graph
 
-_profile_symbol(profile::ProfileType) = profile === Profile.car ? :car :
-                                    profile === Profile.bicycle ? :bicycle :
+_profile_symbol(profile::ProfileType) = profile === Enums.Profile.car ? :car :
+                                    profile === Enums.Profile.bicycle ? :bicycle :
                                     :foot
 
 """
@@ -83,7 +84,7 @@ function _run_or_throw(cmd::Cmd)
 end
 
 function extract_cmd(osm_path::AbstractString;
-                     profile::ProfileType=Profile.car,
+                     profile::ProfileType=Enums.Profile.car,
                      extra_args::Vector{String}=String[])
     profile_path = profile_lua_path(profile)
     args = String["-p", profile_path, osm_path]
@@ -119,7 +120,7 @@ OSRM 6.0 automatically creates output files based on the input file name in the
 same directory as the input file.
 """
 function osrm_extract(osm_path::AbstractString;
-                      profile::ProfileType=Profile.car,
+                      profile::ProfileType=Enums.Profile.car,
                       extra_args::Vector{String}=String[])
     cmd = extract_cmd(osm_path; profile=profile, extra_args=extra_args)
     _run_or_throw(cmd)
@@ -172,7 +173,7 @@ Output files are created in the same directory as the input file with the same
 base name (OSRM 6.0 default behavior).
 """
 function build_mld_graph(osm_path::AbstractString;
-                         profile::ProfileType=Profile.car,
+                         profile::ProfileType=Enums.Profile.car,
                          extract_args::Vector{String}=String[],
                          partition_args::Vector{String}=String[],
                          customize_args::Vector{String}=String[])
@@ -200,7 +201,7 @@ path to the generated `.osrm` files so callers can prepare CH data with a single
 function call.
 """
 function build_ch_graph(osm_path::AbstractString;
-                        profile::ProfileType=Profile.car,
+                        profile::ProfileType=Enums.Profile.car,
                         extract_args::Vector{String}=String[],
                         contract_args::Vector{String}=String[])
     # Remove all extensions (e.g., "file.osm.pbf" -> "file")
