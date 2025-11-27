@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, LatLon, OSRMError
-using OpenSourceRoutingMachine.Match: match
+using OpenSourceRoutingMachine.Matches: match
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -175,7 +175,7 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        json_str = OpenSourceRoutingMachine.Match.as_json(response)
+        json_str = OpenSourceRoutingMachine.Matches.as_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')

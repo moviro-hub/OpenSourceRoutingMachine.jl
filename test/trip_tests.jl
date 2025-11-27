@@ -2,7 +2,7 @@ using Test
 using OpenSourceRoutingMachine: TripParams, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, LatLon, OSRMError
 using Base: C_NULL, length, isfinite
 using .Fixtures
-import OpenSourceRoutingMachine.Trip: TripResponse, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
+import OpenSourceRoutingMachine.Trips: TripResponse, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
 
 @testset "Trip - Basic" begin
     params = TripParams()

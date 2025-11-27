@@ -104,6 +104,10 @@ response = table(osrm, params)
 
 Before using OSRM services, you need to build a graph from OpenStreetMap data:
 
+> Graph-building helpers (`extract`, `partition`, `customize`, `contract`, and
+> `profile_lua_path`) live in the `OpenSourceRoutingMachine.Graphs` module, but
+> they remain re-exported at the package root for backwards compatibility.
+
 ```julia
 using OpenSourceRoutingMachine
 
@@ -133,6 +137,10 @@ contract(osm_path)
 
 ### Route Service
 
+Route-specific types and helpers live inside the `OpenSourceRoutingMachine.Routes`
+module, but everything below continues to be re-exported from the top-level module
+for backwards compatibility.
+
 - `RouteParams()`: Create route parameters
 - `add_coordinate!(params, coord::LatLon)`: Add waypoint
 - `route(osrm, params)`: Calculate route
@@ -140,6 +148,10 @@ contract(osm_path)
 - `duration(response)`: Get route duration
 
 ### Match Service
+
+Match-specific types and helpers live in the `OpenSourceRoutingMachine.Matches`
+module, but they remain re-exported from the root module for backwards
+compatibility.
 
 - `MatchParams()`: Create match parameters
 - `add_coordinate!(params, coord::LatLon)`: Add GPS trace point
@@ -151,6 +163,9 @@ contract(osm_path)
 
 ### Nearest Service
 
+Nearest-specific types and helpers now live in the `OpenSourceRoutingMachine.Nearests`
+module, but they remain re-exported for backwards compatibility.
+
 - `NearestParams()`: Create nearest parameters
 - `add_coordinate!(params, coord::LatLon)`: Query point
 - `set_number_of_results!(params, n)`: Number of results
@@ -161,6 +176,10 @@ contract(osm_path)
 
 ### Table Service
 
+Table-specific types and helpers live inside the `OpenSourceRoutingMachine.Tables`
+module, but they remain re-exported at the package root for backwards
+compatibility.
+
 - `TableParams()`: Create table parameters
 - `add_coordinate!(params, coord::LatLon)`: Add coordinate point
 - `add_source!(params, index)`: Mark coordinate at index as source
@@ -169,11 +188,19 @@ contract(osm_path)
 
 ### Trip Service
 
+Trip-specific types and helpers live in the `OpenSourceRoutingMachine.Trips`
+module, but they remain re-exported from the root module for backwards
+compatibility.
+
 - `TripParams()`: Create trip parameters
 - `add_coordinate!(params, coord::LatLon)`: Add waypoint
 - `trip(osrm, params)`: Solve TSP
 
 ### Tile Service
+
+Tile-specific types and helpers live in the `OpenSourceRoutingMachine.Tiles`
+module, but they remain re-exported at the package root for backwards
+compatibility.
 
 - `TileParams()`: Create tile parameters
 - `set_x!(params, x)`: Set tile X coordinate

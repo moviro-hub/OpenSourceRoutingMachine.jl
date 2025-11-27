@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: TableParams, TableResponse, add_coordinate!, add_source!, add_destination!, set_annotations_mask!, table, LatLon, OSRMError
-using OpenSourceRoutingMachine.Table: source_count, destination_count, as_json, duration_matrix, distance_matrix, duration, distance
+using OpenSourceRoutingMachine.Tables: source_count, destination_count, as_json, duration_matrix, distance_matrix, duration, distance
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 

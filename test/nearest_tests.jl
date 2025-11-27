@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: NearestParams, NearestResponse, add_coordinate!, nearest, latitude, longitude, name, LatLon, OSRMError
-using OpenSourceRoutingMachine.Nearest: distance, count
+using OpenSourceRoutingMachine.Nearests: distance, count
 using Base: C_NULL, length, isempty, isfinite
 using .Fixtures
 
@@ -120,7 +120,7 @@ end
         params = NearestParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest(osrm, params)
-        json_str = OpenSourceRoutingMachine.Nearest.as_json(response)
+        json_str = OpenSourceRoutingMachine.Nearests.as_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')

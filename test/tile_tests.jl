@@ -1,9 +1,9 @@
 using Test
 using OpenSourceRoutingMachine: TileParams, set_x!, set_y!, set_z!, tile, OSRMError
 using .Fixtures
-using OpenSourceRoutingMachine.Tile: TileResponse, data
+using OpenSourceRoutingMachine.Tiles: TileResponse, data
 using Base: length, isempty
-const Tile = OpenSourceRoutingMachine.Tile
+const TilesMod = OpenSourceRoutingMachine.Tiles
 
 function _slippy_tile(lat::Float64, lon::Float64, zoom::Integer)
     n = 2.0^zoom
@@ -30,7 +30,7 @@ end
 
     raw = data(response)
     @test !isempty(raw)
-    @test length(raw) == Tile.size(response)
+    @test length(raw) == TilesMod.size(response)
 end
 
 @testset "Tile - Error Handling" begin

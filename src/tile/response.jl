@@ -1,16 +1,4 @@
 """
-Tile service wrapper.
-"""
-module Tile
-
-using ..CWrapper: CWrapper
-using ..Error: Error
-using ..Config: Config
-using ..Params: Params
-
-export TileResponse, tile, data, size
-
-"""
     TileResponse
 
 Owns the libosrmc tile response pointer and ensures it gets freed when the Julia
@@ -24,7 +12,7 @@ mutable struct TileResponse
         response = new(ptr)
         finalizer(response) do r
             if r.ptr != C_NULL
-                CWrapper.osrmc_tile_response_destruct(r.ptr)
+                ccall((:osrmc_tile_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), r.ptr)
                 r.ptr = C_NULL
             end
         end
@@ -35,15 +23,8 @@ end
 """
     tile(osrm::OSRM, params::TileParams) -> TileResponse
 
-Query the Tile service and return a response object.
+Defined in `Tiles.tile`.
 """
-function tile(osrm::Config.OSRM, params::Params.TileParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_tile(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return TileResponse(ptr)
-end
-
 
 """
     data(response::TileResponse) -> Vector{UInt8}
@@ -52,8 +33,8 @@ Copy the binary vector-tile payload into a Julia-owned buffer.
 """
 function data(response::TileResponse)
     len_ref = Ref{Csize_t}(0)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_tile_response_data(response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), Error.error_pointer(err))
+    ptr = with_error() do err
+        ccall((:osrmc_tile_response_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid}, Ptr{Csize_t}, Ptr{Ptr{Cvoid}}), response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), error_pointer(err))
     end
     len = Int(len_ref[])
     len == 0 && return UInt8[]
@@ -69,9 +50,7 @@ Get the raw byte size of the vector tile payload.
 """
 size(response::TileResponse) =
     Int(
-    Error.with_error() do err
-        CWrapper.osrmc_tile_response_size(response.ptr, Error.error_pointer(err))
-    end
-)
-
-end # module Tile
+        with_error() do err
+            ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+        end,
+    )

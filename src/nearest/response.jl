@@ -1,54 +1,23 @@
 """
-Typed wrapper around OSRM's Nearest service so callers can run proximity
-queries without leaving Julia.
-"""
-module Nearest
-
-using ..CWrapper: CWrapper
-using ..Error: Error
-using ..Utils: Utils
-using ..Config: Config
-using ..Params: Params
-import ..OpenSourceRoutingMachine: distance
-import Base: count
-
-export
-    NearestResponse,
-    nearest,
-    as_json,
-    count,
-    latitude,
-    longitude,
-    name,
-    distance
-
-"""
     NearestResponse
 
 Owns the libosrmc nearest response pointer and frees it automatically when the
 object is garbage collected.
 """
+function _nearest_response_destruct(ptr::Ptr{Cvoid})
+    ccall((:osrmc_nearest_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
+    return nothing
+end
+
 mutable struct NearestResponse
     ptr::Ptr{Cvoid}
 
     function NearestResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct NearestResponse from NULL pointer")
         response = new(ptr)
-        Utils._finalize_response!(response, CWrapper.osrmc_nearest_response_destruct)
+        Utils.finalize(response, _nearest_response_destruct)
         return response
     end
-end
-
-"""
-    nearest(osrm::OSRM, params::NearestParams) -> NearestResponse
-
-Calls the libosrmc Nearest endpoint directly, avoiding HTTP round-trips.
-"""
-function nearest(osrm::Config.OSRM, params::Params.NearestParams)
-    ptr = Error.with_error() do err
-        CWrapper.osrmc_nearest(osrm.ptr, params.ptr, Error.error_pointer(err))
-    end
-    return NearestResponse(ptr)
 end
 
 """
@@ -58,10 +27,10 @@ Returns the canonical JSON emitted by OSRM so the result can be logged or fed
 into tooling that expects server responses.
 """
 function as_json(response::NearestResponse)
-    blob = Error.with_error() do err
-        CWrapper.osrmc_nearest_response_json(response.ptr, Error.error_pointer(err))
+    blob = with_error() do err
+        ccall((:osrmc_nearest_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
-    return Utils.blob_to_string(blob)
+    return Utils.as_string(blob)
 end
 
 """
@@ -72,10 +41,10 @@ without parsing JSON payloads.
 """
 count(response::NearestResponse) =
     Int(
-    Error.with_error() do err
-        CWrapper.osrmc_nearest_response_count(response.ptr, Error.error_pointer(err))
-    end
-)
+        with_error() do err
+            ccall((:osrmc_nearest_response_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+        end,
+    )
 
 """
     latitude(response::NearestResponse, index) -> Float32
@@ -85,8 +54,8 @@ Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
 function latitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_latitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    return with_error() do err
+        ccall((:osrmc_nearest_response_latitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -98,8 +67,8 @@ Pairs with `latitude` to reconstruct snapped coordinates for visualization.
 function longitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_longitude(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    return with_error() do err
+        ccall((:osrmc_nearest_response_longitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -112,8 +81,8 @@ the engine.
 function name(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    cstr = Error.with_error() do err
-        CWrapper.osrmc_nearest_response_name(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    cstr = with_error() do err
+        ccall((:osrmc_nearest_response_name, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
     return unsafe_string(cstr)
 end
@@ -126,9 +95,7 @@ Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
 function distance(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return Error.with_error() do err
-        CWrapper.osrmc_nearest_response_distance(response.ptr, Cuint(index - 1), Error.error_pointer(err))
+    return with_error() do err
+        ccall((:osrmc_nearest_response_distance, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
-
-end # module Nearest
