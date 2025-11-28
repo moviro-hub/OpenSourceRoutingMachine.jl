@@ -1,6 +1,7 @@
 using Test
-using OpenSourceRoutingMachine: NearestParams, NearestResponse, add_coordinate!, nearest, latitude, longitude, name, LatLon, OSRMError
-using OpenSourceRoutingMachine.Nearests: distance, count
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Nearests: NearestParams, NearestResponse, add_coordinate!, nearest, latitude, longitude, name, hint, distance, count, set_number_of_results!
+const Nearests = OpenSourceRoutingMachine.Nearests
 using Base: C_NULL, length, isempty, isfinite
 using .Fixtures
 
@@ -26,13 +27,15 @@ using .Fixtures
         result_cnt = count(response)
         @test result_cnt >= 0
         if result_cnt > 0
-            @test -90.0f0 <= latitude(response, 1) <= 90.0f0
-            @test -180.0f0 <= longitude(response, 1) <= 180.0f0
-            @test distance(response, 1) >= 0.0f0
+            @test -90.0 <= latitude(response, 1) <= 90.0
+            @test -180.0 <= longitude(response, 1) <= 180.0
+            @test distance(response, 1) >= 0.0
             @test isa(name(response, 1), String)
             @test isfinite(latitude(response, 1))
             @test isfinite(longitude(response, 1))
             @test isfinite(distance(response, 1))
+            @test isa(hint(response, 1), String)
+            @test !isempty(hint(response, 1))
         end
     end
 
@@ -78,7 +81,7 @@ end
 
     @testset "add_coordinate_with!" begin
         params = NearestParams()
-        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0f0, 0, 180)
+        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
         @test true
     end
 end
@@ -91,9 +94,9 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest(osrm, params)
         if count(response) > 0
-            @test -90.0f0 <= latitude(response, 1) <= 90.0f0
-            @test -180.0f0 <= longitude(response, 1) <= 180.0f0
-            @test distance(response, 1) >= 0.0f0
+            @test -90.0 <= latitude(response, 1) <= 90.0
+            @test -180.0 <= longitude(response, 1) <= 180.0
+            @test distance(response, 1) >= 0.0
             @test isa(name(response, 1), String)
         end
     end
@@ -120,7 +123,7 @@ end
         params = NearestParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest(osrm, params)
-        json_str = OpenSourceRoutingMachine.Nearests.as_json(response)
+        json_str = Nearests.as_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')
@@ -131,7 +134,7 @@ end
     @testset "Invalid coordinates" begin
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
-        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
+        add_coordinate!(params, LatLon(0.0, 0.0))
         try
             response = nearest(osrm, params)
             @test count(response) >= 0
@@ -143,7 +146,7 @@ end
     @testset "Error messages are informative" begin
         osrm = Fixtures.get_test_osrm()
         params = NearestParams()
-        add_coordinate!(params, LatLon(200.0f0, 200.0f0))
+        add_coordinate!(params, LatLon(200.0, 200.0))
         try
             nearest(osrm, params)
             @test true
@@ -165,13 +168,13 @@ end
             result_cnt = count(response)
             @test result_cnt >= 0
             if result_cnt > 0
-                @test -90.0f0 <= latitude(response, 1) <= 90.0f0
-                @test -180.0f0 <= longitude(response, 1) <= 180.0f0
-                @test distance(response, 1) >= 0.0f0
+                @test -90.0 <= latitude(response, 1) <= 90.0
+                @test -180.0 <= longitude(response, 1) <= 180.0
+                @test distance(response, 1) >= 0.0
                 @test isfinite(latitude(response, 1))
                 @test isfinite(longitude(response, 1))
                 @test isfinite(distance(response, 1))
-                @test distance(response, 1) < 10000.0f0
+                @test distance(response, 1) < 10000.0
             end
         end
     end
@@ -206,8 +209,8 @@ end
         response = nearest(osrm, params)
         if count(response) > 0
             result_dist = distance(response, 1)
-            @test result_dist < 1000.0f0
-            @test result_dist >= 0.0f0
+            @test result_dist < 1000.0
+            @test result_dist >= 0.0
             @test isfinite(result_dist)
         end
     end

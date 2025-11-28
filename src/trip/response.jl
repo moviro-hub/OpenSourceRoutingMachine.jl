@@ -31,20 +31,20 @@ function as_json(response::TripResponse)
 end
 
 """
-    distance(response::TripResponse) -> Float32
+    distance(response::TripResponse) -> Float64
 """
 function distance(response::TripResponse)
     return with_error() do err
-        ccall((:osrmc_trip_response_distance, libosrmc), Cfloat, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+        ccall((:osrmc_trip_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
 end
 
 """
-    duration(response::TripResponse) -> Float32
+    duration(response::TripResponse) -> Float64
 """
 function duration(response::TripResponse)
     return with_error() do err
-        ccall((:osrmc_trip_response_duration, libosrmc), Cfloat, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+        ccall((:osrmc_trip_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
 end
 
@@ -53,27 +53,27 @@ end
 """
 waypoint_count(response::TripResponse) =
     Int(
-        with_error() do err
-            ccall((:osrmc_trip_response_waypoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-        end,
-    )
+    with_error() do err
+        ccall((:osrmc_trip_response_waypoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)
 
 """
-    waypoint_latitude(response::TripResponse, index) -> Float32
+    waypoint_latitude(response::TripResponse, index) -> Float64
 """
 function waypoint_latitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_latitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_trip_response_waypoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
 """
-    waypoint_longitude(response::TripResponse, index) -> Float32
+    waypoint_longitude(response::TripResponse, index) -> Float64
 """
 function waypoint_longitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_longitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_trip_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end

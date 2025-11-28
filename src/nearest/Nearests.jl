@@ -1,6 +1,6 @@
 module Nearests
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, to_cint
+using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
     OSRM, distance, set_number_of_results!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
@@ -33,6 +33,7 @@ export
     longitude,
     name,
     distance,
+    hint,
     set_number_of_results!
 
 end # module Nearests

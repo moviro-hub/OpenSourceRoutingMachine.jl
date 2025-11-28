@@ -50,7 +50,7 @@ Get the raw byte size of the vector tile payload.
 """
 size(response::TileResponse) =
     Int(
-        with_error() do err
-            ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-        end,
-    )
+    with_error() do err
+        ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)

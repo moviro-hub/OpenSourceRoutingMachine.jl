@@ -21,8 +21,8 @@ end
 const ProfileType = Profile.T
 
 _profile_symbol(profile::ProfileType) = profile === Profile.car ? :car :
-                                        profile === Profile.bicycle ? :bicycle :
-                                        :foot
+    profile === Profile.bicycle ? :bicycle :
+    :foot
 
 """
     profile_lua_path(profile::ProfileType) -> String

@@ -1,7 +1,7 @@
 using Test
-using OpenSourceRoutingMachine: TileParams, set_x!, set_y!, set_z!, tile, OSRMError
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Tiles: TileParams, TileResponse, set_x!, set_y!, set_z!, tile, data, size
 using .Fixtures
-using OpenSourceRoutingMachine.Tiles: TileResponse, data
 using Base: length, isempty
 const TilesMod = OpenSourceRoutingMachine.Tiles
 

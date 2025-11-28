@@ -1,7 +1,4 @@
 using Test
-using OSRM_jll
-using boost_jll
-using libosrmc_jll
 using OpenSourceRoutingMachine
 
 include("test_data.jl")

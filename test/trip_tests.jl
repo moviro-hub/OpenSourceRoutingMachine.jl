@@ -1,8 +1,8 @@
 using Test
-using OpenSourceRoutingMachine: TripParams, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, LatLon, OSRMError
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Trips: TripParams, TripResponse, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
 using Base: C_NULL, length, isfinite
 using .Fixtures
-import OpenSourceRoutingMachine.Trips: TripResponse, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
 
 @testset "Trip - Basic" begin
     params = TripParams()
@@ -30,10 +30,10 @@ import OpenSourceRoutingMachine.Trips: TripResponse, waypoint_count, waypoint_la
         nothing
     end
     if dist !== nothing
-        @test dist >= 0.0f0
+        @test dist >= 0.0
     end
     if dur !== nothing
-        @test dur >= 0.0f0
+        @test dur >= 0.0
     end
 
     count = waypoint_count(response)
@@ -42,8 +42,8 @@ import OpenSourceRoutingMachine.Trips: TripResponse, waypoint_count, waypoint_la
     try
         lat = waypoint_latitude(response, 1)
         lon = waypoint_longitude(response, 1)
-        @test -90.0f0 <= lat <= 90.0f0
-        @test -180.0f0 <= lon <= 180.0f0
+        @test -90.0 <= lat <= 90.0
+        @test -180.0 <= lon <= 180.0
         @test isfinite(lat)
         @test isfinite(lon)
     catch e
@@ -84,8 +84,8 @@ end
 @testset "Trip - Error Handling" begin
     osrm = Fixtures.get_test_osrm()
     params = TripParams()
-    add_coordinate!(params, LatLon(0.0f0, 0.0f0))
-    add_coordinate!(params, LatLon(1.0f0, 1.0f0))
+    add_coordinate!(params, LatLon(0.0, 0.0))
+    add_coordinate!(params, LatLon(1.0, 1.0))
 
     maybe_response = try
         trip(osrm, params)

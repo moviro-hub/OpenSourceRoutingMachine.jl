@@ -1,6 +1,6 @@
 module Routes
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, to_cint
+using ..Utils: Utils, with_error, error_pointer, check_error, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
     OSRM, distance, duration, as_json, libosrmc,
     add_steps!, add_alternatives!, set_geometries!, set_overview!,
