@@ -1,6 +1,7 @@
 using Test
-using OpenSourceRoutingMachine: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, LatLon, OSRMError
-using OpenSourceRoutingMachine.Matches: match
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Matches: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, match
+const Matches = OpenSourceRoutingMachine.Matches
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -33,9 +34,9 @@ using .Fixtures
             dist = route_distance(response, 1)
             dur = route_duration(response, 1)
             conf = route_confidence(response, 1)
-            @test dist >= 0.0f0
-            @test dur >= 0.0f0
-            @test 0.0f0 <= conf <= 1.0f0
+            @test dist >= 0.0
+            @test dur >= 0.0
+            @test 0.0 <= conf <= 1.0
             @test isfinite(dist)
             @test isfinite(dur)
             @test isfinite(conf)
@@ -47,8 +48,8 @@ using .Fixtures
                 if !is_null
                     lat = tracepoint_latitude(response, i)
                     lon = tracepoint_longitude(response, i)
-                    @test -90.0f0 <= lat <= 90.0f0
-                    @test -180.0f0 <= lon <= 180.0f0
+                    @test -90.0 <= lat <= 90.0
+                    @test -180.0 <= lon <= 180.0
                     @test isfinite(lat)
                     @test isfinite(lon)
                 end
@@ -129,7 +130,7 @@ end
 
     @testset "add_coordinate_with!" begin
         params = MatchParams()
-        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0f0, 0, 180)
+        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
         @test true
     end
 end
@@ -143,9 +144,9 @@ end
         end
         response = match(osrm, params)
         if route_count(response) > 0
-            @test route_distance(response, 1) >= 0.0f0
-            @test route_duration(response, 1) >= 0.0f0
-            @test 0.0f0 <= route_confidence(response, 1) <= 1.0f0
+            @test route_distance(response, 1) >= 0.0
+            @test route_duration(response, 1) >= 0.0
+            @test 0.0 <= route_confidence(response, 1) <= 1.0
         end
     end
 
@@ -162,8 +163,8 @@ end
             if !is_null
                 lat = tracepoint_latitude(response, 1)
                 lon = tracepoint_longitude(response, 1)
-                @test -90.0f0 <= lat <= 90.0f0
-                @test -180.0f0 <= lon <= 180.0f0
+                @test -90.0 <= lat <= 90.0
+                @test -180.0 <= lon <= 180.0
             end
         end
     end
@@ -175,7 +176,7 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        json_str = OpenSourceRoutingMachine.Matches.as_json(response)
+        json_str = Matches.as_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')
@@ -186,8 +187,8 @@ end
     @testset "Invalid coordinates" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
-        add_coordinate!(params, LatLon(1.0f0, 1.0f0))
+        add_coordinate!(params, LatLon(0.0, 0.0))
+        add_coordinate!(params, LatLon(1.0, 1.0))
         try
             response = match(osrm, params)
             @test route_count(response) >= 0
@@ -199,8 +200,8 @@ end
     @testset "Error messages are informative" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        add_coordinate!(params, LatLon(200.0f0, 200.0f0))
-        add_coordinate!(params, LatLon(201.0f0, 201.0f0))
+        add_coordinate!(params, LatLon(200.0, 200.0))
+        add_coordinate!(params, LatLon(201.0, 201.0))
         try
             match(osrm, params)
             @test true
@@ -251,8 +252,8 @@ end
         if route_count(response) > 0
             dist = route_distance(response, 1)
             dur = route_duration(response, 1)
-            @test dist >= 0.0f0
-            @test dur >= 0.0f0
+            @test dist >= 0.0
+            @test dur >= 0.0
             @test isfinite(dist)
             @test isfinite(dur)
         end

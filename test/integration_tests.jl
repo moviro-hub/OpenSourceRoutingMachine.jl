@@ -1,5 +1,6 @@
 using Test
-using OpenSourceRoutingMachine: OSRMConfig, OSRM, RouteParams, add_coordinate!, route, distance, duration, LatLon
+using OpenSourceRoutingMachine: OSRMConfig, OSRM, LatLon
+using OpenSourceRoutingMachine.Routes: RouteParams, add_coordinate!, route, distance, duration
 using .Fixtures
 
 @testset "Integration - Full Workflow" begin
@@ -13,8 +14,8 @@ using .Fixtures
         @test response isa RouteResponse
         dist = distance(response)
         dur = duration(response)
-        @test dist > 0.0f0
-        @test dur > 0.0f0
+        @test dist > 0.0
+        @test dur > 0.0
         @test isfinite(dist)
         @test isfinite(dur)
     end
@@ -36,9 +37,9 @@ using .Fixtures
         add_coordinate!(params3, Fixtures.HAMBURG_CITY_CENTER)
         dist3 = distance(route(osrm, params3))
 
-        @test dist1 > 0.0f0
-        @test dist2 > 0.0f0
-        @test dist3 > 0.0f0
+        @test dist1 > 0.0
+        @test dist2 > 0.0
+        @test dist3 > 0.0
     end
 
     @testset "Memory cleanup" begin
@@ -48,7 +49,7 @@ using .Fixtures
             params = RouteParams()
             add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
             add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
-            @test distance(route(osrm, params)) > 0.0f0
+            @test distance(route(osrm, params)) > 0.0
         end
         GC.gc()
         @test true
@@ -67,8 +68,8 @@ using .Fixtures
         end
         @test length(routes) == length(coords) - 1
         for (dist, dur) in routes
-            @test dist > 0.0f0
-            @test dur > 0.0f0
+            @test dist > 0.0
+            @test dur > 0.0
         end
     end
 end

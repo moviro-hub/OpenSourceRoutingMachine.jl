@@ -23,6 +23,77 @@ mutable struct TripParams
 end
 
 """
+    add_steps!(params::TripParams, on)
+"""
+function add_steps!(params::TripParams, on::Bool)
+    ccall((:osrmc_trip_params_add_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    return nothing
+end
+
+"""
+    add_alternatives!(params::TripParams, on)
+"""
+function add_alternatives!(params::TripParams, on::Bool)
+    ccall((:osrmc_trip_params_add_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    return nothing
+end
+
+"""
+    set_geometries!(params::TripParams, geometries)
+"""
+function set_geometries!(params::TripParams, geometries::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(geometries), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_overview!(params::TripParams, overview)
+"""
+function set_overview!(params::TripParams, overview::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(overview), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_continue_straight!(params::TripParams, on)
+"""
+function set_continue_straight!(params::TripParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_number_of_alternatives!(params::TripParams, count)
+"""
+function set_number_of_alternatives!(params::TripParams, count::Integer)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_number_of_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), params.ptr, Cuint(count), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_annotations!(params::TripParams, annotations)
+"""
+function set_annotations!(params::TripParams, annotations::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(annotations), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
     add_roundtrip!(params::TripParams, on)
 
 Controls whether OSRM should force start and end to coincide, critical when
@@ -95,10 +166,10 @@ function add_coordinate!(params::TripParams, coord::LatLon)
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
             error_pointer(error_ptr),
         )
         nothing
@@ -111,11 +182,11 @@ function add_coordinate_with!(params::TripParams, coord::LatLon, radius::Real, b
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Cfloat, Cint, Cint, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
-            Cfloat(radius),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
+            Cdouble(radius),
             Cint(bearing),
             Cint(range),
             error_pointer(error_ptr),
@@ -237,14 +308,17 @@ function set_snapping!(params::TripParams, snapping)
 end
 
 function set_format!(params::TripParams, format)
-    code = to_cint(format, OutputFormat)
+    fmt = normalize_enum(format, OutputFormat.T)
+    if fmt === OutputFormat.flatbuffers
+        throw(ArgumentError("Trip service does not support Flatbuffers output"))
+    end
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_format, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            code,
+            Cint(fmt),
             error_pointer(error_ptr),
         )
         nothing

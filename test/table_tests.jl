@@ -1,6 +1,6 @@
 using Test
-using OpenSourceRoutingMachine: TableParams, TableResponse, add_coordinate!, add_source!, add_destination!, set_annotations_mask!, table, LatLon, OSRMError
-using OpenSourceRoutingMachine.Tables: source_count, destination_count, as_json, duration_matrix, distance_matrix, duration, distance
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Tables: TableParams, TableResponse, add_coordinate!, add_source!, add_destination!, set_annotations_mask!, table, source_count, destination_count, as_json, duration_matrix, distance_matrix, duration, distance
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 
@@ -55,10 +55,10 @@ end
         end
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        @test duration(response, 1, 1) == 0.0f0
-        @test distance(response, 1, 1) == 0.0f0
-        @test duration(response, 1, 2) > 0.0f0
-        @test distance(response, 1, 2) > 0.0f0
+        @test duration(response, 1, 1) == 0.0
+        @test distance(response, 1, 1) == 0.0
+        @test duration(response, 1, 2) > 0.0
+        @test distance(response, 1, 2) > 0.0
         @test isfinite(duration(response, 1, 2))
         @test isfinite(distance(response, 1, 2))
     end
@@ -102,11 +102,11 @@ end
         response = table(osrm, params)
         dur_matrix = duration_matrix(response)
         @test size(dur_matrix) == (3, 3)
-        @test dur_matrix[1, 1] == 0.0f0
-        @test dur_matrix[2, 2] == 0.0f0
-        @test dur_matrix[3, 3] == 0.0f0
-        @test dur_matrix[1, 2] > 0.0f0
-        @test dur_matrix[1, 3] > 0.0f0
+        @test dur_matrix[1, 1] == 0.0
+        @test dur_matrix[2, 2] == 0.0
+        @test dur_matrix[3, 3] == 0.0
+        @test dur_matrix[1, 2] > 0.0
+        @test dur_matrix[1, 3] > 0.0
         @test all(isfinite, dur_matrix)
     end
 
@@ -120,9 +120,9 @@ end
         response = table(osrm, params)
         dist_matrix = distance_matrix(response)
         @test size(dist_matrix) == (2, 2)
-        @test dist_matrix[1, 1] == 0.0f0
-        @test dist_matrix[2, 2] == 0.0f0
-        @test dist_matrix[1, 2] > 0.0f0
+        @test dist_matrix[1, 1] == 0.0
+        @test dist_matrix[2, 2] == 0.0
+        @test dist_matrix[1, 2] > 0.0
         @test all(isfinite, dist_matrix)
     end
 
@@ -138,12 +138,12 @@ end
         dist_matrix = distance_matrix(response)
         for i in 1:source_count(response)
             for j in 1:destination_count(response)
-                if dur_matrix[i, j] == 0.0f0 && duration(response, i, j) == 0.0f0
+                if dur_matrix[i, j] == 0.0 && duration(response, i, j) == 0.0
                     @test true
                 else
                     @test isapprox(dur_matrix[i, j], duration(response, i, j), rtol = 1.0e-5)
                 end
-                if dist_matrix[i, j] == 0.0f0 && distance(response, i, j) == 0.0f0
+                if dist_matrix[i, j] == 0.0 && distance(response, i, j) == 0.0
                     @test true
                 else
                     @test isapprox(dist_matrix[i, j], distance(response, i, j), rtol = 1.0e-5)
@@ -157,7 +157,7 @@ end
     @testset "Invalid table request" begin
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
-        add_coordinate!(params, LatLon(91.0f0, 200.0f0))
+        add_coordinate!(params, LatLon(91.0, 200.0))
         @test_throws OSRMError table(osrm, params)
     end
 
@@ -169,8 +169,8 @@ end
         response = table(osrm, params)
         @test source_count(response) == 1
         @test destination_count(response) == 1
-        @test duration(response, 1, 1) == 0.0f0
-        @test distance(response, 1, 1) == 0.0f0
+        @test duration(response, 1, 1) == 0.0
+        @test distance(response, 1, 1) == 0.0
     end
 end
 
@@ -178,12 +178,12 @@ end
     @testset "Large table" begin
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
-        base_lat = 53.55f0
-        base_lon = 9.99f0
+        base_lat = 53.55
+        base_lon = 9.99
         n = 5
         for i in 1:n
             for j in 1:n
-                add_coordinate!(params, LatLon(base_lat + (i - 3) * 0.01f0, base_lon + (j - 3) * 0.01f0))
+                add_coordinate!(params, LatLon(base_lat + (i - 3) * 0.01, base_lon + (j - 3) * 0.01))
             end
         end
         response = table(osrm, params)

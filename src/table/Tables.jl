@@ -1,6 +1,6 @@
 module Tables
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, to_cint
+using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
     OSRM, duration, distance, as_json, libosrmc,
     add_source!, add_destination!, set_annotations_mask!, set_fallback_speed!,

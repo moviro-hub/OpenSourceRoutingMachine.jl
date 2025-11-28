@@ -4,7 +4,7 @@ Test data management for downloading and building OSRM graphs.
 module TestData
 
 using SHA
-using OpenSourceRoutingMachine: extract, partition, customize, Profile
+using OpenSourceRoutingMachine.Graphs: extract, partition, customize, Profile
 
 const TEST_DATA_DIR = joinpath(@__DIR__, "data")
 const HAMBURG_OSM_PATH = joinpath(TEST_DATA_DIR, "hamburg-latest.osm.pbf")

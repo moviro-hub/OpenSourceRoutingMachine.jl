@@ -1,6 +1,6 @@
 module Matches
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, to_cint
+using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
     OSRM, distance, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,

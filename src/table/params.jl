@@ -113,10 +113,10 @@ function add_coordinate!(params::TableParams, coord::LatLon)
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
             error_pointer(error_ptr),
         )
         nothing
@@ -129,11 +129,11 @@ function add_coordinate_with!(params::TableParams, coord::LatLon, radius::Real, 
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Cfloat, Cint, Cint, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
-            Cfloat(radius),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
+            Cdouble(radius),
             Cint(bearing),
             Cint(range),
             error_pointer(error_ptr),
@@ -255,14 +255,17 @@ function set_snapping!(params::TableParams, snapping)
 end
 
 function set_format!(params::TableParams, format)
-    code = to_cint(format, OutputFormat)
+    fmt = normalize_enum(format, OutputFormat.T)
+    if fmt === OutputFormat.flatbuffers
+        throw(ArgumentError("Table service does not support Flatbuffers output"))
+    end
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_format, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            code,
+            Cint(fmt),
             error_pointer(error_ptr),
         )
         nothing

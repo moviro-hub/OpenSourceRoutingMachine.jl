@@ -23,6 +23,103 @@ mutable struct MatchParams
 end
 
 """
+    add_steps!(params::MatchParams, on)
+
+Mirrors the Route behavior so callers can request per-step guidance while
+running map-matching.
+"""
+function add_steps!(params::MatchParams, on::Bool)
+    ccall((:osrmc_match_params_add_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    return nothing
+end
+
+"""
+    add_alternatives!(params::MatchParams, on)
+
+Allows the matcher to keep alternate routes which helps downstream quality
+checks decide when to fall back.
+"""
+function add_alternatives!(params::MatchParams, on::Bool)
+    ccall((:osrmc_match_params_add_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    return nothing
+end
+
+"""
+    set_geometries!(params::MatchParams, geometries)
+"""
+function set_geometries!(params::MatchParams, geometries::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(geometries), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_overview!(params::MatchParams, overview)
+"""
+function set_overview!(params::MatchParams, overview::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(overview), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_continue_straight!(params::MatchParams, on)
+"""
+function set_continue_straight!(params::MatchParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_number_of_alternatives!(params::MatchParams, count)
+"""
+function set_number_of_alternatives!(params::MatchParams, count::Integer)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_number_of_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), params.ptr, Cuint(count), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_annotations!(params::MatchParams, annotations)
+"""
+function set_annotations!(params::MatchParams, annotations::AbstractString)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(annotations), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    add_waypoint!(params::MatchParams, index)
+"""
+function add_waypoint!(params::MatchParams, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_add_waypoint, libosrmc), Cvoid, (Ptr{Cvoid}, Csize_t, Ptr{Ptr{Cvoid}}), params.ptr, Csize_t(index - 1), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    clear_waypoints!(params::MatchParams)
+"""
+function clear_waypoints!(params::MatchParams)
+    ccall((:osrmc_match_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid},), params.ptr)
+    return nothing
+end
+
+"""
     add_timestamp!(params::MatchParams, timestamp)
 
 Feeds per-point timestamps so OSRM can respect vehicle speed between samples,
@@ -69,10 +166,10 @@ function add_coordinate!(params::MatchParams, coord::LatLon)
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
             error_pointer(error_ptr),
         )
         nothing
@@ -85,11 +182,11 @@ function add_coordinate_with!(params::MatchParams, coord::LatLon, radius::Real, 
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Cfloat, Cint, Cint, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
-            Cfloat(radius),
+            Cdouble(coord.lon),
+            Cdouble(coord.lat),
+            Cdouble(radius),
             Cint(bearing),
             Cint(range),
             error_pointer(error_ptr),
@@ -211,14 +308,17 @@ function set_snapping!(params::MatchParams, snapping)
 end
 
 function set_format!(params::MatchParams, format)
-    code = to_cint(format, OutputFormat)
+    fmt = normalize_enum(format, OutputFormat.T)
+    if fmt === OutputFormat.flatbuffers
+        throw(ArgumentError("Match service does not support Flatbuffers output"))
+    end
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_format, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            code,
+            Cint(fmt),
             error_pointer(error_ptr),
         )
         nothing

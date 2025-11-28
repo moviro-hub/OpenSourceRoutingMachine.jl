@@ -1,6 +1,6 @@
 @enumx OutputFormat::Int begin
     json = 0
-    flatbuffers = 1
+    # flatbuffers = 1 # not supported
 end
 
 @enumx Snapping::Int begin

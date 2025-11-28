@@ -1,14 +1,4 @@
 [deps]
-Bzip2_jll = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
-Expat_jll = "2e619515-83b5-522b-bb60-26c02a35a201"
-OSRM_jll = "a74304e1-5a13-544f-adb7-0572470cee19"
 OpenSourceRoutingMachine = "19e5a071-0e58-4e20-9e36-393e8533d14d"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-Zlib_jll = "83775a58-1f1d-513f-b197-d71354ab007a"
-boost_jll = "28df3c45-c428-5900-9ff8-a3135698ca75"
-libosrmc_jll = "b012619c-76c7-5216-bb6b-491eaf671aba"
-oneTBB_jll = "1317d2d5-d96f-522e-a858-c73665f53c3e"
-
-[sources]
-OSRM_jll = {url = "https://github.com/jrklasen/OSRM_jll.jl"}

@@ -1,5 +1,6 @@
 using Test
-using OpenSourceRoutingMachine: RouteParams, RouteResponse, add_coordinate!, add_coordinate_with!, add_steps!, add_alternatives!, route, distance, duration, LatLon, OSRMError
+using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine.Routes: RouteParams, RouteResponse, add_coordinate!, add_coordinate_with!, add_steps!, add_alternatives!, route, distance, duration
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -25,8 +26,8 @@ using .Fixtures
         @test response isa RouteResponse
         dist = distance(response)
         dur = duration(response)
-        @test dist > 0.0f0
-        @test dur > 0.0f0
+        @test dist > 0.0
+        @test dur > 0.0
         @test isfinite(dist)
         @test isfinite(dur)
     end
@@ -38,8 +39,8 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_PORT)
         response = route(osrm, params)
         @test response.ptr != C_NULL
-        @test distance(response) >= 0.0f0
-        @test duration(response) >= 0.0f0
+        @test distance(response) >= 0.0
+        @test duration(response) >= 0.0
     end
 end
 
@@ -60,7 +61,7 @@ end
 
     @testset "add_coordinate_with!" begin
         params = RouteParams()
-        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0f0, 0, 180)
+        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
         @test true
     end
 
@@ -71,7 +72,7 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
         response = route(osrm, params)
-        @test distance(response) > 0.0f0
+        @test distance(response) > 0.0
     end
 
     @testset "Route with alternatives enabled" begin
@@ -81,7 +82,7 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = route(osrm, params)
-        @test distance(response) > 0.0f0
+        @test distance(response) > 0.0
     end
 end
 
@@ -89,8 +90,8 @@ end
     @testset "Invalid coordinates" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_coordinate!(params, LatLon(0.0f0, 0.0f0))
-        add_coordinate!(params, LatLon(1.0f0, 1.0f0))
+        add_coordinate!(params, LatLon(0.0, 0.0))
+        add_coordinate!(params, LatLon(1.0, 1.0))
         try
             response = route(osrm, params)
             @test isfinite(distance(response)) || isinf(distance(response))
@@ -102,8 +103,8 @@ end
     @testset "Error messages are informative" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_coordinate!(params, LatLon(200.0f0, 200.0f0))
-        add_coordinate!(params, LatLon(201.0f0, 201.0f0))
+        add_coordinate!(params, LatLon(200.0, 200.0))
+        add_coordinate!(params, LatLon(201.0, 201.0))
         try
             route(osrm, params)
             @test true
@@ -124,8 +125,8 @@ end
         add_coordinate!(params, coord)
         try
             response = route(osrm, params)
-            @test distance(response) >= 0.0f0
-            @test duration(response) >= 0.0f0
+            @test distance(response) >= 0.0
+            @test duration(response) >= 0.0
         catch e
             @test e isa OSRMError
         end
@@ -135,12 +136,12 @@ end
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
         coord1 = Fixtures.HAMBURG_CITY_CENTER
-        coord2 = LatLon(coord1.lat + 0.001f0, coord1.lon + 0.001f0)
+        coord2 = LatLon(coord1.lat + 0.001, coord1.lon + 0.001)
         add_coordinate!(params, coord1)
         add_coordinate!(params, coord2)
         response = route(osrm, params)
-        @test distance(response) >= 0.0f0
-        @test duration(response) >= 0.0f0
+        @test distance(response) >= 0.0
+        @test duration(response) >= 0.0
         @test isfinite(distance(response))
         @test isfinite(duration(response))
     end
@@ -152,8 +153,8 @@ end
             add_coordinate!(params, coord)
         end
         response = route(osrm, params)
-        @test distance(response) > 0.0f0
-        @test duration(response) > 0.0f0
+        @test distance(response) > 0.0
+        @test duration(response) > 0.0
         @test isfinite(distance(response))
         @test isfinite(duration(response))
     end

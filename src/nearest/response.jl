@@ -41,13 +41,13 @@ without parsing JSON payloads.
 """
 count(response::NearestResponse) =
     Int(
-        with_error() do err
-            ccall((:osrmc_nearest_response_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-        end,
-    )
+    with_error() do err
+        ccall((:osrmc_nearest_response_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)
 
 """
-    latitude(response::NearestResponse, index) -> Float32
+    latitude(response::NearestResponse, index) -> Float64
 
 Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
 """
@@ -55,12 +55,12 @@ function latitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
-        ccall((:osrmc_nearest_response_latitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_nearest_response_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
 """
-    longitude(response::NearestResponse, index) -> Float32
+    longitude(response::NearestResponse, index) -> Float64
 
 Pairs with `latitude` to reconstruct snapped coordinates for visualization.
 """
@@ -68,7 +68,7 @@ function longitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
-        ccall((:osrmc_nearest_response_longitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_nearest_response_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
@@ -88,7 +88,7 @@ function name(response::NearestResponse, index::Integer)
 end
 
 """
-    distance(response::NearestResponse, index) -> Float32
+    distance(response::NearestResponse, index) -> Float64
 
 Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
 """
@@ -96,6 +96,21 @@ function distance(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
-        ccall((:osrmc_nearest_response_distance, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_nearest_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
+end
+
+"""
+    hint(response::NearestResponse, index) -> String
+
+Returns the base64-encoded hint produced by OSRM so callers can reuse it for
+follow-up queries.
+"""
+function hint(response::NearestResponse, index::Integer)
+    n = count(response)
+    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
+    cstr = with_error() do err
+        ccall((:osrmc_nearest_response_hint, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+    end
+    return cstr == C_NULL ? "" : unsafe_string(cstr)
 end

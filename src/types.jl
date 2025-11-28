@@ -1,7 +1,8 @@
 """
     LatLon
 
-A named tuple representing a latitude and longitude coordinate.
+A named tuple representing a latitude and longitude coordinate using `Float64`
+precision so we do not lose detail before handing values to libosrmc.
 """
-const LatLon = NamedTuple{(:lat, :lon), Tuple{Float32, Float32}}
-LatLon(lat::Real, lon::Real) = (lat = Float32(lat), lon = Float32(lon))
+const LatLon = NamedTuple{(:lat, :lon), Tuple{Float64, Float64}}
+LatLon(lat::Real, lon::Real) = (lat = Float64(lat), lon = Float64(lon))

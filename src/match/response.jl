@@ -41,10 +41,10 @@ preallocate downstream data structures.
 """
 route_count(response::MatchResponse) =
     Int(
-        with_error() do err
-            ccall((:osrmc_match_response_route_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-        end,
-    )
+    with_error() do err
+        ccall((:osrmc_match_response_route_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)
 
 """
     tracepoint_count(response::MatchResponse) -> Int
@@ -54,13 +54,13 @@ streams early.
 """
 tracepoint_count(response::MatchResponse) =
     Int(
-        with_error() do err
-            ccall((:osrmc_match_response_tracepoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-        end,
-    )
+    with_error() do err
+        ccall((:osrmc_match_response_tracepoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)
 
 """
-    route_distance(response::MatchResponse, route_index) -> Float32
+    route_distance(response::MatchResponse, route_index) -> Float64
 
 Let OSRM be the source of truth for cumulative distance instead of re-integrating
 coordinates client-side.
@@ -69,12 +69,12 @@ function route_distance(response::MatchResponse, route_index::Integer)
     count = route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
-        ccall((:osrmc_match_response_route_distance, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
+        ccall((:osrmc_match_response_route_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
 """
-    route_duration(response::MatchResponse, route_index) -> Float32
+    route_duration(response::MatchResponse, route_index) -> Float64
 
 Reuses OSRM's travel time heuristics so Julia callers stay aligned with server
 estimates.
@@ -83,12 +83,12 @@ function route_duration(response::MatchResponse, route_index::Integer)
     count = route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
-        ccall((:osrmc_match_response_route_duration, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
+        ccall((:osrmc_match_response_route_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
 """
-    route_confidence(response::MatchResponse, route_index) -> Float32
+    route_confidence(response::MatchResponse, route_index) -> Float64
 
 Surface OSRM's built-in confidence metric so applications can fall back when a
 match looks unreliable.
@@ -97,12 +97,12 @@ function route_confidence(response::MatchResponse, route_index::Integer)
     count = route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
-        ccall((:osrmc_match_response_route_confidence, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
+        ccall((:osrmc_match_response_route_confidence, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
 """
-    tracepoint_latitude(response::MatchResponse, index) -> Float32
+    tracepoint_latitude(response::MatchResponse, index) -> Float64
 
 Inspect where OSRM snapped a point without leaving Julia, useful for debugging
 GPS drift.
@@ -111,12 +111,12 @@ function tracepoint_latitude(response::MatchResponse, index::Integer)
     count = tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return with_error() do err
-        ccall((:osrmc_match_response_tracepoint_latitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_match_response_tracepoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
 """
-    tracepoint_longitude(response::MatchResponse, index) -> Float32
+    tracepoint_longitude(response::MatchResponse, index) -> Float64
 
 Pairs with `tracepoint_latitude` to reconstruct snapped coordinates for
 visualization layers.
@@ -125,7 +125,7 @@ function tracepoint_longitude(response::MatchResponse, index::Integer)
     count = tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return with_error() do err
-        ccall((:osrmc_match_response_tracepoint_longitude, libosrmc), Cfloat, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall((:osrmc_match_response_tracepoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 

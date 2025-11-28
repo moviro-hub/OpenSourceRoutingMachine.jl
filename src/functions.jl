@@ -1,5 +1,5 @@
 """
-    distance(response, ...) -> Float32
+    distance(response, ...) -> Float64
 
 Compute distance from OSRM response objects. Methods are defined for:
 - `RouteResponse`: returns total route distance
@@ -9,7 +9,7 @@ Compute distance from OSRM response objects. Methods are defined for:
 function distance end
 
 """
-    duration(response, ...) -> Float32
+    duration(response, ...) -> Float64
 
 Compute duration from OSRM response objects. Methods are defined for:
 - `RouteResponse`: returns total route duration
