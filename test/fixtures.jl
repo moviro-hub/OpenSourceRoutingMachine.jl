@@ -17,7 +17,7 @@ const HAMBURG_ALTONA = LatLon(53.5528, 9.9352)       # Altona station
 
 Get an OSRMConfig instance using the test data.
 """
-const _OSRM_CONFIG = OSRMConfig(TestData.get_test_osrm_path())
+const _OSRM_CONFIG = OSRMConfig(TestData.get_test_osrm_base_path())
 
 """
     get_test_osrm() -> OSRM

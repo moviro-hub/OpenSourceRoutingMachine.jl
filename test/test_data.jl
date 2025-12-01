@@ -44,8 +44,9 @@ function build_osrm_graph(osm_path::String)
         name = name_no_ext
     end
     base = joinpath(dirname(osm_path), name)
-    partition_file = "$base.osrm.partition"
-    hashing_guard = "$base.osrm.hash"
+    osrm_base_path = "$base.osrm"
+    partition_file = "$osrm_base_path.partition"
+    hashing_guard = "$osrm_base_path.hash"
 
     function _current_hash(path)
         return open(path, "r") do io
@@ -71,10 +72,11 @@ function build_osrm_graph(osm_path::String)
         name = name_no_ext
     end
     base = joinpath(dirname(osm_path), name)
+    osrm_base_path = "$base.osrm"
 
     extract(osm_path; profile = Profile.car)
-    partition(base)
-    customize(base)
+    partition(osrm_base_path)
+    customize(osrm_base_path)
 
     current = _current_hash(osm_path)
     open(hashing_guard, "w") do io
@@ -85,12 +87,12 @@ function build_osrm_graph(osm_path::String)
 end
 
 """
-    get_test_osrm_path() -> String
+    get_test_osrm_base_path() -> String
 
 Get the path to the test OSRM graph, building it if necessary.
 Returns the base path (without .osrm extension).
 """
-function get_test_osrm_path()
+function get_test_osrm_base_path()
     return build_osrm_graph(HAMBURG_OSM_PATH)
 end
 
