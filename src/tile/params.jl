@@ -63,6 +63,11 @@ function set_z!(params::TileParams, z::Integer)
     return nothing
 end
 
+"""
+    add_coordinate!(params::TileParams, coord::LatLon)
+
+Attach a single coordinate (usually the tile center) to the Tile request.
+"""
 function add_coordinate!(params::TileParams, coord::LatLon)
     with_error() do error_ptr
         ccall(
@@ -79,6 +84,12 @@ function add_coordinate!(params::TileParams, coord::LatLon)
     return nothing
 end
 
+"""
+    add_coordinate_with!(params::TileParams, coord::LatLon, radius, bearing, range)
+
+Attach a coordinate together with snapping hints so OSRM can refine which tile
+segment to return.
+"""
 function add_coordinate_with!(params::TileParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
@@ -98,6 +109,12 @@ function add_coordinate_with!(params::TileParams, coord::LatLon, radius::Real, b
     return nothing
 end
 
+"""
+    set_hint!(params::TileParams, coordinate_index, hint)
+
+Provide a precomputed hint for a coordinate to avoid full snapping work when
+fetching tiles repeatedly.
+"""
 function set_hint!(params::TileParams, coordinate_index::Integer, hint::AbstractString)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -115,6 +132,11 @@ function set_hint!(params::TileParams, coordinate_index::Integer, hint::Abstract
     return nothing
 end
 
+"""
+    set_radius!(params::TileParams, coordinate_index, radius)
+
+Override the default snapping radius for a specific tile coordinate.
+"""
 function set_radius!(params::TileParams, coordinate_index::Integer, radius::Real)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -132,6 +154,12 @@ function set_radius!(params::TileParams, coordinate_index::Integer, radius::Real
     return nothing
 end
 
+"""
+    set_bearing!(params::TileParams, coordinate_index, value, range)
+
+Constrain tile snapping by heading so vector tiles line up with the travel
+direction.
+"""
 function set_bearing!(params::TileParams, coordinate_index::Integer, value::Integer, range::Integer)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -150,6 +178,11 @@ function set_bearing!(params::TileParams, coordinate_index::Integer, value::Inte
     return nothing
 end
 
+"""
+    set_approach!(params::TileParams, coordinate_index, approach)
+
+Control which side of the road a tile coordinate should approach from.
+"""
 function set_approach!(params::TileParams, coordinate_index::Integer, approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     code = to_cint(approach, Approach)
@@ -168,6 +201,11 @@ function set_approach!(params::TileParams, coordinate_index::Integer, approach)
     return nothing
 end
 
+"""
+    add_exclude!(params::TileParams, profile)
+
+Exclude traffic classes when generating tiles, mirroring other services.
+"""
 function add_exclude!(params::TileParams, profile::AbstractString)
     with_error() do error_ptr
         ccall(
@@ -183,16 +221,32 @@ function add_exclude!(params::TileParams, profile::AbstractString)
     return nothing
 end
 
+"""
+    set_generate_hints!(params::TileParams, on)
+
+Toggle generation of reusable hints for tile coordinates.
+"""
 function set_generate_hints!(params::TileParams, on::Bool)
     ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_skip_waypoints!(params::TileParams, on)
+
+Ask OSRM to omit waypoints from the Tile response metadata to keep payloads
+minimal.
+"""
 function set_skip_waypoints!(params::TileParams, on::Bool)
     ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_snapping!(params::TileParams, snapping)
+
+Configure snapping strategy for tile coordinates using the `Snapping` enum.
+"""
 function set_snapping!(params::TileParams, snapping)
     code = to_cint(snapping, Snapping)
     with_error() do error_ptr
@@ -209,6 +263,12 @@ function set_snapping!(params::TileParams, snapping)
     return nothing
 end
 
+"""
+    set_format!(params::TileParams, format)
+
+Select the output format for tile responses; currently only JSON metadata plus
+binary vector tile payloads are supported.
+"""
 function set_format!(params::TileParams, format)
     code = to_cint(format, OutputFormat)
     with_error() do error_ptr

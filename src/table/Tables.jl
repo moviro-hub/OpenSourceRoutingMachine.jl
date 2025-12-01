@@ -25,9 +25,30 @@ function table(osrm::OSRM, params::TableParams)
     return TableResponse(ptr)
 end
 
+## Parameter exports
+export
+    TableParams,
+    add_source!,
+    add_destination!,
+    set_annotations_mask!,
+    set_fallback_speed!,
+    set_fallback_coordinate_type!,
+    set_scale_factor!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!
+
+## Response exports
 export
     TableResponse,
-    TableParams,
     table,
     as_json,
     source_count,
@@ -35,12 +56,6 @@ export
     duration,
     distance,
     duration_matrix,
-    distance_matrix,
-    add_source!,
-    add_destination!,
-    set_annotations_mask!,
-    set_fallback_speed!,
-    set_fallback_coordinate_type!,
-    set_scale_factor!
+    distance_matrix
 
 end # module Tables

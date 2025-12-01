@@ -94,6 +94,7 @@ function duration_matrix(response::TableResponse)
         ccall((:osrmc_table_response_get_duration_matrix, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Cdouble}, Csize_t, Ptr{Ptr{Cvoid}}), response.ptr, pointer(buffer), Csize_t(expected), error_pointer(err))
     end
     count == expected || error("Duration matrix: expected $expected elements, got $count")
+    # Julia uses column-major order, whereas OSRM uses row-major order
     return transpose(reshape(buffer, m, n))
 end
 
@@ -112,5 +113,6 @@ function distance_matrix(response::TableResponse)
         ccall((:osrmc_table_response_get_distance_matrix, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Cdouble}, Csize_t, Ptr{Ptr{Cvoid}}), response.ptr, pointer(buffer), Csize_t(expected), error_pointer(err))
     end
     count == expected || error("Distance matrix: expected $expected elements, got $count")
+    # Julia uses column-major order, whereas OSRM uses row-major order
     return transpose(reshape(buffer, m, n))
 end

@@ -24,9 +24,36 @@ function match(osrm::OSRM, params::MatchParams)
     return MatchResponse(ptr)
 end
 
+## Parameter exports
+export
+    MatchParams,
+    add_steps!,
+    add_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!
+
+## Response exports
 export
     MatchResponse,
-    MatchParams,
     match,
     as_json,
     route_count,
@@ -36,9 +63,6 @@ export
     route_confidence,
     tracepoint_latitude,
     tracepoint_longitude,
-    tracepoint_is_null,
-    add_timestamp!,
-    set_gaps!,
-    set_tidy!
+    tracepoint_is_null
 
 end # module Matches

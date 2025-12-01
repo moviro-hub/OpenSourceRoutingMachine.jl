@@ -26,9 +26,33 @@ function route(osrm::OSRM, params::RouteParams)
     return RouteResponse(ptr)
 end
 
+## Parameter exports
+export
+    RouteParams,
+    add_steps!,
+    add_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!
+
+## Response exports
 export
     RouteResponse,
-    RouteParams,
     route,
     as_json,
     distance,
@@ -48,15 +72,6 @@ export
     step_count,
     step_distance,
     step_duration,
-    step_instruction,
-    add_steps!,
-    add_alternatives!,
-    set_geometries!,
-    set_overview!,
-    set_continue_straight!,
-    set_number_of_alternatives!,
-    set_annotations!,
-    add_waypoint!,
-    clear_waypoints!
+    step_instruction
 
 end # module Routes

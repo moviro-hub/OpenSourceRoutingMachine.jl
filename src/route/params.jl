@@ -140,6 +140,12 @@ function clear_waypoints!(params::RouteParams)
     return nothing
 end
 
+"""
+    add_coordinate!(params::RouteParams, coord::LatLon)
+
+Append a coordinate to the current request in `(lat, lon)` order, reusing the
+same `RouteParams` across multiple calls.
+"""
 function add_coordinate!(params::RouteParams, coord::LatLon)
     with_error() do error_ptr
         ccall(
@@ -156,6 +162,12 @@ function add_coordinate!(params::RouteParams, coord::LatLon)
     return nothing
 end
 
+"""
+    add_coordinate_with!(params::RouteParams, coord::LatLon, radius, bearing, range)
+
+Append a coordinate together with search radius and bearing hints so OSRM can
+snap more accurately to the road network.
+"""
 function add_coordinate_with!(params::RouteParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
@@ -175,6 +187,12 @@ function add_coordinate_with!(params::RouteParams, coord::LatLon, radius::Real, 
     return nothing
 end
 
+"""
+    set_hint!(params::RouteParams, coordinate_index, hint)
+
+Attach a precomputed hint to a coordinate to speed up subsequent queries that
+reuse the same snapped location.
+"""
 function set_hint!(params::RouteParams, coordinate_index::Integer, hint::AbstractString)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -192,6 +210,12 @@ function set_hint!(params::RouteParams, coordinate_index::Integer, hint::Abstrac
     return nothing
 end
 
+"""
+    set_radius!(params::RouteParams, coordinate_index, radius)
+
+Set a per-coordinate search radius in meters, relaxing or tightening how far
+OSRM may move the point to find a routable edge.
+"""
 function set_radius!(params::RouteParams, coordinate_index::Integer, radius::Real)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -209,6 +233,12 @@ function set_radius!(params::RouteParams, coordinate_index::Integer, radius::Rea
     return nothing
 end
 
+"""
+    set_bearing!(params::RouteParams, coordinate_index, value, range)
+
+Constrain snapping using a heading and allowed deviation range so OSRM prefers
+edges aligned with the current travel direction.
+"""
 function set_bearing!(params::RouteParams, coordinate_index::Integer, value::Integer, range::Integer)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -227,6 +257,12 @@ function set_bearing!(params::RouteParams, coordinate_index::Integer, value::Int
     return nothing
 end
 
+"""
+    set_approach!(params::RouteParams, coordinate_index, approach)
+
+Control whether vehicles should approach waypoints from the curb, be
+unrestricted, or use the opposite side where supported.
+"""
 function set_approach!(params::RouteParams, coordinate_index::Integer, approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     code = to_cint(approach, Approach)
@@ -245,6 +281,12 @@ function set_approach!(params::RouteParams, coordinate_index::Integer, approach)
     return nothing
 end
 
+"""
+    add_exclude!(params::RouteParams, profile)
+
+Exclude traffic classes (e.g. `"toll"`, `"ferry"`) from consideration when
+computing routes.
+"""
 function add_exclude!(params::RouteParams, profile::AbstractString)
     with_error() do error_ptr
         ccall(
@@ -260,16 +302,34 @@ function add_exclude!(params::RouteParams, profile::AbstractString)
     return nothing
 end
 
+"""
+    set_generate_hints!(params::RouteParams, on)
+
+Ask OSRM to emit reusable hints for snapped coordinates, which can be cached by
+clients to speed up future queries.
+"""
 function set_generate_hints!(params::RouteParams, on::Bool)
     ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_skip_waypoints!(params::RouteParams, on)
+
+Toggle whether OSRM should omit waypoint objects from the response to reduce
+payload size when only geometry and metrics are needed.
+"""
 function set_skip_waypoints!(params::RouteParams, on::Bool)
     ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_snapping!(params::RouteParams, snapping)
+
+Control how aggressively OSRM should snap coordinates to the road network,
+using the `Snapping` enum for type safety.
+"""
 function set_snapping!(params::RouteParams, snapping)
     code = to_cint(snapping, Snapping)
     with_error() do error_ptr
@@ -286,6 +346,12 @@ function set_snapping!(params::RouteParams, snapping)
     return nothing
 end
 
+"""
+    set_format!(params::RouteParams, format)
+
+Select the output format for the Route response; currently only `OutputFormat.json`
+is accepted for the Route service.
+"""
 function set_format!(params::RouteParams, format)
     fmt = normalize_enum(format, OutputFormat.T)
     if fmt === OutputFormat.flatbuffers
