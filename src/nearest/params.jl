@@ -237,27 +237,3 @@ function set_snapping!(params::NearestParams, snapping)
     end
     return nothing
 end
-
-"""
-    set_format!(params::NearestParams, format)
-
-Select the output format for Nearest responses; only JSON is currently supported.
-"""
-function set_format!(params::NearestParams, format)
-    fmt = normalize_enum(format, OutputFormat.T)
-    if fmt === OutputFormat.flatbuffers
-        throw(ArgumentError("Nearest service does not support Flatbuffers output"))
-    end
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            Cint(fmt),
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end

@@ -101,12 +101,6 @@ function route_confidence(response::MatchResponse, route_index::Integer)
     end
 end
 
-"""
-    tracepoint_latitude(response::MatchResponse, index) -> Float64
-
-Inspect where OSRM snapped a point without leaving Julia, useful for debugging
-GPS drift.
-"""
 function tracepoint_latitude(response::MatchResponse, index::Integer)
     count = tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
@@ -115,18 +109,24 @@ function tracepoint_latitude(response::MatchResponse, index::Integer)
     end
 end
 
-"""
-    tracepoint_longitude(response::MatchResponse, index) -> Float64
-
-Pairs with `tracepoint_latitude` to reconstruct snapped coordinates for
-visualization layers.
-"""
 function tracepoint_longitude(response::MatchResponse, index::Integer)
     count = tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_tracepoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
+end
+
+"""
+    tracepoint_coordinate(response::MatchResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th tracepoint in the response.
+"""
+function tracepoint_coordinate(response::MatchResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = tracepoint_latitude(response, index)
+    lon = tracepoint_longitude(response, index)
+    return LatLon(lat, lon)
 end
 
 """

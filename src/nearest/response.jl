@@ -46,11 +46,6 @@ count(response::NearestResponse) =
     end,
 )
 
-"""
-    latitude(response::NearestResponse, index) -> Float64
-
-Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
-"""
 function latitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
@@ -59,17 +54,24 @@ function latitude(response::NearestResponse, index::Integer)
     end
 end
 
-"""
-    longitude(response::NearestResponse, index) -> Float64
-
-Pairs with `latitude` to reconstruct snapped coordinates for visualization.
-"""
 function longitude(response::NearestResponse, index::Integer)
     n = count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
         ccall((:osrmc_nearest_response_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
+end
+
+"""
+    coordinate(response::NearestResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th nearest point in the response.
+"""
+function coordinate(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = latitude(response, index)
+    lon = longitude(response, index)
+    return LatLon(lat, lon)
 end
 
 """

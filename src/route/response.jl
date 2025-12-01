@@ -124,11 +124,6 @@ geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     end,
 )
 
-"""
-    geometry_coordinate_latitude(response::RouteResponse, route_index, coord_index) -> Float64
-
-Access the latitude of a specific coordinate in the decoded route geometry.
-"""
 function geometry_coordinate_latitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -136,16 +131,22 @@ function geometry_coordinate_latitude(response::RouteResponse, route_index::Inte
     end
 end
 
-"""
-    geometry_coordinate_longitude(response::RouteResponse, route_index, coord_index) -> Float64
-
-Access the longitude of a specific coordinate in the decoded route geometry.
-"""
 function geometry_coordinate_longitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_geometry_coordinate_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(coord_index - 1), error_pointer(err))
     end
+end
+
+"""
+    geometry_coordinate(response::RouteResponse, route_index::Integer, coord_index::Integer) -> LatLon
+
+Return the latitude and longitude of a specific coordinate in the decoded route geometry.
+"""
+function geometry_coordinate(response::RouteResponse, route_index::Integer, coord_index::Integer)
+    lat = geometry_coordinate_latitude(response, route_index, coord_index)
+    lon = geometry_coordinate_longitude(response, route_index, coord_index)
+    return LatLon(lat, lon)
 end
 
 """
@@ -160,11 +161,6 @@ waypoint_count(response::RouteResponse) =
     end,
 )
 
-"""
-    waypoint_latitude(response::RouteResponse, index) -> Float64
-
-Latitude of the `index`-th waypoint in the response.
-"""
 function waypoint_latitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -172,16 +168,23 @@ function waypoint_latitude(response::RouteResponse, index::Integer)
     end
 end
 
-"""
-    waypoint_longitude(response::RouteResponse, index) -> Float64
-
-Longitude of the `index`-th waypoint in the response.
-"""
 function waypoint_longitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
+end
+
+"""
+    waypoint_coordinate(response::RouteResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th waypoint in the response.
+"""
+function waypoint_coordinate(response::RouteResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = waypoint_latitude(response, index)
+    lon = waypoint_longitude(response, index)
+    return LatLon(lat, lon)
 end
 
 """

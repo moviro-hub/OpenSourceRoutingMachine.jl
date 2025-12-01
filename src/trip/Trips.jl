@@ -6,7 +6,7 @@ import ..OpenSourceRoutingMachine:
     add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, set_format!, LatLon, Approach, Snapping, OutputFormat
+    set_snapping!, LatLon, Approach, Snapping
 
 include("response.jl")
 include("params.jl")
@@ -47,8 +47,7 @@ export
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    set_format!
+    set_snapping!
 
 ## Response exports
 export
@@ -58,7 +57,6 @@ export
     distance,
     duration,
     waypoint_count,
-    waypoint_latitude,
-    waypoint_longitude
+    waypoint_coordinate
 
 end # module Trips

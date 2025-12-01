@@ -5,7 +5,7 @@ import ..OpenSourceRoutingMachine:
     OSRM, distance, set_number_of_results!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, set_format!, LatLon, Approach, Snapping, OutputFormat
+    set_snapping!, LatLon, Approach, Snapping
 import Base: count
 
 include("response.jl")
@@ -36,8 +36,7 @@ export
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    set_format!
+    set_snapping!
 
 ## Response exports
 export
@@ -45,8 +44,7 @@ export
     nearest,
     as_json,
     count,
-    latitude,
-    longitude,
+    coordinate,
     name,
     distance,
     hint

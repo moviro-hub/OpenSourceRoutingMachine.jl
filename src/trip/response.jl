@@ -58,9 +58,7 @@ waypoint_count(response::TripResponse) =
     end,
 )
 
-"""
-    waypoint_latitude(response::TripResponse, index) -> Float64
-"""
+
 function waypoint_latitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -68,12 +66,19 @@ function waypoint_latitude(response::TripResponse, index::Integer)
     end
 end
 
-"""
-    waypoint_longitude(response::TripResponse, index) -> Float64
-"""
 function waypoint_longitude(response::TripResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_trip_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
+end
+
+"""
+    waypoint_coordinate(response::TripResponse, index) -> LatLon
+"""
+function waypoint_coordinate(response::TripResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = waypoint_latitude(response, index)
+    lon = waypoint_longitude(response, index)
+    return LatLon(lat, lon)
 end

@@ -39,7 +39,6 @@ was built against, so callers can fail fast on mismatched binaries.
 """
 is_abi_compatible() = ccall((:osrmc_is_abi_compatible, libosrmc), Cint, ()) != 0
 
-include("enums.jl")
 include("types.jl")
 include("functions.jl")
 include("utils/Utils.jl")
@@ -59,7 +58,7 @@ include("graph/Graphs.jl")
 # types
 export OSRM, OSRMConfig, LatLon # LatLon is a named tuple for convenience
 # enums
-export Algorithm, OutputFormat, Snapping, Approach
+export Algorithm, Snapping, Approach
 # functions
 export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 

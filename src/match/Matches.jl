@@ -5,7 +5,7 @@ import ..OpenSourceRoutingMachine:
     OSRM, distance, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, set_format!, LatLon, Approach, Snapping, OutputFormat
+    set_snapping!, LatLon, Approach, Snapping
 import Base: match
 
 include("response.jl")
@@ -48,8 +48,7 @@ export
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    set_format!
+    set_snapping!
 
 ## Response exports
 export
@@ -57,12 +56,11 @@ export
     match,
     as_json,
     route_count,
-    tracepoint_count,
     route_distance,
     route_duration,
     route_confidence,
-    tracepoint_latitude,
-    tracepoint_longitude,
+    tracepoint_count,
+    tracepoint_coordinate,
     tracepoint_is_null
 
 end # module Matches

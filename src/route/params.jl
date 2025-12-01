@@ -345,28 +345,3 @@ function set_snapping!(params::RouteParams, snapping)
     end
     return nothing
 end
-
-"""
-    set_format!(params::RouteParams, format)
-
-Select the output format for the Route response; currently only `OutputFormat.json`
-is accepted for the Route service.
-"""
-function set_format!(params::RouteParams, format)
-    fmt = normalize_enum(format, OutputFormat.T)
-    if fmt === OutputFormat.flatbuffers
-        throw(ArgumentError("Route service does not support Flatbuffers output"))
-    end
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            Cint(fmt),
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end
