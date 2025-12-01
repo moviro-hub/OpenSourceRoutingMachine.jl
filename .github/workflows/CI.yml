@@ -14,9 +14,11 @@ jobs:
             fail-fast: false
             matrix:
                 version:
-                    - "1.10"
+                    #  1.10 Pkg dose not support [sources] for dependencies in the project.toml,
+                    # so it is turned off till the jll dependencies are published.
+                    # - "1.10"
                     - "1.12"
-                    - "nightly"
+                    # - "nightly"
                 os:
                     - ubuntu-latest
                     - windows-latest
