@@ -27,11 +27,11 @@ Defined in `Tiles.tile`.
 """
 
 """
-    data(response::TileResponse) -> Vector{UInt8}
+    get_data(response::TileResponse) -> Vector{UInt8}
 
 Copy the binary vector-tile payload into a Julia-owned buffer.
 """
-function data(response::TileResponse)
+function get_data(response::TileResponse)
     len_ref = Ref{Csize_t}(0)
     ptr = with_error() do err
         ccall((:osrmc_tile_response_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid}, Ptr{Csize_t}, Ptr{Ptr{Cvoid}}), response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), error_pointer(err))
@@ -44,11 +44,11 @@ function data(response::TileResponse)
 end
 
 """
-    size(response::TileResponse) -> Int
+    get_size(response::TileResponse) -> Int
 
 Get the raw byte size of the vector tile payload.
 """
-size(response::TileResponse) =
+get_size(response::TileResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))

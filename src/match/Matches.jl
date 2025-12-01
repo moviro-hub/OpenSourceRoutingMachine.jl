@@ -2,7 +2,7 @@ module Matches
 
 using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
-    OSRM, distance, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
+    OSRM, get_distance, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
     set_snapping!, LatLon, Approach, Snapping
@@ -55,12 +55,12 @@ export
     MatchResponse,
     match,
     as_json,
-    route_count,
-    route_distance,
-    route_duration,
-    route_confidence,
-    tracepoint_count,
-    tracepoint_coordinate,
-    tracepoint_is_null
+    get_route_count,
+    get_route_distance,
+    get_route_duration,
+    get_route_confidence,
+    get_tracepoint_count,
+    get_tracepoint_coordinate,
+    get_tracepoint_is_null
 
 end # module Matches

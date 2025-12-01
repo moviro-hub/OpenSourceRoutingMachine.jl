@@ -2,11 +2,31 @@ module Trips
 
 using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
-    OSRM, distance, duration, as_json, libosrmc,
-    add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, LatLon, Approach, Snapping
+    OSRM,
+    get_distance,
+    get_duration,
+    as_json,
+    get_waypoint_count,
+    get_waypoint_coordinate,
+    libosrmc,
+    add_roundtrip!,
+    add_source!,
+    add_destination!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    LatLon,
+    Approach,
+    Snapping
 
 include("response.jl")
 include("params.jl")
@@ -54,9 +74,9 @@ export
     TripResponse,
     trip,
     as_json,
-    distance,
-    duration,
-    waypoint_count,
-    waypoint_coordinate
+    get_distance,
+    get_duration,
+    get_waypoint_count,
+    get_waypoint_coordinate
 
 end # module Trips

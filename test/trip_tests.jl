@@ -10,10 +10,9 @@ using OpenSourceRoutingMachine.Trips:
     add_waypoint!,
     clear_waypoints!,
     trip,
-    distance,
-    duration,
-    waypoint_coordinate,
-    as_json
+    get_distance,
+    get_duration,
+    get_waypoint_coordinate
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -31,13 +30,13 @@ using .Fixtures
     @test response isa TripResponse
 
     dist = try
-        distance(response)
+        get_distance(response)
     catch e
         @test e isa OSRMError
         nothing
     end
     dur = try
-        duration(response)
+        get_duration(response)
     catch e
         @test e isa OSRMError
         nothing
@@ -48,9 +47,6 @@ using .Fixtures
     if dur !== nothing
         @test dur >= 0.0
     end
-
-    # TripResponse currently exposes only aggregate distance/duration and raw JSON.
-    # Basic smoke tests above are sufficient to ensure the service works.
 
     json_str = try
         as_json(response)

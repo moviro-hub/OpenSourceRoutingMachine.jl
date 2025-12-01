@@ -1,4 +1,3 @@
-
 # Parameter helper declarations live here so service modules can extend these functions
 function add_steps! end
 function add_alternatives! end
@@ -35,6 +34,8 @@ function set_skip_waypoints! end
 function set_snapping! end
 
 # Response helper declarations live here so service modules can extend these functions
-function distance end
-function duration end
 function as_json end
+function get_distance end
+function get_duration end
+function get_waypoint_count end
+function get_waypoint_coordinate end

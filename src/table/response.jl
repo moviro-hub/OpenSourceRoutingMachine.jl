@@ -23,7 +23,7 @@ end
 """
     as_json(response::TableResponse) -> String
 
-Retrieve the canonical OSRM JSON payload for logging or interoperability.
+Retrieve the entire response as JSON string.
 """
 function as_json(response::TableResponse)
     blob = with_error() do err
@@ -33,11 +33,11 @@ function as_json(response::TableResponse)
 end
 
 """
-    source_count(response) -> Int
+    get_source_count(response) -> Int
 
 Helps verify how many origins OSRM accepted before attempting to read matrices.
 """
-source_count(response::TableResponse) =
+get_source_count(response::TableResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_table_response_source_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
@@ -45,11 +45,11 @@ source_count(response::TableResponse) =
 )
 
 """
-    destination_count(response) -> Int
+    get_destination_count(response) -> Int
 
 Same as `source_count` but for destinations, keeping sanity checks symmetric.
 """
-destination_count(response::TableResponse) =
+get_destination_count(response::TableResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_table_response_destination_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
@@ -57,37 +57,37 @@ destination_count(response::TableResponse) =
 )
 
 """
-    duration(response, from, to) -> Float64
+    get_duration(response, from, to) -> Float64
 
 Return OSRM's travel time between two matrix indices so we stay consistent with
 the engine (returns `Inf` when no route exists).
 """
-function duration(response::TableResponse, from::Integer, to::Integer)
+function get_duration(response::TableResponse, from::Integer, to::Integer)
     return with_error() do err
         ccall((:osrmc_table_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Culong, Culong, Ptr{Ptr{Cvoid}}), response.ptr, Culong(from - 1), Culong(to - 1), error_pointer(err))
     end
 end
 
 """
-    distance(response, from, to) -> Float64
+    get_distance(response, from, to) -> Float64
 
 Expose the meters-between calculation OSRM already computed for the matrix.
 """
-function distance(response::TableResponse, from::Integer, to::Integer)
+function get_distance(response::TableResponse, from::Integer, to::Integer)
     return with_error() do err
         ccall((:osrmc_table_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Culong, Culong, Ptr{Ptr{Cvoid}}), response.ptr, Culong(from - 1), Culong(to - 1), error_pointer(err))
     end
 end
 
 """
-    duration_matrix(response) -> Matrix{Float64}
+    get_duration_matrix(response) -> Matrix{Float64}
 
 Fill an existing `Float64` buffer (vector or matrix, row-major) with durations
 so callers can avoid allocations when repeatedly querying OSRM.
 """
-function duration_matrix(response::TableResponse)
-    n = source_count(response)
-    m = destination_count(response)
+function get_duration_matrix(response::TableResponse)
+    n = get_source_count(response)
+    m = get_destination_count(response)
     expected = n * m
     buffer = Vector{Float64}(undef, expected)
     count = with_error() do err
@@ -99,14 +99,14 @@ function duration_matrix(response::TableResponse)
 end
 
 """
-    distance_matrix(response) -> Matrix{Float64}
+    get_distance_matrix(response) -> Matrix{Float64}
 
 In-place variant for distances, mirroring `duration_matrix` to support
 allocation-free bulk work.
 """
-function distance_matrix(response::TableResponse)
-    n = source_count(response)
-    m = destination_count(response)
+function get_distance_matrix(response::TableResponse)
+    n = get_source_count(response)
+    m = get_destination_count(response)
     expected = n * m
     buffer = Vector{Float64}(undef, expected)
     count = with_error() do err

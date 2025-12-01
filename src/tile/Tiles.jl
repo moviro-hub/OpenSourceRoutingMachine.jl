@@ -43,7 +43,7 @@ export
 export
     TileResponse,
     tile,
-    data,
-    size
+    get_data,
+    get_size
 
 end # module Tiles

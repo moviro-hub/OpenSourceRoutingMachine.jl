@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: OSRMConfig, OSRM, LatLon
-using OpenSourceRoutingMachine.Routes: RouteParams, add_coordinate!, route, distance, duration
+using OpenSourceRoutingMachine.Routes: RouteParams, add_coordinate!, route, get_distance, get_duration
 using .Fixtures
 
 @testset "Integration - Full Workflow" begin
@@ -12,8 +12,8 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = route(osrm, params)
         @test response isa RouteResponse
-        dist = distance(response)
-        dur = duration(response)
+        dist = get_distance(response)
+        dur = get_duration(response)
         @test dist > 0.0
         @test dur > 0.0
         @test isfinite(dist)
@@ -25,17 +25,17 @@ using .Fixtures
         params1 = RouteParams()
         add_coordinate!(params1, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params1, Fixtures.HAMBURG_AIRPORT)
-        dist1 = distance(route(osrm, params1))
+        dist1 = get_distance(route(osrm, params1))
 
         params2 = RouteParams()
         add_coordinate!(params2, Fixtures.HAMBURG_AIRPORT)
         add_coordinate!(params2, Fixtures.HAMBURG_PORT)
-        dist2 = distance(route(osrm, params2))
+        dist2 = get_distance(route(osrm, params2))
 
         params3 = RouteParams()
         add_coordinate!(params3, Fixtures.HAMBURG_PORT)
         add_coordinate!(params3, Fixtures.HAMBURG_CITY_CENTER)
-        dist3 = distance(route(osrm, params3))
+        dist3 = get_distance(route(osrm, params3))
 
         @test dist1 > 0.0
         @test dist2 > 0.0
@@ -49,7 +49,7 @@ using .Fixtures
             params = RouteParams()
             add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
             add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
-            @test distance(route(osrm, params)) > 0.0
+            @test get_distance(route(osrm, params)) > 0.0
         end
         GC.gc()
         @test true
@@ -64,7 +64,7 @@ using .Fixtures
             add_coordinate!(params, coords[i])
             add_coordinate!(params, coords[i + 1])
             response = route(osrm, params)
-            push!(routes, (distance(response), duration(response)))
+            push!(routes, (get_distance(response), get_duration(response)))
         end
         @test length(routes) == length(coords) - 1
         for (dist, dur) in routes

@@ -21,13 +21,13 @@ using OpenSourceRoutingMachine.Tables:
     set_skip_waypoints!,
     set_snapping!,
     table,
-    source_count,
-    destination_count,
+    get_source_count,
+    get_destination_count,
     as_json,
-    duration_matrix,
-    distance_matrix,
-    duration,
-    distance
+    get_duration_matrix,
+    get_distance_matrix,
+    get_duration,
+    get_distance
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 
@@ -53,8 +53,8 @@ using .Fixtures
         end
         response = table(osrm, params)
         @test response isa TableResponse
-        @test source_count(response) == length(coords)
-        @test destination_count(response) == length(coords)
+        @test get_source_count(response) == length(coords)
+        @test get_destination_count(response) == length(coords)
     end
 
     @testset "Specific sources and destinations" begin
@@ -68,8 +68,8 @@ using .Fixtures
         add_destination!(params, 3)
         add_destination!(params, 4)
         response = table(osrm, params)
-        @test source_count(response) == 2
-        @test destination_count(response) == 2
+        @test get_source_count(response) == 2
+        @test get_destination_count(response) == 2
     end
 end
 
@@ -102,8 +102,8 @@ end
 
         response = table(osrm, params)
         @test response isa TableResponse
-        @test source_count(response) >= 1
-        @test destination_count(response) >= 1
+        @test get_source_count(response) >= 1
+        @test get_destination_count(response) >= 1
     end
 end
 
@@ -116,12 +116,12 @@ end
         end
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        @test duration(response, 1, 1) == 0.0
-        @test distance(response, 1, 1) == 0.0
-        @test duration(response, 1, 2) > 0.0
-        @test distance(response, 1, 2) > 0.0
-        @test isfinite(duration(response, 1, 2))
-        @test isfinite(distance(response, 1, 2))
+        @test get_duration(response, 1, 1) == 0.0
+        @test get_distance(response, 1, 1) == 0.0
+        @test get_duration(response, 1, 2) > 0.0
+        @test get_distance(response, 1, 2) > 0.0
+        @test isfinite(get_duration(response, 1, 2))
+        @test isfinite(get_distance(response, 1, 2))
     end
 
     @testset "Source and destination counts" begin
@@ -131,8 +131,8 @@ end
             add_coordinate!(params, coord)
         end
         response = table(osrm, params)
-        @test source_count(response) == 4
-        @test destination_count(response) == 4
+        @test get_source_count(response) == 4
+        @test get_destination_count(response) == 4
     end
 
     @testset "Asymmetric table counts" begin
@@ -147,8 +147,8 @@ end
         add_destination!(params, 3)
         add_destination!(params, 4)
         response = table(osrm, params)
-        @test source_count(response) == 2
-        @test destination_count(response) == 3
+        @test get_source_count(response) == 2
+        @test get_destination_count(response) == 3
     end
 end
 
@@ -161,7 +161,7 @@ end
         end
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        dur_matrix = duration_matrix(response)
+        dur_matrix = get_duration_matrix(response)
         @test size(dur_matrix) == (3, 3)
         @test dur_matrix[1, 1] == 0.0
         @test dur_matrix[2, 2] == 0.0
@@ -179,7 +179,7 @@ end
         end
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        dist_matrix = distance_matrix(response)
+        dist_matrix = get_distance_matrix(response)
         @test size(dist_matrix) == (2, 2)
         @test dist_matrix[1, 1] == 0.0
         @test dist_matrix[2, 2] == 0.0
@@ -195,19 +195,19 @@ end
         end
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        dur_matrix = duration_matrix(response)
-        dist_matrix = distance_matrix(response)
-        for i in 1:source_count(response)
-            for j in 1:destination_count(response)
-                if dur_matrix[i, j] == 0.0 && duration(response, i, j) == 0.0
+        dur_matrix = get_duration_matrix(response)
+        dist_matrix = get_distance_matrix(response)
+        for i in 1:get_source_count(response)
+            for j in 1:get_destination_count(response)
+                if dur_matrix[i, j] == 0.0 && get_duration(response, i, j) == 0.0
                     @test true
                 else
-                    @test isapprox(dur_matrix[i, j], duration(response, i, j), rtol = 1.0e-5)
+                    @test isapprox(dur_matrix[i, j], get_duration(response, i, j), rtol = 1.0e-5)
                 end
-                if dist_matrix[i, j] == 0.0 && distance(response, i, j) == 0.0
+                if dist_matrix[i, j] == 0.0 && get_distance(response, i, j) == 0.0
                     @test true
                 else
-                    @test isapprox(dist_matrix[i, j], distance(response, i, j), rtol = 1.0e-5)
+                    @test isapprox(dist_matrix[i, j], get_distance(response, i, j), rtol = 1.0e-5)
                 end
             end
         end
@@ -228,10 +228,10 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         set_annotations_mask!(params, "distance,duration")
         response = table(osrm, params)
-        @test source_count(response) == 1
-        @test destination_count(response) == 1
-        @test duration(response, 1, 1) == 0.0
-        @test distance(response, 1, 1) == 0.0
+        @test get_source_count(response) == 1
+        @test get_destination_count(response) == 1
+        @test get_duration(response, 1, 1) == 0.0
+        @test get_distance(response, 1, 1) == 0.0
     end
 end
 
@@ -248,9 +248,9 @@ end
             end
         end
         response = table(osrm, params)
-        @test source_count(response) == n * n
-        @test destination_count(response) == n * n
-        dur = duration(response, 1, n * n)
+        @test get_source_count(response) == n * n
+        @test get_destination_count(response) == n * n
+        dur = get_duration(response, 1, n * n)
         @test isfinite(dur) || dur == Inf32
     end
 
@@ -262,8 +262,8 @@ end
         end
         add_source!(params, 1)
         response = table(osrm, params)
-        @test source_count(response) == 1
-        @test destination_count(response) == 4
+        @test get_source_count(response) == 1
+        @test get_destination_count(response) == 4
     end
 
     @testset "Many-to-one table" begin
@@ -274,8 +274,8 @@ end
         end
         add_destination!(params, 1)
         response = table(osrm, params)
-        @test source_count(response) == 4
-        @test destination_count(response) == 1
+        @test get_source_count(response) == 4
+        @test get_destination_count(response) == 1
     end
 
     @testset "JSON output" begin

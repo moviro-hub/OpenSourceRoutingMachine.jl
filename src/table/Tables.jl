@@ -2,7 +2,7 @@ module Tables
 
 using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
 import ..OpenSourceRoutingMachine:
-    OSRM, duration, distance, as_json, libosrmc,
+    OSRM, get_duration, get_distance, as_json, libosrmc,
     add_source!, add_destination!, set_annotations_mask!, set_fallback_speed!,
     set_fallback_coordinate_type!, set_scale_factor!,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
@@ -50,11 +50,11 @@ export
     TableResponse,
     table,
     as_json,
-    source_count,
-    destination_count,
-    duration,
-    distance,
-    duration_matrix,
-    distance_matrix
+    get_source_count,
+    get_destination_count,
+    get_duration,
+    get_distance,
+    get_duration_matrix,
+    get_distance_matrix
 
 end # module Tables
