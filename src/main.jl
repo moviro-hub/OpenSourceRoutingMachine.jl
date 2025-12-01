@@ -1,8 +1,19 @@
+"""
+    Algorithm
+
+Selects the routing algorithm OSRM should use for a given dataset (`ch` or `mld`).
+"""
 @enumx Algorithm::Int begin
     ch = 0
     mld = 1
 end
 
+"""
+    OSRMConfig(base_path::String)
+
+Low-level configuration handle for OSRM; most callers will use `OSRM(base_path)`
+instead of constructing this directly.
+"""
 mutable struct OSRMConfig
     ptr::Ptr{Cvoid}
 
@@ -32,6 +43,11 @@ mutable struct OSRMConfig
     end
 end
 
+"""
+    OSRM(base_path::String)
+
+High-level handle for querying an OSRM dataset located at `base_path`.
+"""
 mutable struct OSRM
     ptr::Ptr{Cvoid}
     config::OSRMConfig
@@ -53,6 +69,12 @@ mutable struct OSRM
 end
 OSRM(base_path::String) = OSRM(OSRMConfig(base_path))
 
+"""
+    set_algorithm!(config::OSRMConfig, algorithm)
+
+Force a specific routing algorithm for the given configuration instead of
+letting it be inferred from dataset files on disk.
+"""
 function set_algorithm!(config::OSRMConfig, algorithm)
     code = to_cint(algorithm, Algorithm)
     with_error() do error_ptr
@@ -63,6 +85,11 @@ function set_algorithm!(config::OSRMConfig, algorithm)
 end
 set_algorithm!(osrm::OSRM, algorithm) = set_algorithm!(osrm.config, algorithm)
 
+"""
+    set_max_locations_trip!(config::OSRMConfig, max_locations)
+
+Configure the maximum number of locations OSRM will accept for Trip queries.
+"""
 function set_max_locations_trip!(config::OSRMConfig, max_locations::Integer)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_locations_trip, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_locations), error_pointer(error_ptr))
@@ -72,15 +99,11 @@ function set_max_locations_trip!(config::OSRMConfig, max_locations::Integer)
 end
 set_max_locations_trip!(osrm::OSRM, max_locations::Integer) = set_max_locations_trip!(osrm.config, max_locations)
 
-function set_max_locations_viaroute!(config::OSRMConfig, max_locations::Integer)
-    with_error() do error_ptr
-        ccall((:osrmc_config_set_max_locations_viaroute, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_locations), error_pointer(error_ptr))
-        nothing
-    end
-    return nothing
-end
-set_max_locations_viaroute!(osrm::OSRM, max_locations::Integer) = set_max_locations_viaroute!(osrm.config, max_locations)
+"""
+    set_max_locations_distance_table!(config::OSRMConfig, max_locations)
 
+Configure the maximum number of locations accepted for Table (matrix) queries.
+"""
 function set_max_locations_distance_table!(config::OSRMConfig, max_locations::Integer)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_locations_distance_table, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_locations), error_pointer(error_ptr))
@@ -90,6 +113,11 @@ function set_max_locations_distance_table!(config::OSRMConfig, max_locations::In
 end
 set_max_locations_distance_table!(osrm::OSRM, max_locations::Integer) = set_max_locations_distance_table!(osrm.config, max_locations)
 
+"""
+    set_max_locations_map_matching!(config::OSRMConfig, max_locations)
+
+Configure how many coordinates OSRM will accept for Map Matching requests.
+"""
 function set_max_locations_map_matching!(config::OSRMConfig, max_locations::Integer)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_locations_map_matching, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_locations), error_pointer(error_ptr))
@@ -99,6 +127,12 @@ function set_max_locations_map_matching!(config::OSRMConfig, max_locations::Inte
 end
 set_max_locations_map_matching!(osrm::OSRM, max_locations::Integer) = set_max_locations_map_matching!(osrm.config, max_locations)
 
+"""
+    set_max_radius_map_matching!(config::OSRMConfig, radius)
+
+Set the maximum search radius OSRM will use when snapping points for Map
+Matching queries.
+"""
 function set_max_radius_map_matching!(config::OSRMConfig, radius::Real)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_radius_map_matching, libosrmc), Cvoid, (Ptr{Cvoid}, Cdouble, Ptr{Ptr{Cvoid}}), config.ptr, Cdouble(radius), error_pointer(error_ptr))
@@ -108,6 +142,11 @@ function set_max_radius_map_matching!(config::OSRMConfig, radius::Real)
 end
 set_max_radius_map_matching!(osrm::OSRM, radius::Real) = set_max_radius_map_matching!(osrm.config, radius)
 
+"""
+    set_max_results_nearest!(config::OSRMConfig, max_results)
+
+Limit how many nearest candidates OSRM should return for Nearest queries.
+"""
 function set_max_results_nearest!(config::OSRMConfig, max_results::Integer)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_results_nearest, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_results), error_pointer(error_ptr))
@@ -117,6 +156,11 @@ function set_max_results_nearest!(config::OSRMConfig, max_results::Integer)
 end
 set_max_results_nearest!(osrm::OSRM, max_results::Integer) = set_max_results_nearest!(osrm.config, max_results)
 
+"""
+    set_default_radius!(config::OSRMConfig, radius)
+
+Set the default snapping radius used when no per-coordinate radius is provided.
+"""
 function set_default_radius!(config::OSRMConfig, radius::Real)
     with_error() do error_ptr
         ccall((:osrmc_config_set_default_radius, libosrmc), Cvoid, (Ptr{Cvoid}, Cdouble, Ptr{Ptr{Cvoid}}), config.ptr, Cdouble(radius), error_pointer(error_ptr))
@@ -126,6 +170,11 @@ function set_default_radius!(config::OSRMConfig, radius::Real)
 end
 set_default_radius!(osrm::OSRM, radius::Real) = set_default_radius!(osrm.config, radius)
 
+"""
+    set_max_alternatives!(config::OSRMConfig, max_alternatives)
+
+Configure the global upper bound on how many route alternatives OSRM may return.
+"""
 function set_max_alternatives!(config::OSRMConfig, max_alternatives::Integer)
     with_error() do error_ptr
         ccall((:osrmc_config_set_max_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_alternatives), error_pointer(error_ptr))
@@ -135,6 +184,12 @@ function set_max_alternatives!(config::OSRMConfig, max_alternatives::Integer)
 end
 set_max_alternatives!(osrm::OSRM, max_alternatives::Integer) = set_max_alternatives!(osrm.config, max_alternatives)
 
+"""
+    set_use_mmap!(config::OSRMConfig, use_mmap)
+
+Toggle whether OSRM should memory-map datasets instead of loading them fully
+into RAM.
+"""
 function set_use_mmap!(config::OSRMConfig, use_mmap::Bool)
     with_error() do error_ptr
         ccall((:osrmc_config_set_use_mmap, libosrmc), Cvoid, (Ptr{Cvoid}, Bool, Ptr{Ptr{Cvoid}}), config.ptr, use_mmap, error_pointer(error_ptr))
@@ -144,6 +199,12 @@ function set_use_mmap!(config::OSRMConfig, use_mmap::Bool)
 end
 set_use_mmap!(osrm::OSRM, use_mmap::Bool) = set_use_mmap!(osrm.config, use_mmap)
 
+"""
+    set_use_shared_memory!(config::OSRMConfig, use_shared_memory)
+
+Control whether OSRM should attach to a shared-memory region populated by
+`osrm-datastore` for dataset access.
+"""
 function set_use_shared_memory!(config::OSRMConfig, use_shm::Bool)
     with_error() do error_ptr
         ccall((:osrmc_config_set_use_shared_memory, libosrmc), Cvoid, (Ptr{Cvoid}, Bool, Ptr{Ptr{Cvoid}}), config.ptr, use_shm, error_pointer(error_ptr))
@@ -153,6 +214,12 @@ function set_use_shared_memory!(config::OSRMConfig, use_shm::Bool)
 end
 set_use_shared_memory!(osrm::OSRM, use_shm::Bool) = set_use_shared_memory!(osrm.config, use_shm)
 
+"""
+    set_dataset_name!(config::OSRMConfig, dataset_name)
+
+Select which named dataset OSRM should attach to when running in shared-memory
+mode (or clear it by passing `nothing`).
+"""
 function set_dataset_name!(config::OSRMConfig, dataset_name::Union{AbstractString, Nothing})
     with_error() do error_ptr
         ccall((:osrmc_config_set_dataset_name, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(dataset_name), error_pointer(error_ptr))

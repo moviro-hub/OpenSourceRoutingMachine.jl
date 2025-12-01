@@ -23,9 +23,25 @@ function nearest(osrm::OSRM, params::NearestParams)
     return NearestResponse(ptr)
 end
 
+## Parameter exports
+export
+    NearestParams,
+    set_number_of_results!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!
+
+## Response exports
 export
     NearestResponse,
-    NearestParams,
     nearest,
     as_json,
     count,
@@ -33,7 +49,6 @@ export
     longitude,
     name,
     distance,
-    hint,
-    set_number_of_results!
+    hint
 
 end # module Nearests

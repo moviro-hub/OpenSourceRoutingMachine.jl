@@ -32,15 +32,16 @@ using OpenSourceRoutingMachine
 using OpenSourceRoutingMachine.Graphs
 
 osm_path = "hamburg-latest.osm.pbf" # or any other OSM file
+osrm_base_path = "hamburg-latest.osrm"   # corresponding OSRM base path for all graph files
 
 # Build MLD graph (recommended for most use cases)
 extract(osm_path; profile = Profile.car)
-partition(osm_path)
-customize(osm_path)
+partition(osrm_base_path)
+customize(osrm_base_path)
 
 # Or build CH graph
 extract(osm_path; profile = Profile.car)
-contract(osm_path)
+contract(osrm_base_path)
 ```
 
 ### Nearest example

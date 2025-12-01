@@ -110,6 +110,12 @@ function geometry_polyline(response::RouteResponse, route_index::Integer = 1)
     return unsafe_string(cstr)
 end
 
+"""
+    geometry_coordinate_count(response::RouteResponse, route_index=1) -> Int
+
+Return how many decoded coordinates are present in the route geometry for the
+given alternative index.
+"""
 geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     Int(
     with_error() do err
@@ -118,6 +124,11 @@ geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     end,
 )
 
+"""
+    geometry_coordinate_latitude(response::RouteResponse, route_index, coord_index) -> Float64
+
+Access the latitude of a specific coordinate in the decoded route geometry.
+"""
 function geometry_coordinate_latitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -125,6 +136,11 @@ function geometry_coordinate_latitude(response::RouteResponse, route_index::Inte
     end
 end
 
+"""
+    geometry_coordinate_longitude(response::RouteResponse, route_index, coord_index) -> Float64
+
+Access the longitude of a specific coordinate in the decoded route geometry.
+"""
 function geometry_coordinate_longitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -132,6 +148,11 @@ function geometry_coordinate_longitude(response::RouteResponse, route_index::Int
     end
 end
 
+"""
+    waypoint_count(response::RouteResponse) -> Int
+
+Return how many waypoints OSRM reported (start, end, and any intermediates).
+"""
 waypoint_count(response::RouteResponse) =
     Int(
     with_error() do err
@@ -139,6 +160,11 @@ waypoint_count(response::RouteResponse) =
     end,
 )
 
+"""
+    waypoint_latitude(response::RouteResponse, index) -> Float64
+
+Latitude of the `index`-th waypoint in the response.
+"""
 function waypoint_latitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -146,6 +172,11 @@ function waypoint_latitude(response::RouteResponse, index::Integer)
     end
 end
 
+"""
+    waypoint_longitude(response::RouteResponse, index) -> Float64
+
+Longitude of the `index`-th waypoint in the response.
+"""
 function waypoint_longitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -153,6 +184,11 @@ function waypoint_longitude(response::RouteResponse, index::Integer)
     end
 end
 
+"""
+    waypoint_name(response::RouteResponse, index) -> String
+
+Name string associated with the `index`-th waypoint when available.
+"""
 function waypoint_name(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
@@ -161,6 +197,11 @@ function waypoint_name(response::RouteResponse, index::Integer)
     return unsafe_string(cstr)
 end
 
+"""
+    leg_count(response::RouteResponse, route_index=1) -> Int
+
+Return how many legs (segments between waypoints) the selected alternative has.
+"""
 function leg_count(response::RouteResponse, route_index::Integer = 1)
     @assert route_index >= 1 "Julia uses 1-based indexing"
     return Int(
@@ -170,6 +211,11 @@ function leg_count(response::RouteResponse, route_index::Integer = 1)
     )
 end
 
+"""
+    step_count(response::RouteResponse, route_index, leg_index) -> Int
+
+Number of maneuver steps within a given leg of the selected alternative.
+"""
 function step_count(response::RouteResponse, route_index::Integer, leg_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 "Julia uses 1-based indexing"
     return Int(
@@ -179,6 +225,11 @@ function step_count(response::RouteResponse, route_index::Integer, leg_index::In
     )
 end
 
+"""
+    step_distance(response::RouteResponse, route_index, leg_index, step_index) -> Float64
+
+Distance in meters for a particular maneuver step.
+"""
 function step_distance(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -186,6 +237,11 @@ function step_distance(response::RouteResponse, route_index::Integer, leg_index:
     end
 end
 
+"""
+    step_duration(response::RouteResponse, route_index, leg_index, step_index) -> Float64
+
+Travel time in seconds for a particular maneuver step.
+"""
 function step_duration(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
@@ -193,6 +249,11 @@ function step_duration(response::RouteResponse, route_index::Integer, leg_index:
     end
 end
 
+"""
+    step_instruction(response::RouteResponse, route_index, leg_index, step_index) -> String
+
+Human-readable instruction string for a particular maneuver step.
+"""
 function step_instruction(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err

@@ -24,7 +24,19 @@ end
 
 const libosrmc = libosrmc_jll.libosrmc_path
 
+"""
+    get_version() -> UInt32
+
+Return the libosrmc/OSRM ABI version that this wrapper is linked against.
+"""
 get_version() = ccall((:osrmc_get_version, libosrmc), Cuint, ())
+
+"""
+    is_abi_compatible() -> Bool
+
+Report whether the loaded libosrmc library matches the version this package
+was built against, so callers can fail fast on mismatched binaries.
+"""
 is_abi_compatible() = ccall((:osrmc_is_abi_compatible, libosrmc), Cint, ()) != 0
 
 include("enums.jl")
@@ -49,7 +61,7 @@ export OSRM, OSRMConfig, LatLon # LatLon is a named tuple for convenience
 # enums
 export Algorithm, OutputFormat, Snapping, Approach
 # functions
-export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
+export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 
 # Export OSRMError from Utils (needed by tests)
 using .Utils: OSRMError

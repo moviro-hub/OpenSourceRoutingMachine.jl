@@ -22,14 +22,29 @@ function tile(osrm::OSRM, params::TileParams)
     return TileResponse(ptr)
 end
 
+## Parameter exports
 export
-    TileResponse,
     TileParams,
-    tile,
-    data,
-    size,
     set_x!,
     set_y!,
-    set_z!
+    set_z!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    set_format!
+
+## Response exports
+export
+    TileResponse,
+    tile,
+    data,
+    size
 
 end # module Tiles

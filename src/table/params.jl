@@ -108,6 +108,11 @@ function set_scale_factor!(params::TableParams, factor::Real)
     return nothing
 end
 
+"""
+    add_coordinate!(params::TableParams, coord::LatLon)
+
+Append a coordinate in `(lat, lon)` order to the current Table request.
+"""
 function add_coordinate!(params::TableParams, coord::LatLon)
     with_error() do error_ptr
         ccall(
@@ -124,6 +129,12 @@ function add_coordinate!(params::TableParams, coord::LatLon)
     return nothing
 end
 
+"""
+    add_coordinate_with!(params::TableParams, coord::LatLon, radius, bearing, range)
+
+Append a coordinate with radius and bearing hints so OSRM can snap more
+accurately when building distance/duration matrices.
+"""
 function add_coordinate_with!(params::TableParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
@@ -143,6 +154,12 @@ function add_coordinate_with!(params::TableParams, coord::LatLon, radius::Real, 
     return nothing
 end
 
+"""
+    set_hint!(params::TableParams, coordinate_index, hint)
+
+Attach a precomputed hint to a matrix coordinate to speed up repeated queries
+over the same snapped locations.
+"""
 function set_hint!(params::TableParams, coordinate_index::Integer, hint::AbstractString)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -160,6 +177,11 @@ function set_hint!(params::TableParams, coordinate_index::Integer, hint::Abstrac
     return nothing
 end
 
+"""
+    set_radius!(params::TableParams, coordinate_index, radius)
+
+Override the default snapping radius for a specific coordinate in the matrix.
+"""
 function set_radius!(params::TableParams, coordinate_index::Integer, radius::Real)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -177,6 +199,12 @@ function set_radius!(params::TableParams, coordinate_index::Integer, radius::Rea
     return nothing
 end
 
+"""
+    set_bearing!(params::TableParams, coordinate_index, value, range)
+
+Constrain snapping using a heading and allowed deviation so origins/destinations
+prefer edges aligned with the current travel direction.
+"""
 function set_bearing!(params::TableParams, coordinate_index::Integer, value::Integer, range::Integer)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     with_error() do error_ptr
@@ -195,6 +223,12 @@ function set_bearing!(params::TableParams, coordinate_index::Integer, value::Int
     return nothing
 end
 
+"""
+    set_approach!(params::TableParams, coordinate_index, approach)
+
+Control which side of the road a vehicle should approach for a particular
+matrix coordinate.
+"""
 function set_approach!(params::TableParams, coordinate_index::Integer, approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
     code = to_cint(approach, Approach)
@@ -213,6 +247,12 @@ function set_approach!(params::TableParams, coordinate_index::Integer, approach)
     return nothing
 end
 
+"""
+    add_exclude!(params::TableParams, profile)
+
+Exclude traffic classes (for example `"toll"` or `"ferry"`) from matrix
+computations.
+"""
 function add_exclude!(params::TableParams, profile::AbstractString)
     with_error() do error_ptr
         ccall(
@@ -228,16 +268,32 @@ function add_exclude!(params::TableParams, profile::AbstractString)
     return nothing
 end
 
+"""
+    set_generate_hints!(params::TableParams, on)
+
+Toggle generation of reusable hints for all snapped coordinates in the table.
+"""
 function set_generate_hints!(params::TableParams, on::Bool)
     ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_skip_waypoints!(params::TableParams, on)
+
+Ask OSRM to omit waypoints from the Table response to reduce payload size.
+"""
 function set_skip_waypoints!(params::TableParams, on::Bool)
     ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
     return nothing
 end
 
+"""
+    set_snapping!(params::TableParams, snapping)
+
+Configure how aggressively OSRM should snap matrix coordinates to the road
+network using the `Snapping` enum.
+"""
 function set_snapping!(params::TableParams, snapping)
     code = to_cint(snapping, Snapping)
     with_error() do error_ptr
@@ -254,6 +310,11 @@ function set_snapping!(params::TableParams, snapping)
     return nothing
 end
 
+"""
+    set_format!(params::TableParams, format)
+
+Select the output format for Table responses; currently only JSON is supported.
+"""
 function set_format!(params::TableParams, format)
     fmt = normalize_enum(format, OutputFormat.T)
     if fmt === OutputFormat.flatbuffers
