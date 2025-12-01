@@ -1,26 +1,4 @@
-"""
-    distance(response, ...) -> Float64
-
-Compute distance from OSRM response objects. Methods are defined for:
-- `RouteResponse`: returns total route distance
-- `NearestResponse`: returns distance to nearest point at given index
-- `TripResponse`: returns total trip distance
-"""
-function distance end
-
-"""
-    duration(response, ...) -> Float64
-
-Compute duration from OSRM response objects. Methods are defined for:
-- `RouteResponse`: returns total route duration
-- `TripResponse`: returns total trip duration
-"""
-function duration end
-
-function as_json end
-
-# Parameter helper declarations live here so service modules can extend these
-# functions without depending on a dedicated Params module.
+# Parameter helper declarations live here so service modules can extend these functions
 function add_steps! end
 function add_alternatives! end
 function set_geometries! end
@@ -54,4 +32,10 @@ function add_exclude! end
 function set_generate_hints! end
 function set_skip_waypoints! end
 function set_snapping! end
-function set_format! end
+
+# Response helper declarations live here so service modules can extend these functions
+function as_json end
+function get_distance end
+function get_duration end
+function get_waypoint_count end
+function get_waypoint_coordinate end

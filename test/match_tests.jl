@@ -1,6 +1,22 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Matches: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, match
+using OpenSourceRoutingMachine.Matches:
+    MatchParams,
+    MatchResponse,
+    add_coordinate!,
+    add_coordinate_with!,
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    get_route_count,
+    get_tracepoint_count,
+    get_route_distance,
+    get_route_duration,
+    get_route_confidence,
+    tracepoint_latitude,
+    tracepoint_longitude,
+    get_tracepoint_is_null,
+    match
 const Matches = OpenSourceRoutingMachine.Matches
 using Base: C_NULL, length, isfinite
 using .Fixtures
@@ -26,14 +42,14 @@ using .Fixtures
         end
         response = match(osrm, params)
         @test response isa MatchResponse
-        route_cnt = route_count(response)
-        tracepoint_cnt = tracepoint_count(response)
+        route_cnt = get_route_count(response)
+        tracepoint_cnt = get_tracepoint_count(response)
         @test route_cnt >= 0
         @test tracepoint_cnt >= 0
         if route_cnt > 0
-            dist = route_distance(response, 1)
-            dur = route_duration(response, 1)
-            conf = route_confidence(response, 1)
+            dist = get_route_distance(response, 1)
+            dur = get_route_duration(response, 1)
+            conf = get_route_confidence(response, 1)
             @test dist >= 0.0
             @test dur >= 0.0
             @test 0.0 <= conf <= 1.0
@@ -43,7 +59,7 @@ using .Fixtures
         end
         if tracepoint_cnt > 0
             for i in 1:tracepoint_cnt
-                is_null = tracepoint_is_null(response, i)
+                is_null = get_tracepoint_is_null(response, i)
                 @test isa(is_null, Bool)
                 if !is_null
                     lat = tracepoint_latitude(response, i)
@@ -65,8 +81,8 @@ using .Fixtures
         end
         response = match(osrm, params)
         @test response.ptr != C_NULL
-        @test route_count(response) >= 0
-        @test tracepoint_count(response) >= 0
+        @test get_route_count(response) >= 0
+        @test get_tracepoint_count(response) >= 0
     end
 end
 
@@ -103,7 +119,7 @@ end
             add_timestamp!(params, (i - 1) * 10)
         end
         response = match(osrm, params)
-        @test route_count(response) >= 0
+        @test get_route_count(response) >= 0
     end
 
     @testset "Match with gaps set to split" begin
@@ -114,7 +130,7 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        @test route_count(response) >= 0
+        @test get_route_count(response) >= 0
     end
 
     @testset "Match with tidy enabled" begin
@@ -125,7 +141,7 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        @test route_count(response) >= 0
+        @test get_route_count(response) >= 0
     end
 
     @testset "add_coordinate_with!" begin
@@ -143,10 +159,10 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        if route_count(response) > 0
-            @test route_distance(response, 1) >= 0.0
-            @test route_duration(response, 1) >= 0.0
-            @test 0.0 <= route_confidence(response, 1) <= 1.0
+        if get_route_count(response) > 0
+            @test get_route_distance(response, 1) >= 0.0
+            @test get_route_duration(response, 1) >= 0.0
+            @test 0.0 <= get_route_confidence(response, 1) <= 1.0
         end
     end
 
@@ -157,8 +173,8 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        if tracepoint_count(response) > 0
-            is_null = tracepoint_is_null(response, 1)
+        if get_tracepoint_count(response) > 0
+            is_null = get_tracepoint_is_null(response, 1)
             @test isa(is_null, Bool)
             if !is_null
                 lat = tracepoint_latitude(response, 1)
@@ -191,7 +207,7 @@ end
         add_coordinate!(params, LatLon(1.0, 1.0))
         try
             response = match(osrm, params)
-            @test route_count(response) >= 0
+            @test get_route_count(response) >= 0
         catch e
             @test e isa OSRMError
         end
@@ -222,8 +238,8 @@ end
         add_coordinate!(params, coord)
         try
             response = match(osrm, params)
-            @test route_count(response) >= 0
-            @test tracepoint_count(response) >= 0
+            @test get_route_count(response) >= 0
+            @test get_tracepoint_count(response) >= 0
         catch e
             @test e isa OSRMError
         end
@@ -236,8 +252,8 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        @test route_count(response) >= 0
-        @test tracepoint_count(response) >= 0
+        @test get_route_count(response) >= 0
+        @test get_tracepoint_count(response) >= 0
     end
 
     @testset "Match with multiple tracepoints" begin
@@ -247,11 +263,14 @@ end
             add_coordinate!(params, coord)
         end
         response = match(osrm, params)
-        @test route_count(response) >= 0
-        @test tracepoint_count(response) >= 0
-        if route_count(response) > 0
-            dist = route_distance(response, 1)
-            dur = route_duration(response, 1)
+        @test get_route_count(response) >= 0
+        @test get_tracepoint_count(response) >= 0
+        response = match(osrm, params)
+        @test get_route_count(response) >= 0
+        @test get_tracepoint_count(response) >= 0
+        if get_route_count(response) > 0
+            dist = get_route_distance(response, 1)
+            dur = get_route_duration(response, 1)
             @test dist >= 0.0
             @test dur >= 0.0
             @test isfinite(dist)

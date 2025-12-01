@@ -262,25 +262,3 @@ function set_snapping!(params::TileParams, snapping)
     end
     return nothing
 end
-
-"""
-    set_format!(params::TileParams, format)
-
-Select the output format for tile responses; currently only JSON metadata plus
-binary vector tile payloads are supported.
-"""
-function set_format!(params::TileParams, format)
-    code = to_cint(format, OutputFormat)
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            code,
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end

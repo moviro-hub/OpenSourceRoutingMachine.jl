@@ -23,8 +23,7 @@ end
 """
     as_json(response::RouteResponse) -> String
 
-Provide the canonical OSRM JSON payload for logging or interoperability with
-existing tooling.
+Provide the entire response as JSON string.
 """
 function as_json(response::RouteResponse)
     blob = with_error() do err
@@ -34,36 +33,36 @@ function as_json(response::RouteResponse)
 end
 
 """
-    distance(response::RouteResponse) -> Float64
+    get_distance(response::RouteResponse) -> Float64
 
 Return OSRM's distance computation so callers do not have to integrate the
 polyline themselves.
 """
-function distance(response::RouteResponse)
+function get_distance(response::RouteResponse)
     return with_error() do err
         ccall((:osrmc_route_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
 end
 
 """
-    duration(response::RouteResponse) -> Float64
+    get_duration(response::RouteResponse) -> Float64
 
 Read OSRM's travel time estimate directly, keeping the Julia client aligned
 with server heuristics.
 """
-function duration(response::RouteResponse)
+function get_duration(response::RouteResponse)
     return with_error() do err
         ccall((:osrmc_route_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
 end
 
 """
-    alternative_count(response) -> Int
+    get_alternative_count(response) -> Int
 
 Expose how many alternate routes OSRM generated so UI layers can decide whether
 to show a picker.
 """
-alternative_count(response::RouteResponse) =
+get_alternative_count(response::RouteResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_route_response_alternative_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
@@ -71,12 +70,12 @@ alternative_count(response::RouteResponse) =
 )
 
 """
-    distance_at(response, route_index) -> Float64
+    get_distance_at(response, route_index) -> Float64
 
 Fetch the distance for a specific alternative instead of assuming the primary
 route is always desired.
 """
-function distance_at(response::RouteResponse, route_index::Integer)
+function get_distance_at(response::RouteResponse, route_index::Integer)
     @assert route_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_distance_at, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
@@ -84,12 +83,12 @@ function distance_at(response::RouteResponse, route_index::Integer)
 end
 
 """
-    duration_at(response, route_index) -> Float64
+    get_duration_at(response, route_index) -> Float64
 
 Per-alternative durations help heuristics compare ETA differences before
 downloading geometries.
 """
-function duration_at(response::RouteResponse, route_index::Integer)
+function get_duration_at(response::RouteResponse, route_index::Integer)
     @assert route_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_duration_at, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
@@ -97,12 +96,12 @@ function duration_at(response::RouteResponse, route_index::Integer)
 end
 
 """
-    geometry_polyline(response, route_index=1) -> String
+    get_geometry_polyline(response, route_index=1) -> String
 
 Return the encoded polyline OSRM generated so clients can render it without
 reconstructing geometries.
 """
-function geometry_polyline(response::RouteResponse, route_index::Integer = 1)
+function get_geometry_polyline(response::RouteResponse, route_index::Integer = 1)
     @assert route_index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
         ccall((:osrmc_route_response_geometry_polyline, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
@@ -111,12 +110,12 @@ function geometry_polyline(response::RouteResponse, route_index::Integer = 1)
 end
 
 """
-    geometry_coordinate_count(response::RouteResponse, route_index=1) -> Int
+    get_geometry_coordinate_count(response::RouteResponse, route_index=1) -> Int
 
 Return how many decoded coordinates are present in the route geometry for the
 given alternative index.
 """
-geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
+get_geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     Int(
     with_error() do err
         @assert route_index >= 1 "Julia uses 1-based indexing"
@@ -124,24 +123,14 @@ geometry_coordinate_count(response::RouteResponse, route_index::Integer = 1) =
     end,
 )
 
-"""
-    geometry_coordinate_latitude(response::RouteResponse, route_index, coord_index) -> Float64
-
-Access the latitude of a specific coordinate in the decoded route geometry.
-"""
-function geometry_coordinate_latitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
+function get_geometry_coordinate_latitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_geometry_coordinate_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(coord_index - 1), error_pointer(err))
     end
 end
 
-"""
-    geometry_coordinate_longitude(response::RouteResponse, route_index, coord_index) -> Float64
-
-Access the longitude of a specific coordinate in the decoded route geometry.
-"""
-function geometry_coordinate_longitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
+function get_geometry_coordinate_longitude(response::RouteResponse, route_index::Integer, coord_index::Integer)
     @assert route_index >= 1 && coord_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_geometry_coordinate_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(coord_index - 1), error_pointer(err))
@@ -149,35 +138,36 @@ function geometry_coordinate_longitude(response::RouteResponse, route_index::Int
 end
 
 """
-    waypoint_count(response::RouteResponse) -> Int
+    geometry_coordinate(response::RouteResponse, route_index::Integer, coord_index::Integer) -> LatLon
+
+Return the latitude and longitude of a specific coordinate in the decoded route geometry.
+"""
+function get_geometry_coordinate(response::RouteResponse, route_index::Integer, coord_index::Integer)
+    lat = get_geometry_coordinate_latitude(response, route_index, coord_index)
+    lon = get_geometry_coordinate_longitude(response, route_index, coord_index)
+    return LatLon(lat, lon)
+end
+
+"""
+    get_waypoint_count(response::RouteResponse) -> Int
 
 Return how many waypoints OSRM reported (start, end, and any intermediates).
 """
-waypoint_count(response::RouteResponse) =
+get_waypoint_count(response::RouteResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_route_response_waypoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end,
 )
 
-"""
-    waypoint_latitude(response::RouteResponse, index) -> Float64
-
-Latitude of the `index`-th waypoint in the response.
-"""
-function waypoint_latitude(response::RouteResponse, index::Integer)
+function get_waypoint_latitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_waypoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
-"""
-    waypoint_longitude(response::RouteResponse, index) -> Float64
-
-Longitude of the `index`-th waypoint in the response.
-"""
-function waypoint_longitude(response::RouteResponse, index::Integer)
+function get_waypoint_longitude(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -185,11 +175,23 @@ function waypoint_longitude(response::RouteResponse, index::Integer)
 end
 
 """
-    waypoint_name(response::RouteResponse, index) -> String
+    get_waypoint_coordinate(response::RouteResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th waypoint in the response.
+"""
+function get_waypoint_coordinate(response::RouteResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = get_waypoint_latitude(response, index)
+    lon = get_waypoint_longitude(response, index)
+    return LatLon(lat, lon)
+end
+
+"""
+    get_waypoint_name(response::RouteResponse, index) -> String
 
 Name string associated with the `index`-th waypoint when available.
 """
-function waypoint_name(response::RouteResponse, index::Integer)
+function get_waypoint_name(response::RouteResponse, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
         ccall((:osrmc_route_response_waypoint_name, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -198,11 +200,11 @@ function waypoint_name(response::RouteResponse, index::Integer)
 end
 
 """
-    leg_count(response::RouteResponse, route_index=1) -> Int
+    get_leg_count(response::RouteResponse, route_index=1) -> Int
 
 Return how many legs (segments between waypoints) the selected alternative has.
 """
-function leg_count(response::RouteResponse, route_index::Integer = 1)
+function get_leg_count(response::RouteResponse, route_index::Integer = 1)
     @assert route_index >= 1 "Julia uses 1-based indexing"
     return Int(
         with_error() do err
@@ -212,11 +214,11 @@ function leg_count(response::RouteResponse, route_index::Integer = 1)
 end
 
 """
-    step_count(response::RouteResponse, route_index, leg_index) -> Int
+    get_step_count(response::RouteResponse, route_index, leg_index) -> Int
 
 Number of maneuver steps within a given leg of the selected alternative.
 """
-function step_count(response::RouteResponse, route_index::Integer, leg_index::Integer)
+function get_step_count(response::RouteResponse, route_index::Integer, leg_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 "Julia uses 1-based indexing"
     return Int(
         with_error() do err
@@ -226,11 +228,11 @@ function step_count(response::RouteResponse, route_index::Integer, leg_index::In
 end
 
 """
-    step_distance(response::RouteResponse, route_index, leg_index, step_index) -> Float64
+    get_step_distance(response::RouteResponse, route_index, leg_index, step_index) -> Float64
 
 Distance in meters for a particular maneuver step.
 """
-function step_distance(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+function get_step_distance(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_step_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))
@@ -238,11 +240,11 @@ function step_distance(response::RouteResponse, route_index::Integer, leg_index:
 end
 
 """
-    step_duration(response::RouteResponse, route_index, leg_index, step_index) -> Float64
+    get_step_duration(response::RouteResponse, route_index, leg_index, step_index) -> Float64
 
 Travel time in seconds for a particular maneuver step.
 """
-function step_duration(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+function get_step_duration(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     return with_error() do err
         ccall((:osrmc_route_response_step_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))
@@ -250,11 +252,11 @@ function step_duration(response::RouteResponse, route_index::Integer, leg_index:
 end
 
 """
-    step_instruction(response::RouteResponse, route_index, leg_index, step_index) -> String
+    get_step_instruction(response::RouteResponse, route_index, leg_index, step_index) -> String
 
 Human-readable instruction string for a particular maneuver step.
 """
-function step_instruction(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
+function get_step_instruction(response::RouteResponse, route_index::Integer, leg_index::Integer, step_index::Integer)
     @assert route_index >= 1 && leg_index >= 1 && step_index >= 1 "Julia uses 1-based indexing"
     cstr = with_error() do err
         ccall((:osrmc_route_response_step_instruction, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Cuint, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), Cuint(leg_index - 1), Cuint(step_index - 1), error_pointer(err))

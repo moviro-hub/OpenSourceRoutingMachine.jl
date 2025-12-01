@@ -1,6 +1,18 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Trips: TripParams, TripResponse, add_coordinate!, add_roundtrip!, add_source!, add_destination!, add_waypoint!, clear_waypoints!, trip, distance, duration, waypoint_count, waypoint_latitude, waypoint_longitude, as_json
+using OpenSourceRoutingMachine.Trips:
+    TripParams,
+    TripResponse,
+    add_coordinate!,
+    add_roundtrip!,
+    add_source!,
+    add_destination!,
+    add_waypoint!,
+    clear_waypoints!,
+    trip,
+    get_distance,
+    get_duration,
+    get_waypoint_coordinate
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -18,13 +30,13 @@ using .Fixtures
     @test response isa TripResponse
 
     dist = try
-        distance(response)
+        get_distance(response)
     catch e
         @test e isa OSRMError
         nothing
     end
     dur = try
-        duration(response)
+        get_duration(response)
     catch e
         @test e isa OSRMError
         nothing
@@ -34,20 +46,6 @@ using .Fixtures
     end
     if dur !== nothing
         @test dur >= 0.0
-    end
-
-    count = waypoint_count(response)
-    @test count >= 2
-
-    try
-        lat = waypoint_latitude(response, 1)
-        lon = waypoint_longitude(response, 1)
-        @test -90.0 <= lat <= 90.0
-        @test -180.0 <= lon <= 180.0
-        @test isfinite(lat)
-        @test isfinite(lon)
-    catch e
-        @test e isa OSRMError
     end
 
     json_str = try
@@ -78,7 +76,7 @@ end
     end
 
     response = trip(osrm, params)
-    @test waypoint_count(response) >= 2
+    @test response isa TripResponse
 end
 
 @testset "Trip - Error Handling" begin

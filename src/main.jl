@@ -1,14 +1,4 @@
 """
-    Algorithm
-
-Selects the routing algorithm OSRM should use for a given dataset (`ch` or `mld`).
-"""
-@enumx Algorithm::Int begin
-    ch = 0
-    mld = 1
-end
-
-"""
     OSRMConfig(base_path::String)
 
 Low-level configuration handle for OSRM; most callers will use `OSRM(base_path)`

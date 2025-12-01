@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Tiles: TileParams, TileResponse, set_x!, set_y!, set_z!, tile, data, size
+using OpenSourceRoutingMachine.Tiles: TileParams, TileResponse, set_x!, set_y!, set_z!, tile, get_data, get_size
 using .Fixtures
 using Base: length, isempty
 const TilesMod = OpenSourceRoutingMachine.Tiles
@@ -28,9 +28,9 @@ end
     response = tile(osrm, params)
     @test response isa TileResponse
 
-    raw = data(response)
+    raw = get_data(response)
     @test !isempty(raw)
-    @test length(raw) == TilesMod.size(response)
+    @test length(raw) == TilesMod.get_size(response)
 end
 
 @testset "Tile - Error Handling" begin
@@ -49,7 +49,7 @@ end
         nothing
     end
     if maybe_tile !== nothing
-        bytes = data(maybe_tile)
+        bytes = get_data(maybe_tile)
         @test isa(bytes, Vector{UInt8})
     end
 end

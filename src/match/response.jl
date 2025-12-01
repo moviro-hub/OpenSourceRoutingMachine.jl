@@ -34,12 +34,12 @@ function as_json(response::MatchResponse)
 end
 
 """
-    route_count(response::MatchResponse) -> Int
+    get_route_count(response::MatchResponse) -> Int
 
 Expose the number of alternative routes without JSON parsing so callers can
 preallocate downstream data structures.
 """
-route_count(response::MatchResponse) =
+get_route_count(response::MatchResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_match_response_route_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
@@ -47,12 +47,12 @@ route_count(response::MatchResponse) =
 )
 
 """
-    tracepoint_count(response::MatchResponse) -> Int
+    get_tracepoint_count(response::MatchResponse) -> Int
 
 Reveal how many tracepoints OSRM accepted, which helps detect truncated GPS
 streams early.
 """
-tracepoint_count(response::MatchResponse) =
+get_tracepoint_count(response::MatchResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_match_response_tracepoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
@@ -60,13 +60,13 @@ tracepoint_count(response::MatchResponse) =
 )
 
 """
-    route_distance(response::MatchResponse, route_index) -> Float64
+    get_route_distance(response::MatchResponse, route_index) -> Float64
 
 Let OSRM be the source of truth for cumulative distance instead of re-integrating
 coordinates client-side.
 """
-function route_distance(response::MatchResponse, route_index::Integer)
-    count = route_count(response)
+function get_route_distance(response::MatchResponse, route_index::Integer)
+    count = get_route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_route_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
@@ -74,13 +74,13 @@ function route_distance(response::MatchResponse, route_index::Integer)
 end
 
 """
-    route_duration(response::MatchResponse, route_index) -> Float64
+    get_route_duration(response::MatchResponse, route_index) -> Float64
 
 Reuses OSRM's travel time heuristics so Julia callers stay aligned with server
 estimates.
 """
-function route_duration(response::MatchResponse, route_index::Integer)
-    count = route_count(response)
+function get_route_duration(response::MatchResponse, route_index::Integer)
+    count = get_route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_route_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
@@ -88,41 +88,29 @@ function route_duration(response::MatchResponse, route_index::Integer)
 end
 
 """
-    route_confidence(response::MatchResponse, route_index) -> Float64
+    get_route_confidence(response::MatchResponse, route_index) -> Float64
 
 Surface OSRM's built-in confidence metric so applications can fall back when a
 match looks unreliable.
 """
-function route_confidence(response::MatchResponse, route_index::Integer)
-    count = route_count(response)
+function get_route_confidence(response::MatchResponse, route_index::Integer)
+    count = get_route_count(response)
     @assert 1 <= route_index <= count "Index $route_index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_route_confidence, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(route_index - 1), error_pointer(err))
     end
 end
 
-"""
-    tracepoint_latitude(response::MatchResponse, index) -> Float64
-
-Inspect where OSRM snapped a point without leaving Julia, useful for debugging
-GPS drift.
-"""
 function tracepoint_latitude(response::MatchResponse, index::Integer)
-    count = tracepoint_count(response)
+    count = get_tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_tracepoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
-"""
-    tracepoint_longitude(response::MatchResponse, index) -> Float64
-
-Pairs with `tracepoint_latitude` to reconstruct snapped coordinates for
-visualization layers.
-"""
 function tracepoint_longitude(response::MatchResponse, index::Integer)
-    count = tracepoint_count(response)
+    count = get_tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     return with_error() do err
         ccall((:osrmc_match_response_tracepoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -130,13 +118,25 @@ function tracepoint_longitude(response::MatchResponse, index::Integer)
 end
 
 """
-    tracepoint_is_null(response::MatchResponse, index) -> Bool
+    get_tracepoint_coordinate(response::MatchResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th tracepoint in the response.
+"""
+function get_tracepoint_coordinate(response::MatchResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = tracepoint_latitude(response, index)
+    lon = tracepoint_longitude(response, index)
+    return LatLon(lat, lon)
+end
+
+"""
+    get_tracepoint_is_null(response::MatchResponse, index) -> Bool
 
 Flags unmatched points so callers can remove or interpolate them before further
 processing.
 """
-function tracepoint_is_null(response::MatchResponse, index::Integer)
-    count = tracepoint_count(response)
+function get_tracepoint_is_null(response::MatchResponse, index::Integer)
+    count = get_tracepoint_count(response)
     @assert 1 <= index <= count "Index $index out of bounds [1, $count]"
     result = with_error() do err
         ccall((:osrmc_match_response_tracepoint_is_null, libosrmc), Cint, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))

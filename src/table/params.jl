@@ -309,27 +309,3 @@ function set_snapping!(params::TableParams, snapping)
     end
     return nothing
 end
-
-"""
-    set_format!(params::TableParams, format)
-
-Select the output format for Table responses; currently only JSON is supported.
-"""
-function set_format!(params::TableParams, format)
-    fmt = normalize_enum(format, OutputFormat.T)
-    if fmt === OutputFormat.flatbuffers
-        throw(ArgumentError("Table service does not support Flatbuffers output"))
-    end
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            Cint(fmt),
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end

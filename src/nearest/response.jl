@@ -23,8 +23,7 @@ end
 """
     as_json(response::NearestResponse) -> String
 
-Returns the canonical JSON emitted by OSRM so the result can be logged or fed
-into tooling that expects server responses.
+Returns the entire response as JSON string.
 """
 function as_json(response::NearestResponse)
     blob = with_error() do err
@@ -34,38 +33,28 @@ function as_json(response::NearestResponse)
 end
 
 """
-    count(response::NearestResponse) -> Int
+    get_count(response::NearestResponse) -> Int
 
 Extends `Base.count` so callers can ask how many nearest hits OSRM returned
 without parsing JSON payloads.
 """
-count(response::NearestResponse) =
+get_count(response::NearestResponse) =
     Int(
     with_error() do err
         ccall((:osrmc_nearest_response_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end,
 )
 
-"""
-    latitude(response::NearestResponse, index) -> Float64
-
-Inspect OSRM's snapped latitude to diagnose how the engine chose a candidate.
-"""
-function latitude(response::NearestResponse, index::Integer)
-    n = count(response)
+function get_latitude(response::NearestResponse, index::Integer)
+    n = get_count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
         ccall((:osrmc_nearest_response_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
     end
 end
 
-"""
-    longitude(response::NearestResponse, index) -> Float64
-
-Pairs with `latitude` to reconstruct snapped coordinates for visualization.
-"""
-function longitude(response::NearestResponse, index::Integer)
-    n = count(response)
+function get_longitude(response::NearestResponse, index::Integer)
+    n = get_count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
         ccall((:osrmc_nearest_response_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -73,13 +62,25 @@ function longitude(response::NearestResponse, index::Integer)
 end
 
 """
-    name(response::NearestResponse, index) -> String
+    get_coordinate(response::NearestResponse, index) -> LatLon
+
+Return the latitude and longitude of the `index`-th nearest point in the response.
+"""
+function get_coordinate(response::NearestResponse, index::Integer)
+    @assert index >= 1 "Julia uses 1-based indexing"
+    lat = get_latitude(response, index)
+    lon = get_longitude(response, index)
+    return LatLon(lat, lon)
+end
+
+"""
+    get_name(response::NearestResponse, index) -> String
 
 Pull the textual label directly from OSRM to keep UI strings consistent with
 the engine.
 """
-function name(response::NearestResponse, index::Integer)
-    n = count(response)
+function get_name(response::NearestResponse, index::Integer)
+    n = get_count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     cstr = with_error() do err
         ccall((:osrmc_nearest_response_name, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -88,12 +89,12 @@ function name(response::NearestResponse, index::Integer)
 end
 
 """
-    distance(response::NearestResponse, index) -> Float64
+    get_distance(response::NearestResponse, index) -> Float64
 
 Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
 """
-function distance(response::NearestResponse, index::Integer)
-    n = count(response)
+function get_distance(response::NearestResponse, index::Integer)
+    n = get_count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     return with_error() do err
         ccall((:osrmc_nearest_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
@@ -101,13 +102,13 @@ function distance(response::NearestResponse, index::Integer)
 end
 
 """
-    hint(response::NearestResponse, index) -> String
+    get_hint(response::NearestResponse, index) -> String
 
 Returns the base64-encoded hint produced by OSRM so callers can reuse it for
 follow-up queries.
 """
-function hint(response::NearestResponse, index::Integer)
-    n = count(response)
+function get_hint(response::NearestResponse, index::Integer)
+    n = get_count(response)
     @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
     cstr = with_error() do err
         ccall((:osrmc_nearest_response_hint, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))

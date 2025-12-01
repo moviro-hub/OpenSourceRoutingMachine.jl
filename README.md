@@ -64,7 +64,7 @@ count(response)  # Number of results
 # Access first result
 lat = latitude(response, 1)
 lon = longitude(response, 1)
-name_str = name(response, 1)
+name_str = get_name(response, 1)
 ```
 
 ### Route example
@@ -109,7 +109,7 @@ add_coordinate!(params, LatLon(53.5512, 9.9940))
 add_coordinate!(params, LatLon(53.5513, 9.9945))
 
 response = match(osrm, params)
-route_cnt = route_count(response)
+route_cnt = get_route_count(response)
 if route_cnt > 0
     dist = route_distance(response, 1)
     conf = route_confidence(response, 1)
