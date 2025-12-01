@@ -14,9 +14,8 @@ jobs:
             fail-fast: false
             matrix:
                 version:
-                    #  1.10 Pkg dose not support [sources] for dependencies in the project.toml,
-                    # so it is turned off till the jll dependencies are published.
-                    # - "1.10"
+                    # Julia 1.10 Pkg does not support [sources] for dependencies in Project.toml,
+                    # so only versions that support [sources] are tested for now.
                     - "1.12"
                     # - "nightly"
                 os:
@@ -26,13 +25,18 @@ jobs:
                 arch:
                     - x64
                     - aarch64
+                exclude:
+                    - os: windows-latest
+                      arch: aarch64
         steps:
             - uses: actions/checkout@v4
-            - uses: julia-actions/setup-julia@v1
+            - name: Set up Julia
+              uses: julia-actions/setup-julia@v1
               with:
                   version: ${{ matrix.version }}
                   arch: ${{ matrix.arch }}
-            - uses: julia-actions/cache@v1
+            - name: Cache Julia packages
+              uses: julia-actions/cache@v1
             - name: Install dependencies
               run: julia --project=@. -e 'using Pkg; Pkg.instantiate()'
             - name: Run tests
