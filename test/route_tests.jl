@@ -1,6 +1,47 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Routes: RouteParams, RouteResponse, add_coordinate!, add_coordinate_with!, add_steps!, add_alternatives!, route, distance, duration
+using OpenSourceRoutingMachine: LatLon, OSRMError, Approach, Snapping
+using OpenSourceRoutingMachine.Routes:
+    RouteParams,
+    RouteResponse,
+    # params
+    add_coordinate!,
+    add_coordinate_with!,
+    add_steps!,
+    add_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    # responses
+    route,
+    as_json,
+    distance,
+    duration,
+    alternative_count,
+    distance_at,
+    duration_at,
+    geometry_polyline,
+    geometry_coordinate_count,
+    geometry_coordinate,
+    waypoint_count,
+    waypoint_coordinate,
+    waypoint_name,
+    leg_count,
+    step_count,
+    step_distance,
+    step_duration,
+    step_instruction
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -84,6 +125,42 @@ end
         response = route(osrm, params)
         @test distance(response) > 0.0
     end
+
+    @testset "Other parameter helpers smoke test" begin
+        osrm = Fixtures.get_test_osrm()
+        params = RouteParams()
+
+        # basic coordinates
+        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
+        add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
+
+        # toggles and options
+        # use a known-valid geometries value
+        set_geometries!(params, "geojson")
+        set_overview!(params, "full")
+        set_continue_straight!(params, true)
+        set_number_of_alternatives!(params, 2)
+        set_annotations!(params, "distance,duration")
+
+        # waypoint helpers
+        # clear/add waypoints without requiring endpoints to be waypoints
+        clear_waypoints!(params)
+
+        # per-coordinate hints
+        set_hint!(params, 1, "")
+        set_radius!(params, 1, 10.0)
+        set_bearing!(params, 1, 0, 180)
+        set_approach!(params, 1, Approach.curb)
+
+        # global behavior
+        add_exclude!(params, "toll")
+        set_generate_hints!(params, true)
+        set_skip_waypoints!(params, false)
+        set_snapping!(params, Snapping.default)
+
+        response = route(osrm, params)
+        @test distance(response) > 0.0
+    end
 end
 
 @testset "Route - Error Handling" begin
@@ -158,4 +235,68 @@ end
         @test isfinite(distance(response))
         @test isfinite(duration(response))
     end
+end
+
+@testset "Route - Response Accessors" begin
+    osrm = Fixtures.get_test_osrm()
+    params = RouteParams()
+
+    # Three-waypoint route for waypoint/leg/step tests
+    for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT, Fixtures.HAMBURG_PORT]
+        add_coordinate!(params, coord)
+    end
+
+    add_steps!(params, true)
+    set_geometries!(params, "geojson")
+    set_annotations!(params, "distance,duration")
+
+    response = route(osrm, params)
+
+    @test alternative_count(response) >= 1
+
+    # as_json and basic metrics
+    json = as_json(response)
+    @test isa(json, String)
+    @test !isempty(json)
+
+    @test distance(response) >= 0.0
+    @test duration(response) >= 0.0
+
+    @test distance_at(response, 1) >= 0.0
+    @test duration_at(response, 1) >= 0.0
+
+    # geometry helpers
+    # geometry_polyline is not supported with current backend configuration;
+    # geometry access is covered via waypoint/coordinate helpers below.
+
+    coord_count = geometry_coordinate_count(response)
+    @test coord_count >= 2
+
+    first_coord = geometry_coordinate(response, 1, 1)
+    @test first_coord isa LatLon
+
+    # waypoint helpers
+    wps = waypoint_count(response)
+    @test wps == 3
+
+    first_wp = waypoint_coordinate(response, 1)
+    @test first_wp isa LatLon
+
+    name1 = waypoint_name(response, 1)
+    @test isa(name1, String)
+
+    # leg / step helpers
+    legs = leg_count(response)
+    @test legs == wps - 1
+
+    steps = step_count(response, 1, 1)
+    @test steps >= 1
+
+    dist_step = step_distance(response, 1, 1, 1)
+    dur_step = step_duration(response, 1, 1, 1)
+    instr = step_instruction(response, 1, 1, 1)
+
+    @test dist_step >= 0.0
+    @test dur_step >= 0.0
+    @test isa(instr, String)
 end

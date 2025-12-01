@@ -1,6 +1,33 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Tables: TableParams, TableResponse, add_coordinate!, add_source!, add_destination!, set_annotations_mask!, table, source_count, destination_count, as_json, duration_matrix, distance_matrix, duration, distance
+using OpenSourceRoutingMachine: Snapping, Approach
+using OpenSourceRoutingMachine.Tables:
+    TableParams,
+    TableResponse,
+    add_coordinate!,
+    add_coordinate_with!,
+    add_source!,
+    add_destination!,
+    set_annotations_mask!,
+    set_fallback_speed!,
+    set_fallback_coordinate_type!,
+    set_scale_factor!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    table,
+    source_count,
+    destination_count,
+    as_json,
+    duration_matrix,
+    distance_matrix,
+    duration,
+    distance
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 
@@ -43,6 +70,40 @@ using .Fixtures
         response = table(osrm, params)
         @test source_count(response) == 2
         @test destination_count(response) == 2
+    end
+end
+
+@testset "Table - Parameters" begin
+    @testset "Additional parameter helpers smoke test" begin
+        osrm = Fixtures.get_test_osrm()
+        params = TableParams()
+
+        # coordinates
+        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
+        add_coordinate_with!(params, Fixtures.HAMBURG_AIRPORT, 10.0, 0, 180)
+
+        # table-specific knobs
+        set_annotations_mask!(params, "distance,duration")
+        set_fallback_speed!(params, 50.0)
+        set_fallback_coordinate_type!(params, "input")
+        set_scale_factor!(params, 1.0)
+
+        # generic per-coordinate helpers
+        set_hint!(params, 1, "")
+        set_radius!(params, 1, 5.0)
+        set_bearing!(params, 1, 0, 90)
+        set_approach!(params, 1, Approach.curb)
+
+        # generic global helpers
+        add_exclude!(params, "toll")
+        set_generate_hints!(params, true)
+        set_skip_waypoints!(params, false)
+        set_snapping!(params, Snapping.default)
+
+        response = table(osrm, params)
+        @test response isa TableResponse
+        @test source_count(response) >= 1
+        @test destination_count(response) >= 1
     end
 end
 

@@ -1,6 +1,27 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Nearests: NearestParams, NearestResponse, add_coordinate!, nearest, latitude, longitude, name, hint, distance, count, set_number_of_results!
+using OpenSourceRoutingMachine: Approach, Snapping
+using OpenSourceRoutingMachine.Nearests:
+    NearestParams,
+    NearestResponse,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_number_of_results!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    nearest,
+    latitude,
+    longitude,
+    name,
+    hint,
+    distance,
+    count
 const Nearests = OpenSourceRoutingMachine.Nearests
 using Base: C_NULL, length, isempty, isfinite
 using .Fixtures
@@ -83,6 +104,28 @@ end
         params = NearestParams()
         add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
         @test true
+    end
+
+    @testset "Additional parameter helpers smoke test" begin
+        osrm = Fixtures.get_test_osrm()
+        params = NearestParams()
+
+        # Nearest only supports a single coordinate; use the richer helper
+        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
+
+        set_hint!(params, 1, "")
+        set_radius!(params, 1, 5.0)
+        set_bearing!(params, 1, 0, 90)
+        set_approach!(params, 1, Approach.curb)
+
+        add_exclude!(params, "toll")
+        set_generate_hints!(params, true)
+        set_skip_waypoints!(params, false)
+        set_snapping!(params, Snapping.default)
+
+        response = nearest(osrm, params)
+        @test response isa NearestResponse
+        @test count(response) >= 0
     end
 end
 

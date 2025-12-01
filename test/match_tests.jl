@@ -1,6 +1,22 @@
 using Test
 using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine.Matches: MatchParams, MatchResponse, add_coordinate!, add_timestamp!, set_gaps!, set_tidy!, route_count, tracepoint_count, route_distance, route_duration, route_confidence, tracepoint_latitude, tracepoint_longitude, tracepoint_is_null, match
+using OpenSourceRoutingMachine.Matches:
+    MatchParams,
+    MatchResponse,
+    add_coordinate!,
+    add_coordinate_with!,
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    route_count,
+    tracepoint_count,
+    route_distance,
+    route_duration,
+    route_confidence,
+    tracepoint_latitude,
+    tracepoint_longitude,
+    tracepoint_is_null,
+    match
 const Matches = OpenSourceRoutingMachine.Matches
 using Base: C_NULL, length, isfinite
 using .Fixtures
