@@ -26,8 +26,12 @@ jobs:
                     - x64
                     - aarch64
                 exclude:
+                    # windows does not support aarch64 yet
                     - os: windows-latest
                       arch: aarch64
+                    # libosrmc does not support x64 on macOS yet
+                    - os: macos-latest
+                      arch: x64
         steps:
             - uses: actions/checkout@v4
             - name: Set up Julia
