@@ -9,9 +9,6 @@ struct OSRMCommandError <: Exception
     exitcode::Int32
 end
 
-const _CMD_WINDOWS_VERBATIM = UInt32(0x01)
-const _CMD_WINDOWS_HIDE = UInt32(0x02)
-
 @enumx Profile::Int begin
     car = 0
     bicycle = 1
@@ -48,8 +45,6 @@ function profile_lua_path(profile::ProfileType)::String
     return candidate
 end
 
-_cmd_flag(cmd::Cmd, flag::UInt32) = (cmd.flags & flag) != 0
-
 function command_with_args(base_cmd::Cmd, args::Vector{String})
     exec = vcat(copy(base_cmd.exec), args)
     cmd = Cmd(exec)
@@ -58,8 +53,6 @@ function command_with_args(base_cmd::Cmd, args::Vector{String})
         ignorestatus = base_cmd.ignorestatus,
         env = base_cmd.env,
         cpus = base_cmd.cpus,
-        windows_verbatim = _cmd_flag(base_cmd, _CMD_WINDOWS_VERBATIM),
-        windows_hide = _cmd_flag(base_cmd, _CMD_WINDOWS_HIDE),
     )
     return dir === nothing ?
         Cmd(cmd; kwargs...) :

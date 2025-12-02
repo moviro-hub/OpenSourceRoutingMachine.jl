@@ -1,0 +1,50 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    test:
+        name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                version:
+                    # Julia 1.10 Pkg does not support [sources] for dependencies in Project.toml,
+                    # so only versions that support [sources] are tested for now.
+                    - "1.12"
+                    # - "nightly"
+                os:
+                    - ubuntu-latest
+                    # turn of windows for now until someone fixes the Cmd issues
+                    # - windows-latest
+                    - macos-latest
+                arch:
+                    - x64
+                    - aarch64
+                exclude:
+                    - os: ubuntu-latest
+                      arch: aarch64
+                    # # windows does not support aarch64 yet
+                    # - os: windows-latest
+                    #   arch: aarch64
+                    # libosrmc does not support x64 on macOS yet
+                    - os: macos-latest
+                      arch: x64
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Julia
+              uses: julia-actions/setup-julia@v1
+              with:
+                  version: ${{ matrix.version }}
+                  arch: ${{ matrix.arch }}
+            - name: Cache Julia packages
+              uses: julia-actions/cache@v1
+            - name: Install dependencies
+              run: julia --project=@. -e 'using Pkg; Pkg.instantiate()'
+            - name: Run tests
+              run: julia --project=@. -e 'using Pkg; Pkg.test()'

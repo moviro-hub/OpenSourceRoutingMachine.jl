@@ -1,28 +1,6 @@
-# OpenSourceRoutingMachine.jl
+# Examples
 
-A Julia wrapper for OSRM (Open Source Routing Machine), providing high-performance routing, matching, and geospatial analysis capabilities directly in Julia.
-Being a thin wrapper around OSRM, it might not provide the most ergonomic API, which might be established in a separate package at one point.
-
-## Features
-
-- **Graph Building**: Build and customize OSRM graphs (MLD and CH algorithms)
-- **Nearest Service**: Find the nearest road segment to a point
-- **Route Service**: Calculate routes between multiple waypoints
-- **Match Service**: Map GPS traces to road networks
-- **Table Service**: Compute distance/duration matrices
-- **Trip Service**: Solve traveling salesman problems
-- **Tile Service**: Generate vector tiles for visualization
-
-## Installation
-
-```julia
-using Pkg
-Pkg.add("OpenSourceRoutingMachine", url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
-```
-
-## Quick Start
-
-###  Graph example
+## Graph example
 
 Before using OSRM services, you need to build a graph from OpenStreetMap data:
 
@@ -43,7 +21,7 @@ extract(osm_path; profile = Profile.car)
 contract(osrm_base_path)
 ```
 
-### Nearest example
+## Nearest example
 
 Nearest finds the nearest road segment to a point.
 
@@ -68,7 +46,7 @@ dist = get_distance(response, 1)
 hint = get_hint(response, 1)
 ```
 
-### Route example
+## Route example
 
 Route calculates the shortest path between two or more waypoints.
 
@@ -92,9 +70,7 @@ dist = get_distance(response)      # Distance in meters
 dur = get_duration(response)       # Duration in seconds
 ```
 
-``
-
-### Match example
+## Match example
 
 Match maps GPS traces to road networks.
 
@@ -117,7 +93,7 @@ dist = get_distance(response)      # Distance in meters
 dur = get_duration(response)       # Duration in seconds
 ```
 
-###  Table example
+## Table example
 
 Table computes distance/duration matrices between multiple waypoints.
 
