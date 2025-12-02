@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · OpenSourceRoutingMachine.jl</title><meta name="title" content="Examples · OpenSourceRoutingMachine.jl"/><meta property="og:title" content="Examples · OpenSourceRoutingMachine.jl"/><meta property="twitter:title" content="Examples · OpenSourceRoutingMachine.jl"/><meta name="description" content="Documentation for OpenSourceRoutingMachine.jl."/><meta property="og:description" content="Documentation for OpenSourceRoutingMachine.jl."/><meta property="twitter:description" content="Documentation for OpenSourceRoutingMachine.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">OpenSourceRoutingMachine.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Graph-example"><span>Graph example</span></a></li><li><a class="tocitem" href="#Nearest-example"><span>Nearest example</span></a></li><li><a class="tocitem" href="#Route-example"><span>Route example</span></a></li><li><a class="tocitem" href="#Match-example"><span>Match example</span></a></li><li><a class="tocitem" href="#Table-example"><span>Table example</span></a></li></ul></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../api/core/">Core API</a></li><li><a class="tocitem" href="../api/graphs/">Graphs API</a></li><li><a class="tocitem" href="../api/nearest/">Nearest API</a></li><li><a class="tocitem" href="../api/route/">Route API</a></li><li><a class="tocitem" href="../api/match/">Match API</a></li><li><a class="tocitem" href="../api/table/">Table API</a></li><li><a class="tocitem" href="../api/trip/">Trip API</a></li><li><a class="tocitem" href="../api/tile/">Tile API</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h2 id="Graph-example"><a class="docs-heading-anchor" href="#Graph-example">Graph example</a><a id="Graph-example-1"></a><a class="docs-heading-anchor-permalink" href="#Graph-example" title="Permalink"></a></h2><p>Before using OSRM services, you need to build a graph from OpenStreetMap data:</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine.Graphs
+
+osm_path = &quot;hamburg-latest.osm.pbf&quot; # or any other OSM file
+osrm_base_path = &quot;hamburg-latest.osrm&quot;   # corresponding OSRM base path for all graph files
+
+# Build MLD graph (recommended for most use cases)
+extract(osm_path; profile = Profile.car)
+partition(osrm_base_path)
+customize(osrm_base_path)
+
+# Or build CH graph
+extract(osm_path; profile = Profile.car)
+contract(osrm_base_path)</code></pre><h2 id="Nearest-example"><a class="docs-heading-anchor" href="#Nearest-example">Nearest example</a><a id="Nearest-example-1"></a><a class="docs-heading-anchor-permalink" href="#Nearest-example" title="Permalink"></a></h2><p>Nearest finds the nearest road segment to a point.</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine.Nearests
+
+osrm_base_path = &quot;hamburg-latest.osrm&quot;
+osrm = OSRM(osrm_base_path)
+
+params = NearestParams()
+add_coordinate!(params, LatLon(53.5511, 9.9937))
+set_number_of_results!(params, 5)  # Get 5 nearest points
+
+response = nearest(osrm, params)
+cnt = get_count(response)  # Number of results
+
+# Access first result
+coord = get_coordinate(response, 1)
+name = get_name(response, 1)
+dist = get_distance(response, 1)
+hint = get_hint(response, 1)</code></pre><h2 id="Route-example"><a class="docs-heading-anchor" href="#Route-example">Route example</a><a id="Route-example-1"></a><a class="docs-heading-anchor-permalink" href="#Route-example" title="Permalink"></a></h2><p>Route calculates the shortest path between two or more waypoints.</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine.Routes
+
+osrm_base_path = &quot;hamburg-latest.osrm&quot;
+osrm = OSRM(osrm_base_path)
+
+# Create route parameters
+params = RouteParams()
+add_coordinate!(params, LatLon(53.5511, 9.9937))  # Start: Hamburg city center
+add_coordinate!(params, LatLon(53.6304, 9.9882))  # End: Hamburg airport
+
+# Calculate route
+response = route(osrm, params)
+
+# Get results
+dist = get_distance(response)      # Distance in meters
+dur = get_duration(response)       # Duration in seconds</code></pre><h2 id="Match-example"><a class="docs-heading-anchor" href="#Match-example">Match example</a><a id="Match-example-1"></a><a class="docs-heading-anchor-permalink" href="#Match-example" title="Permalink"></a></h2><p>Match maps GPS traces to road networks.</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine.Matches
+
+osrm_base_path = &quot;hamburg-latest.osrm&quot;
+osrm = OSRM(osrm_base_path)
+
+params = MatchParams()
+add_coordinate!(params, LatLon(53.5511, 9.9937))
+add_coordinate!(params, LatLon(53.5512, 9.9940))
+add_coordinate!(params, LatLon(53.5513, 9.9945))
+
+response = match(osrm, params)
+
+# Get results
+dist = get_distance(response)      # Distance in meters
+dur = get_duration(response)       # Duration in seconds</code></pre><h2 id="Table-example"><a class="docs-heading-anchor" href="#Table-example">Table example</a><a id="Table-example-1"></a><a class="docs-heading-anchor-permalink" href="#Table-example" title="Permalink"></a></h2><p>Table computes distance/duration matrices between multiple waypoints.</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine
+using OpenSourceRoutingMachine.Tables
+
+osrm_base_path = &quot;hamburg-latest.osrm&quot;
+osrm = OSRM(osrm_base_path)
+
+params = TableParams()
+# Add coordinates first
+add_coordinate!(params, LatLon(53.5511, 9.9937))  # Index 0
+add_coordinate!(params, LatLon(53.6304, 9.9882))  # Index 1
+add_coordinate!(params, LatLon(53.5417, 9.9667))  # Index 2
+add_coordinate!(params, LatLon(53.5528, 9.9352))  # Index 3
+
+# Mark which coordinates are sources and destinations
+add_source!(params, 1)
+add_source!(params, 2)
+add_destination!(params, 3)
+add_destination!(params, 4)
+
+response = table(osrm, params)
+
+# Access distance/duration between sources and destinations
+durations = get_duration_matrix(response)
+distances = get_distance_matrix(response)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/core/">Core API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 2 December 2025 17:43">Tuesday 2 December 2025</span>. Using Julia version 1.12.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
