@@ -20,8 +20,7 @@ jobs:
                     # - "nightly"
                 os:
                     - ubuntu-latest
-                    # turn of windows for now until someone fixes the Cmd issues
-                    # - windows-latest
+                    - windows-latest
                     - macos-latest
                 arch:
                     - x64
@@ -29,9 +28,9 @@ jobs:
                 exclude:
                     - os: ubuntu-latest
                       arch: aarch64
-                    # # windows does not support aarch64 yet
-                    # - os: windows-latest
-                    #   arch: aarch64
+                    # windows does not support aarch64 yet
+                    - os: windows-latest
+                      arch: aarch64
                     # libosrmc does not support x64 on macOS yet
                     - os: macos-latest
                       arch: x64
