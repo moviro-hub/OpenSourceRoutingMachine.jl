@@ -6,7 +6,7 @@ using OpenSourceRoutingMachine.Routes:
     # params
     add_coordinate!,
     add_coordinate_with!,
-    set_steps!,
+    add_steps!,
     set_alternatives!,
     set_geometries!,
     set_overview!,
@@ -241,7 +241,7 @@ end
         add_coordinate!(params, coord)
     end
 
-        set_steps!(params, true)
+    add_steps!(params, true)
     set_geometries!(params, Geometries(2))  # geojson
     set_annotations!(params, Annotations(5))  # distance | duration
 

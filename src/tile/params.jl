@@ -17,7 +17,7 @@ mutable struct TileParams
             ccall((:osrmc_tile_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        finalize(params, tile_params_destruct)
+        Utils.finalize(params, tile_params_destruct)
         return params
     end
 end

@@ -5,7 +5,6 @@ using OpenSourceRoutingMachine.Tables:
     TableParams,
     TableResponse,
     TableAnnotations,
-    TableFallbackCoordinate,
     add_coordinate!,
     add_coordinate_with!,
     add_source!,
@@ -85,7 +84,7 @@ end
         # table-specific knobs
         set_annotations!(params, TableAnnotations(3))  # distance | duration
         set_fallback_speed!(params, 50.0)
-        set_fallback_coordinate_type!(params, TableFallbackCoordinate(0))  # input
+        set_fallback_coordinate_type!(params, "input")
         set_scale_factor!(params, 1.0)
 
         # generic per-coordinate helpers

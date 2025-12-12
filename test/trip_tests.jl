@@ -3,8 +3,6 @@ using OpenSourceRoutingMachine: Position, OSRMError
 using OpenSourceRoutingMachine.Trips:
     TripParams,
     TripResponse,
-    TripSource,
-    TripDestination,
     add_coordinate!,
     set_roundtrip!,
     set_source!,
@@ -12,7 +10,6 @@ using OpenSourceRoutingMachine.Trips:
     add_waypoint!,
     clear_waypoints!,
     trip,
-    trip_response,
     get_json
 using Base: C_NULL, length, isfinite
 using .Fixtures
@@ -27,7 +24,7 @@ using .Fixtures
         add_coordinate!(params, coord)
     end
 
-    response = trip_response(osrm, params)
+    response = trip(osrm, params)
     @test response isa TripResponse
 
     json_str = get_json(response)
@@ -40,8 +37,8 @@ end
     params = TripParams()
     set_roundtrip!(params, true)
     set_roundtrip!(params, false)
-    set_source!(params, TripSource(1))  # first
-    set_destination!(params, TripDestination(1))  # last
+    set_source!(params, "first")
+    set_destination!(params, "last")
     clear_waypoints!(params)
     add_waypoint!(params, 1)
     add_waypoint!(params, 1)
@@ -51,7 +48,7 @@ end
         add_coordinate!(params, coord)
     end
 
-    response = trip_response(osrm, params)
+    response = trip(osrm, params)
     @test response isa TripResponse
 end
 
@@ -62,7 +59,7 @@ end
     add_coordinate!(params, Position(1.0, 1.0))
 
     maybe_response = try
-        trip_response(osrm, params)
+        trip(osrm, params)
     catch e
         @test e isa OSRMError
         nothing
