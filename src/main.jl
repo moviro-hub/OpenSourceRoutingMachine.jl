@@ -1,15 +1,18 @@
 """
-    OSRMConfig(base_path::String)
+    OSRMConfig(base_path::Union{String, Nothing})
 
 Low-level configuration handle for OSRM; most callers will use `OSRM(base_path)`
 instead of constructing this directly.
+
+When `base_path` is `nothing`, the config will use shared memory mode (via osrm-datastore).
+In this case, you must manually set the algorithm using `set_algorithm!()` before constructing OSRM.
 """
 mutable struct OSRMConfig
     ptr::Ptr{Cvoid}
 
-    function OSRMConfig(base_path::String)
+    function OSRMConfig(base_path::Union{String, Nothing})
         ptr = with_error() do error_ptr
-            ccall((:osrmc_config_construct, libosrmc), Ptr{Cvoid}, (Cstring, Ptr{Ptr{Cvoid}}), as_cstring(base_path), error_pointer(error_ptr))
+            ccall((:osrmc_config_construct, libosrmc), Ptr{Cvoid}, (Cstring, Ptr{Ptr{Cvoid}}), as_cstring_or_null(base_path), error_pointer(error_ptr))
         end
 
         config = new(ptr)
@@ -19,24 +22,27 @@ mutable struct OSRMConfig
                 c.ptr = C_NULL
             end
         end
-        dir = dirname(base_path)
-        base_name = basename(base_path)
-        files = readdir(dir)
-        if any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
-            set_algorithm!(config, Algorithm.mld)
-        elseif any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
-            set_algorithm!(config, Algorithm.ch)
-        else
-            error("Could not determine algorithm from dataset files in $base_path, are you sure this is a valid OSRM dataset?")
+        if base_path !== nothing
+            dir = dirname(base_path)
+            base_name = basename(base_path)
+            files = readdir(dir)
+            if Base.any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
+                set_algorithm!(config, Algorithm(1))  # mld
+            elseif Base.any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
+                set_algorithm!(config, Algorithm(0))  # ch
+            else
+                error("Could not determine algorithm from dataset files in $base_path, are you sure this is a valid OSRM dataset?")
+            end
         end
         return config
     end
 end
 
 """
-    OSRM(base_path::String)
+    OSRM(base_path::Union{String, Nothing})
 
 High-level handle for querying an OSRM dataset located at `base_path`.
+When `base_path` is `nothing`, uses shared memory mode (via osrm-datastore).
 """
 mutable struct OSRM
     ptr::Ptr{Cvoid}
@@ -57,16 +63,16 @@ mutable struct OSRM
         return osrm
     end
 end
-OSRM(base_path::String) = OSRM(OSRMConfig(base_path))
+OSRM(base_path::Union{String, Nothing}) = OSRM(OSRMConfig(base_path))
 
 """
-    set_algorithm!(config::OSRMConfig, algorithm)
+    set_algorithm!(config::OSRMConfig, algorithm::Algorithm)
 
 Force a specific routing algorithm for the given configuration instead of
 letting it be inferred from dataset files on disk.
 """
-function set_algorithm!(config::OSRMConfig, algorithm)
-    code = to_cint(algorithm, Algorithm)
+function set_algorithm!(config::OSRMConfig, algorithm::Algorithm)
+    code = Cint(algorithm)
     with_error() do error_ptr
         ccall((:osrmc_config_set_algorithm, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, code, error_pointer(error_ptr))
         nothing
@@ -88,6 +94,20 @@ function set_max_locations_trip!(config::OSRMConfig, max_locations::Integer)
     return nothing
 end
 set_max_locations_trip!(osrm::OSRM, max_locations::Integer) = set_max_locations_trip!(osrm.config, max_locations)
+
+"""
+    set_max_locations_viaroute!(config::OSRMConfig, max_locations)
+
+Configure the maximum number of locations OSRM will accept for Route (viaroute) queries.
+"""
+function set_max_locations_viaroute!(config::OSRMConfig, max_locations::Integer)
+    with_error() do error_ptr
+        ccall((:osrmc_config_set_max_locations_viaroute, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), config.ptr, Cint(max_locations), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+set_max_locations_viaroute!(osrm::OSRM, max_locations::Integer) = set_max_locations_viaroute!(osrm.config, max_locations)
 
 """
     set_max_locations_distance_table!(config::OSRMConfig, max_locations)
@@ -219,6 +239,11 @@ function set_dataset_name!(config::OSRMConfig, dataset_name::Union{AbstractStrin
 end
 set_dataset_name!(osrm::OSRM, dataset_name::Union{AbstractString, Nothing}) = set_dataset_name!(osrm.config, dataset_name)
 
+"""
+    set_memory_file!(config::OSRMConfig, memory_file)
+
+Set the memory file path for OSRM to use (or clear it by passing `nothing`).
+"""
 function set_memory_file!(config::OSRMConfig, memory_file::Union{AbstractString, Nothing})
     with_error() do error_ptr
         ccall((:osrmc_config_set_memory_file, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(memory_file), error_pointer(error_ptr))
@@ -228,6 +253,11 @@ function set_memory_file!(config::OSRMConfig, memory_file::Union{AbstractString,
 end
 set_memory_file!(osrm::OSRM, memory_file::Union{AbstractString, Nothing}) = set_memory_file!(osrm.config, memory_file)
 
+"""
+    set_verbosity!(config::OSRMConfig, verbosity)
+
+Set the logging verbosity level for OSRM (or clear it by passing `nothing`).
+"""
 function set_verbosity!(config::OSRMConfig, verbosity::Union{AbstractString, Nothing})
     with_error() do error_ptr
         ccall((:osrmc_config_set_verbosity, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(verbosity), error_pointer(error_ptr))

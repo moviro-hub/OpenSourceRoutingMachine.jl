@@ -17,7 +17,7 @@ mutable struct TileParams
             ccall((:osrmc_tile_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, tile_params_destruct)
+        finalize(params, tile_params_destruct)
         return params
     end
 end
@@ -64,19 +64,19 @@ function set_z!(params::TileParams, z::Integer)
 end
 
 """
-    add_coordinate!(params::TileParams, coord::LatLon)
+    add_coordinate!(params::TileParams, coord::Position)
 
 Attach a single coordinate (usually the tile center) to the Tile request.
 """
-function add_coordinate!(params::TileParams, coord::LatLon)
+function add_coordinate!(params::TileParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -85,21 +85,21 @@ function add_coordinate!(params::TileParams, coord::LatLon)
 end
 
 """
-    add_coordinate_with!(params::TileParams, coord::LatLon, radius, bearing, range)
+    add_coordinate_with!(params::TileParams, coord::Position, radius, bearing, range)
 
 Attach a coordinate together with snapping hints so OSRM can refine which tile
 segment to return.
 """
-function add_coordinate_with!(params::TileParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::TileParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
-            (Ptr{Cvoid}, Cfloat, Cfloat, Cfloat, Cint, Cint, Ptr{Ptr{Cvoid}}),
+            (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cfloat(coord.lon),
-            Cfloat(coord.lat),
-            Cfloat(radius),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
+            Cdouble(radius),
             Cint(bearing),
             Cint(range),
             error_pointer(error_ptr),
@@ -183,9 +183,9 @@ end
 
 Control which side of the road a tile coordinate should approach from.
 """
-function set_approach!(params::TileParams, coordinate_index::Integer, approach)
+function set_approach!(params::TileParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -227,7 +227,7 @@ end
 Toggle generation of reusable hints for tile coordinates.
 """
 function set_generate_hints!(params::TileParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
@@ -238,7 +238,7 @@ Ask OSRM to omit waypoints from the Tile response metadata to keep payloads
 minimal.
 """
 function set_skip_waypoints!(params::TileParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
@@ -247,8 +247,8 @@ end
 
 Configure snapping strategy for tile coordinates using the `Snapping` enum.
 """
-function set_snapping!(params::TileParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::TileParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),

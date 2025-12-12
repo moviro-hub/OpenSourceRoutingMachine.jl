@@ -1,16 +1,13 @@
 module Routes
 
-using ..Utils: Utils, with_error, error_pointer, check_error, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
+using FlatBuffers
+using ..OpenSourceRoutingMachine: with_error, error_pointer, check_error, as_cstring, as_cstring_or_null, deserialize
 import ..OpenSourceRoutingMachine:
     OSRM,
-    get_distance,
-    get_duration,
-    as_json,
-    get_waypoint_count,
-    get_waypoint_coordinate,
+    get_json,
     libosrmc,
-    add_steps!,
-    add_alternatives!,
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
@@ -28,31 +25,64 @@ import ..OpenSourceRoutingMachine:
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!,
-    LatLon,
+    Position,
     Approach,
-    Snapping
+    Snapping,
+    Geometries,
+    Overview,
+    Annotations,
+    OutputFormat,
+    finalize,
+    as_string
+using JSON: JSON
 
 include("response.jl")
 include("params.jl")
 
 """
-    route(osrm::OSRM, params::RouteParams) -> RouteResponse
+    route_response(osrm::OSRM, params::RouteParams) -> RouteResponse
 
-Calls the libosrmc Route endpoint directly, avoiding HTTP and keeping responses
-in-memory.
+Calls the libosrm Route module and returns the response as a RouteResponse object.
 """
-function route(osrm::OSRM, params::RouteParams)
+function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
     ptr = with_error() do err
         ccall((:osrmc_route, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    return RouteResponse(ptr)
+    response = RouteResponse(ptr)
+    return response
 end
 
-## Parameter exports
+"""
+    route(osrm::OSRM, params::RouteParams) -> Union{String, Vector{UInt8}}
+
+Calls the libosrm Route module and returns the response as either JSON or FlatBuffers.
+"""
+function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
+    response = route_response(osrm, params)
+    format = get_format(response)
+    if format == OutputFormat(0)  # json
+        if deserialize
+            return JSON.parse(get_json(response))
+        else
+            return get_json(response)
+        end
+    elseif format == OutputFormat(1)  # flatbuffers
+        if deserialize
+            return deserialize(get_flatbuffer(response))
+        else
+            return get_flatbuffer(response)
+        end
+    else
+        error("Invalid output format: $format")
+    end
+end
+
+## Parameter setter exports
 export
     RouteParams,
-    add_steps!,
-    add_alternatives!,
+    set_format!,
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
@@ -71,26 +101,16 @@ export
     set_skip_waypoints!,
     set_snapping!
 
-## Response exports
-export
-    RouteResponse,
-    route,
-    as_json,
-    get_distance,
-    get_duration,
-    get_alternative_count,
-    get_distance_at,
-    get_duration_at,
-    get_geometry_polyline,
-    get_geometry_coordinate_count,
-    get_geometry_coordinate,
-    get_waypoint_count,
-    get_waypoint_coordinate,
-    get_waypoint_name,
-    get_leg_count,
-    get_step_count,
-    get_step_distance,
-    get_step_duration,
-    get_step_instruction
+## compute response exports
+export route_response
+
+## Response getter exports
+export RouteResponse,
+    get_format,
+    get_json,
+    get_flatbuffer
+
+# compute route result exports
+export route
 
 end # module Routes

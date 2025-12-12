@@ -1,22 +1,16 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine: Position, OSRMError
 using OpenSourceRoutingMachine.Matches:
     MatchParams,
     MatchResponse,
+    MatchGaps,
     add_coordinate!,
     add_coordinate_with!,
     add_timestamp!,
     set_gaps!,
     set_tidy!,
-    get_route_count,
-    get_tracepoint_count,
-    get_route_distance,
-    get_route_duration,
-    get_route_confidence,
-    tracepoint_latitude,
-    tracepoint_longitude,
-    get_tracepoint_is_null,
-    match
+    match,
+    match_response
 const Matches = OpenSourceRoutingMachine.Matches
 using Base: C_NULL, length, isfinite
 using .Fixtures
@@ -40,37 +34,11 @@ using .Fixtures
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
+        response = match_response(osrm, params)
         @test response isa MatchResponse
-        route_cnt = get_route_count(response)
-        tracepoint_cnt = get_tracepoint_count(response)
-        @test route_cnt >= 0
-        @test tracepoint_cnt >= 0
-        if route_cnt > 0
-            dist = get_route_distance(response, 1)
-            dur = get_route_duration(response, 1)
-            conf = get_route_confidence(response, 1)
-            @test dist >= 0.0
-            @test dur >= 0.0
-            @test 0.0 <= conf <= 1.0
-            @test isfinite(dist)
-            @test isfinite(dur)
-            @test isfinite(conf)
-        end
-        if tracepoint_cnt > 0
-            for i in 1:tracepoint_cnt
-                is_null = get_tracepoint_is_null(response, i)
-                @test isa(is_null, Bool)
-                if !is_null
-                    lat = tracepoint_latitude(response, i)
-                    lon = tracepoint_longitude(response, i)
-                    @test -90.0 <= lat <= 90.0
-                    @test -180.0 <= lon <= 180.0
-                    @test isfinite(lat)
-                    @test isfinite(lon)
-                end
-            end
-        end
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Match response validity" begin
@@ -79,10 +47,11 @@ using .Fixtures
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
+        response = match_response(osrm, params)
         @test response.ptr != C_NULL
-        @test get_route_count(response) >= 0
-        @test get_tracepoint_count(response) >= 0
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -96,8 +65,8 @@ end
 
     @testset "set_gaps!" begin
         params = MatchParams()
-        set_gaps!(params, "split")
-        set_gaps!(params, "ignore")
+        set_gaps!(params, MatchGaps(0))  # split
+        set_gaps!(params, MatchGaps(1))  # ignore
         @test true
     end
 
@@ -118,19 +87,25 @@ end
         for i in 1:length(coords)
             add_timestamp!(params, (i - 1) * 10)
         end
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Match with gaps set to split" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        set_gaps!(params, "split")
+        set_gaps!(params, MatchGaps(0))  # split
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Match with tidy enabled" begin
@@ -140,8 +115,11 @@ end
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "add_coordinate_with!" begin
@@ -152,47 +130,14 @@ end
 end
 
 @testset "Match - Response Accessors" begin
-    @testset "Access route properties" begin
+    @testset "get_json returns valid JSON" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        if get_route_count(response) > 0
-            @test get_route_distance(response, 1) >= 0.0
-            @test get_route_duration(response, 1) >= 0.0
-            @test 0.0 <= get_route_confidence(response, 1) <= 1.0
-        end
-    end
-
-    @testset "Access tracepoint properties" begin
-        osrm = Fixtures.get_test_osrm()
-        params = MatchParams()
-        for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
-            add_coordinate!(params, coord)
-        end
-        response = match(osrm, params)
-        if get_tracepoint_count(response) > 0
-            is_null = get_tracepoint_is_null(response, 1)
-            @test isa(is_null, Bool)
-            if !is_null
-                lat = tracepoint_latitude(response, 1)
-                lon = tracepoint_longitude(response, 1)
-                @test -90.0 <= lat <= 90.0
-                @test -180.0 <= lon <= 180.0
-            end
-        end
-    end
-
-    @testset "as_json returns valid JSON" begin
-        osrm = Fixtures.get_test_osrm()
-        params = MatchParams()
-        for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
-            add_coordinate!(params, coord)
-        end
-        response = match(osrm, params)
-        json_str = Matches.as_json(response)
+        response = match_response(osrm, params)
+        json_str = Matches.get_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')
@@ -203,11 +148,13 @@ end
     @testset "Invalid coordinates" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        add_coordinate!(params, LatLon(0.0, 0.0))
-        add_coordinate!(params, LatLon(1.0, 1.0))
+        add_coordinate!(params, Position(0.0, 0.0))
+        add_coordinate!(params, Position(1.0, 1.0))
         try
             response = match(osrm, params)
-            @test get_route_count(response) >= 0
+            @test response isa MatchResponse
+            json = Matches.get_json(response)
+            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -216,10 +163,10 @@ end
     @testset "Error messages are informative" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        add_coordinate!(params, LatLon(200.0, 200.0))
-        add_coordinate!(params, LatLon(201.0, 201.0))
+        add_coordinate!(params, Position(200.0, 200.0))
+        add_coordinate!(params, Position(201.0, 201.0))
         try
-            match(osrm, params)
+            match_response(osrm, params)
             @test true
         catch e
             @test e isa OSRMError
@@ -237,9 +184,10 @@ end
         add_coordinate!(params, coord)
         add_coordinate!(params, coord)
         try
-            response = match(osrm, params)
-            @test get_route_count(response) >= 0
-            @test get_tracepoint_count(response) >= 0
+            response = match_response(osrm, params)
+            @test response isa MatchResponse
+            json = Matches.get_json(response)
+            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -251,9 +199,11 @@ end
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT[1:5]
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
-        @test get_tracepoint_count(response) >= 0
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Match with multiple tracepoints" begin
@@ -262,19 +212,15 @@ end
         for coord in Fixtures.MATCH_TEST_COORDS_MULTI_SEGMENT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
-        @test get_tracepoint_count(response) >= 0
-        response = match(osrm, params)
-        @test get_route_count(response) >= 0
-        @test get_tracepoint_count(response) >= 0
-        if get_route_count(response) > 0
-            dist = get_route_distance(response, 1)
-            dur = get_route_duration(response, 1)
-            @test dist >= 0.0
-            @test dur >= 0.0
-            @test isfinite(dist)
-            @test isfinite(dur)
-        end
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json = Matches.get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end

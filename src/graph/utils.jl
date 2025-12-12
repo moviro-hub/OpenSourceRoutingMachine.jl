@@ -9,17 +9,9 @@ struct OSRMCommandError <: Exception
     exitcode::Int32
 end
 
-@enumx Profile::Int begin
-    car = 0
-    bicycle = 1
-    foot = 2
-end
-
-const ProfileType = Profile.T
-
-_profile_symbol(profile::ProfileType) = profile === Profile.car ? :car :
-    profile === Profile.bicycle ? :bicycle :
-    :foot
+_profile_symbol(profile::ProfileType) = profile === Profile(0) ? :car :  # car
+    profile === Profile(1) ? :bicycle :  # bicycle
+    :foot  # foot
 
 """
     profile_lua_path(profile::ProfileType) -> String

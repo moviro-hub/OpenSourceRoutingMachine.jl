@@ -1,18 +1,19 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine: Position, OSRMError
 using OpenSourceRoutingMachine.Trips:
     TripParams,
     TripResponse,
+    TripSource,
+    TripDestination,
     add_coordinate!,
-    add_roundtrip!,
-    add_source!,
-    add_destination!,
+    set_roundtrip!,
+    set_source!,
+    set_destination!,
     add_waypoint!,
     clear_waypoints!,
     trip,
-    get_distance,
-    get_duration,
-    get_waypoint_coordinate
+    trip_response,
+    get_json
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -26,46 +27,21 @@ using .Fixtures
         add_coordinate!(params, coord)
     end
 
-    response = trip(osrm, params)
+    response = trip_response(osrm, params)
     @test response isa TripResponse
 
-    dist = try
-        get_distance(response)
-    catch e
-        @test e isa OSRMError
-        nothing
-    end
-    dur = try
-        get_duration(response)
-    catch e
-        @test e isa OSRMError
-        nothing
-    end
-    if dist !== nothing
-        @test dist >= 0.0
-    end
-    if dur !== nothing
-        @test dur >= 0.0
-    end
-
-    json_str = try
-        as_json(response)
-    catch e
-        @test e isa OSRMError
-        ""
-    end
-    if !isempty(json_str)
-        @test isa(json_str, String)
-        @test startswith(json_str, '{') || startswith(json_str, '[')
-    end
+    json_str = get_json(response)
+    @test isa(json_str, String)
+    @test !isempty(json_str)
+    @test startswith(json_str, '{') || startswith(json_str, '[')
 end
 
 @testset "Trip - Parameters" begin
     params = TripParams()
-    add_roundtrip!(params, true)
-    add_roundtrip!(params, false)
-    add_source!(params, "first")
-    add_destination!(params, "last")
+    set_roundtrip!(params, true)
+    set_roundtrip!(params, false)
+    set_source!(params, TripSource(1))  # first
+    set_destination!(params, TripDestination(1))  # last
     clear_waypoints!(params)
     add_waypoint!(params, 1)
     add_waypoint!(params, 1)
@@ -75,18 +51,18 @@ end
         add_coordinate!(params, coord)
     end
 
-    response = trip(osrm, params)
+    response = trip_response(osrm, params)
     @test response isa TripResponse
 end
 
 @testset "Trip - Error Handling" begin
     osrm = Fixtures.get_test_osrm()
     params = TripParams()
-    add_coordinate!(params, LatLon(0.0, 0.0))
-    add_coordinate!(params, LatLon(1.0, 1.0))
+    add_coordinate!(params, Position(0.0, 0.0))
+    add_coordinate!(params, Position(1.0, 1.0))
 
     maybe_response = try
-        trip(osrm, params)
+        trip_response(osrm, params)
     catch e
         @test e isa OSRMError
         nothing

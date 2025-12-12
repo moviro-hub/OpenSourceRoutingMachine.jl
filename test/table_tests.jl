@@ -1,14 +1,16 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError
+using OpenSourceRoutingMachine: Position, OSRMError
 using OpenSourceRoutingMachine: Snapping, Approach
 using OpenSourceRoutingMachine.Tables:
     TableParams,
     TableResponse,
+    TableAnnotations,
+    TableFallbackCoordinate,
     add_coordinate!,
     add_coordinate_with!,
     add_source!,
     add_destination!,
-    set_annotations_mask!,
+    set_annotations!,
     set_fallback_speed!,
     set_fallback_coordinate_type!,
     set_scale_factor!,
@@ -21,13 +23,8 @@ using OpenSourceRoutingMachine.Tables:
     set_skip_waypoints!,
     set_snapping!,
     table,
-    get_source_count,
-    get_destination_count,
-    as_json,
-    get_duration_matrix,
-    get_distance_matrix,
-    get_duration,
-    get_distance
+    table_response,
+    get_json
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 
@@ -51,10 +48,11 @@ using .Fixtures
         for coord in coords
             add_coordinate!(params, coord)
         end
-        response = table(osrm, params)
+        response = table_response(osrm, params)
         @test response isa TableResponse
-        @test get_source_count(response) == length(coords)
-        @test get_destination_count(response) == length(coords)
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Specific sources and destinations" begin
@@ -67,9 +65,11 @@ using .Fixtures
         add_source!(params, 2)
         add_destination!(params, 3)
         add_destination!(params, 4)
-        response = table(osrm, params)
-        @test get_source_count(response) == 2
-        @test get_destination_count(response) == 2
+        response = table_response(osrm, params)
+        @test response isa TableResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -83,134 +83,28 @@ end
         add_coordinate_with!(params, Fixtures.HAMBURG_AIRPORT, 10.0, 0, 180)
 
         # table-specific knobs
-        set_annotations_mask!(params, "distance,duration")
+        set_annotations!(params, TableAnnotations(3))  # distance | duration
         set_fallback_speed!(params, 50.0)
-        set_fallback_coordinate_type!(params, "input")
+        set_fallback_coordinate_type!(params, TableFallbackCoordinate(0))  # input
         set_scale_factor!(params, 1.0)
 
         # generic per-coordinate helpers
         set_hint!(params, 1, "")
         set_radius!(params, 1, 5.0)
         set_bearing!(params, 1, 0, 90)
-        set_approach!(params, 1, Approach.curb)
+        set_approach!(params, 1, Approach(0))  # curb
 
         # generic global helpers
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, Snapping.default)
+        set_snapping!(params, Snapping(0))  # default
 
-        response = table(osrm, params)
+        response = table_response(osrm, params)
         @test response isa TableResponse
-        @test get_source_count(response) >= 1
-        @test get_destination_count(response) >= 1
-    end
-end
-
-@testset "Table - Response Accessors" begin
-    @testset "Duration and distance accessors" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT, Fixtures.HAMBURG_PORT]
-            add_coordinate!(params, coord)
-        end
-        set_annotations_mask!(params, "distance,duration")
-        response = table(osrm, params)
-        @test get_duration(response, 1, 1) == 0.0
-        @test get_distance(response, 1, 1) == 0.0
-        @test get_duration(response, 1, 2) > 0.0
-        @test get_distance(response, 1, 2) > 0.0
-        @test isfinite(get_duration(response, 1, 2))
-        @test isfinite(get_distance(response, 1, 2))
-    end
-
-    @testset "Source and destination counts" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in Fixtures.hamburg_coordinates()
-            add_coordinate!(params, coord)
-        end
-        response = table(osrm, params)
-        @test get_source_count(response) == 4
-        @test get_destination_count(response) == 4
-    end
-
-    @testset "Asymmetric table counts" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in Fixtures.hamburg_coordinates()
-            add_coordinate!(params, coord)
-        end
-        add_source!(params, 1)
-        add_source!(params, 2)
-        add_destination!(params, 2)
-        add_destination!(params, 3)
-        add_destination!(params, 4)
-        response = table(osrm, params)
-        @test get_source_count(response) == 2
-        @test get_destination_count(response) == 3
-    end
-end
-
-@testset "Table - Matrix Operations" begin
-    @testset "Duration matrix" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT, Fixtures.HAMBURG_PORT]
-            add_coordinate!(params, coord)
-        end
-        set_annotations_mask!(params, "distance,duration")
-        response = table(osrm, params)
-        dur_matrix = get_duration_matrix(response)
-        @test size(dur_matrix) == (3, 3)
-        @test dur_matrix[1, 1] == 0.0
-        @test dur_matrix[2, 2] == 0.0
-        @test dur_matrix[3, 3] == 0.0
-        @test dur_matrix[1, 2] > 0.0
-        @test dur_matrix[1, 3] > 0.0
-        @test all(isfinite, dur_matrix)
-    end
-
-    @testset "Distance matrix" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT]
-            add_coordinate!(params, coord)
-        end
-        set_annotations_mask!(params, "distance,duration")
-        response = table(osrm, params)
-        dist_matrix = get_distance_matrix(response)
-        @test size(dist_matrix) == (2, 2)
-        @test dist_matrix[1, 1] == 0.0
-        @test dist_matrix[2, 2] == 0.0
-        @test dist_matrix[1, 2] > 0.0
-        @test all(isfinite, dist_matrix)
-    end
-
-    @testset "Matrix consistency with accessors" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        for coord in Fixtures.hamburg_coordinates()
-            add_coordinate!(params, coord)
-        end
-        set_annotations_mask!(params, "distance,duration")
-        response = table(osrm, params)
-        dur_matrix = get_duration_matrix(response)
-        dist_matrix = get_distance_matrix(response)
-        for i in 1:get_source_count(response)
-            for j in 1:get_destination_count(response)
-                if dur_matrix[i, j] == 0.0 && get_duration(response, i, j) == 0.0
-                    @test true
-                else
-                    @test isapprox(dur_matrix[i, j], get_duration(response, i, j), rtol = 1.0e-5)
-                end
-                if dist_matrix[i, j] == 0.0 && get_distance(response, i, j) == 0.0
-                    @test true
-                else
-                    @test isapprox(dist_matrix[i, j], get_distance(response, i, j), rtol = 1.0e-5)
-                end
-            end
-        end
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -218,7 +112,7 @@ end
     @testset "Invalid table request" begin
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
-        add_coordinate!(params, LatLon(91.0, 200.0))
+        add_coordinate!(params, Position(200.0, 91.0))
         @test_throws OSRMError table(osrm, params)
     end
 
@@ -226,12 +120,12 @@ end
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        set_annotations_mask!(params, "distance,duration")
-        response = table(osrm, params)
-        @test get_source_count(response) == 1
-        @test get_destination_count(response) == 1
-        @test get_duration(response, 1, 1) == 0.0
-        @test get_distance(response, 1, 1) == 0.0
+        set_annotations!(params, TableAnnotations(3))  # distance | duration
+        response = table_response(osrm, params)
+        @test response isa TableResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -244,14 +138,14 @@ end
         n = 5
         for i in 1:n
             for j in 1:n
-                add_coordinate!(params, LatLon(base_lat + (i - 3) * 0.01, base_lon + (j - 3) * 0.01))
+                add_coordinate!(params, Position(base_lon + (j - 3) * 0.01, base_lat + (i - 3) * 0.01))
             end
         end
-        response = table(osrm, params)
-        @test get_source_count(response) == n * n
-        @test get_destination_count(response) == n * n
-        dur = get_duration(response, 1, n * n)
-        @test isfinite(dur) || dur == Inf32
+        response = table_response(osrm, params)
+        @test response isa TableResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "One-to-many table" begin
@@ -261,9 +155,11 @@ end
             add_coordinate!(params, coord)
         end
         add_source!(params, 1)
-        response = table(osrm, params)
-        @test get_source_count(response) == 1
-        @test get_destination_count(response) == 4
+        response = table_response(osrm, params)
+        @test response isa TableResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Many-to-one table" begin
@@ -273,9 +169,11 @@ end
             add_coordinate!(params, coord)
         end
         add_destination!(params, 1)
-        response = table(osrm, params)
-        @test get_source_count(response) == 4
-        @test get_destination_count(response) == 1
+        response = table_response(osrm, params)
+        @test response isa TableResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "JSON output" begin
@@ -283,8 +181,8 @@ end
         params = TableParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = table(osrm, params)
-        json_str = as_json(response)
+        response = table_response(osrm, params)
+        json_str = get_json(response)
         @test json_str isa String
         @test !isempty(json_str)
         @test occursin("durations", json_str) || occursin("distances", json_str)

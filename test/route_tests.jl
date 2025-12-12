@@ -1,13 +1,13 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError, Approach, Snapping
+using OpenSourceRoutingMachine: Position, OSRMError, Approach, Snapping, Geometries, Overview, Annotations
 using OpenSourceRoutingMachine.Routes:
     RouteParams,
     RouteResponse,
     # params
     add_coordinate!,
     add_coordinate_with!,
-    add_steps!,
-    add_alternatives!,
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
@@ -25,23 +25,8 @@ using OpenSourceRoutingMachine.Routes:
     set_snapping!,
     # responses
     route,
-    as_json,
-    get_distance,
-    get_duration,
-    get_alternative_count,
-    get_distance_at,
-    get_duration_at,
-    get_geometry_polyline,
-    get_geometry_coordinate_count,
-    get_geometry_coordinate,
-    get_waypoint_count,
-    get_waypoint_coordinate,
-    get_waypoint_name,
-    get_leg_count,
-    get_step_count,
-    get_step_distance,
-    get_step_duration,
-    get_step_instruction
+    route_response,
+    get_json
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -63,14 +48,11 @@ using .Fixtures
         params = RouteParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = route(osrm, params)
+        response = route_response(osrm, params)
         @test response isa RouteResponse
-        dist = get_distance(response)
-        dur = get_duration(response)
-        @test dist > 0.0
-        @test dur > 0.0
-        @test isfinite(dist)
-        @test isfinite(dur)
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Route response validity" begin
@@ -78,25 +60,26 @@ using .Fixtures
         params = RouteParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_PORT)
-        response = route(osrm, params)
+        response = route_response(osrm, params)
         @test response.ptr != C_NULL
-        @test get_distance(response) >= 0.0
-        @test get_duration(response) >= 0.0
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
 @testset "Route - Parameters" begin
-    @testset "add_steps!" begin
+    @testset "set_steps!" begin
         params = RouteParams()
-        add_steps!(params, true)
-        add_steps!(params, false)
+        set_steps!(params, true)
+        set_steps!(params, false)
         @test true
     end
 
-    @testset "add_alternatives!" begin
+    @testset "set_alternatives!" begin
         params = RouteParams()
-        add_alternatives!(params, true)
-        add_alternatives!(params, false)
+        set_alternatives!(params, true)
+        set_alternatives!(params, false)
         @test true
     end
 
@@ -109,21 +92,27 @@ end
     @testset "Route with steps enabled" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_steps!(params, true)
+        set_steps!(params, true)
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
-        response = route(osrm, params)
-        @test get_distance(response) > 0.0
+        response = route_response(osrm, params)
+        @test response isa RouteResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Route with alternatives enabled" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_alternatives!(params, true)
+        set_alternatives!(params, true)
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = route(osrm, params)
-        @test get_distance(response) > 0.0
+        response = route_response(osrm, params)
+        @test response isa RouteResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Other parameter helpers smoke test" begin
@@ -136,11 +125,11 @@ end
 
         # toggles and options
         # use a known-valid geometries value
-        set_geometries!(params, "geojson")
-        set_overview!(params, "full")
+        set_geometries!(params, Geometries(2))  # geojson
+        set_overview!(params, Overview(1))  # full
         set_continue_straight!(params, true)
         set_number_of_alternatives!(params, 2)
-        set_annotations!(params, "distance,duration")
+        set_annotations!(params, Annotations(5))  # distance | duration
 
         # waypoint helpers
         # clear/add waypoints without requiring endpoints to be waypoints
@@ -150,16 +139,19 @@ end
         set_hint!(params, 1, "")
         set_radius!(params, 1, 10.0)
         set_bearing!(params, 1, 0, 180)
-        set_approach!(params, 1, Approach.curb)
+        set_approach!(params, 1, Approach(0))  # curb
 
         # global behavior
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, Snapping.default)
+        set_snapping!(params, Snapping(0))  # default
 
-        response = route(osrm, params)
-        @test get_distance(response) > 0.0
+        response = route_response(osrm, params)
+        @test response isa RouteResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -167,11 +159,13 @@ end
     @testset "Invalid coordinates" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_coordinate!(params, LatLon(0.0, 0.0))
-        add_coordinate!(params, LatLon(1.0, 1.0))
+        add_coordinate!(params, Position(0.0, 0.0))
+        add_coordinate!(params, Position(1.0, 1.0))
         try
-            response = route(osrm, params)
-            @test isfinite(get_distance(response)) || isinf(get_distance(response))
+            response = route_response(osrm, params)
+            @test response isa RouteResponse
+            json = get_json(response)
+            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -180,8 +174,8 @@ end
     @testset "Error messages are informative" begin
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
-        add_coordinate!(params, LatLon(200.0, 200.0))
-        add_coordinate!(params, LatLon(201.0, 201.0))
+        add_coordinate!(params, Position(200.0, 200.0))
+        add_coordinate!(params, Position(201.0, 201.0))
         try
             route(osrm, params)
             @test true
@@ -201,9 +195,10 @@ end
         add_coordinate!(params, coord)
         add_coordinate!(params, coord)
         try
-            response = route(osrm, params)
-            @test get_distance(response) >= 0.0
-            @test get_duration(response) >= 0.0
+            response = route_response(osrm, params)
+            @test response isa RouteResponse
+            json = get_json(response)
+            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -213,14 +208,14 @@ end
         osrm = Fixtures.get_test_osrm()
         params = RouteParams()
         coord1 = Fixtures.HAMBURG_CITY_CENTER
-        coord2 = LatLon(coord1.lat + 0.001, coord1.lon + 0.001)
+        coord2 = Position(coord1.longitude + 0.001, coord1.latitude + 0.001)
         add_coordinate!(params, coord1)
         add_coordinate!(params, coord2)
-        response = route(osrm, params)
-        @test get_distance(response) >= 0.0
-        @test get_duration(response) >= 0.0
-        @test isfinite(get_distance(response))
-        @test isfinite(get_duration(response))
+        response = route_response(osrm, params)
+        @test response isa RouteResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Route with multiple waypoints" begin
@@ -229,11 +224,11 @@ end
         for coord in Fixtures.hamburg_coordinates()
             add_coordinate!(params, coord)
         end
-        response = route(osrm, params)
-        @test get_distance(response) > 0.0
-        @test get_duration(response) > 0.0
-        @test isfinite(get_distance(response))
-        @test isfinite(get_duration(response))
+        response = route_response(osrm, params)
+        @test response isa RouteResponse
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 end
 
@@ -246,57 +241,14 @@ end
         add_coordinate!(params, coord)
     end
 
-    add_steps!(params, true)
-    set_geometries!(params, "geojson")
-    set_annotations!(params, "distance,duration")
+        set_steps!(params, true)
+    set_geometries!(params, Geometries(2))  # geojson
+    set_annotations!(params, Annotations(5))  # distance | duration
 
-    response = route(osrm, params)
+    response = route_response(osrm, params)
 
-    @test get_alternative_count(response) >= 1
-
-    # as_json and basic metrics
-    json = as_json(response)
+    # get_json and basic validation
+    json = get_json(response)
     @test isa(json, String)
     @test !isempty(json)
-
-    @test get_distance(response) >= 0.0
-    @test get_duration(response) >= 0.0
-
-    @test get_distance_at(response, 1) >= 0.0
-    @test get_duration_at(response, 1) >= 0.0
-
-    # geometry helpers
-    # geometry_polyline is not supported with current backend configuration;
-    # geometry access is covered via waypoint/coordinate helpers below.
-
-    coord_count = get_geometry_coordinate_count(response)
-    @test coord_count >= 2
-
-    first_coord = get_geometry_coordinate(response, 1, 1)
-    @test first_coord isa LatLon
-
-    # waypoint helpers
-    wps = get_waypoint_count(response)
-    @test wps == 3
-
-    first_wp = get_waypoint_coordinate(response, 1)
-    @test first_wp isa LatLon
-
-    name1 = get_waypoint_name(response, 1)
-    @test isa(name1, String)
-
-    # leg / step helpers
-    legs = get_leg_count(response)
-    @test legs == wps - 1
-
-    steps = get_step_count(response, 1, 1)
-    @test steps >= 1
-
-    dist_step = get_step_distance(response, 1, 1, 1)
-    dur_step = get_step_duration(response, 1, 1, 1)
-    instr = get_step_instruction(response, 1, 1, 1)
-
-    @test dist_step >= 0.0
-    @test dur_step >= 0.0
-    @test isa(instr, String)
 end

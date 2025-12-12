@@ -1,11 +1,11 @@
 module Tiles
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, to_cint
+using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null
 import ..OpenSourceRoutingMachine:
     OSRM, set_x!, set_y!, set_z!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, LatLon, Approach, Snapping
+    set_snapping!, Position, Approach, Snapping, finalize
 
 include("response.jl")
 include("params.jl")

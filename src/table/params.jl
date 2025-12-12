@@ -17,9 +17,30 @@ mutable struct TableParams
             ccall((:osrmc_table_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, table_params_destruct)
+        finalize(params, table_params_destruct)
         return params
     end
+end
+
+"""
+    set_format!(params::TableParams, format::OutputFormat)
+
+Set the output format for Table responses using the `OutputFormat` enum (`json` or `flatbuffers`).
+"""
+function set_format!(params::TableParams, format::OutputFormat)
+    code = Cint(format)
+    with_error() do error_ptr
+        ccall(
+            (:osrmc_params_set_format, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
+            params.ptr,
+            code,
+            error_pointer(error_ptr),
+        )
+        nothing
+    end
+    return nothing
 end
 
 """
@@ -53,14 +74,15 @@ function add_destination!(params::TableParams, index::Integer)
 end
 
 """
-    set_annotations_mask!(params::TableParams, mask)
+    set_annotations!(params::TableParams, annotations::TableAnnotations)
 
 Restricts OSRM's matrix annotations (duration, distance, etc.) so data exports
 only include the metrics you plan to consume.
 """
-function set_annotations_mask!(params::TableParams, mask::AbstractString)
+function set_annotations!(params::TableParams, annotations::TableAnnotations)
+    code = Cint(annotations)
     with_error() do error_ptr
-        ccall((:osrmc_table_params_set_annotations_mask, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(mask), error_pointer(error_ptr))
+        ccall((:osrmc_table_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -81,14 +103,15 @@ function set_fallback_speed!(params::TableParams, speed::Real)
 end
 
 """
-    set_fallback_coordinate_type!(params::TableParams, coord_type)
+    set_fallback_coordinate_type!(params::TableParams, coord_type::TableFallbackCoordinate)
 
 Controls whether fallback results snap to input coordinates or to network
 snaps, ensuring downstream code interprets placeholders correctly.
 """
-function set_fallback_coordinate_type!(params::TableParams, coord_type::Union{AbstractString, Nothing})
+function set_fallback_coordinate_type!(params::TableParams, coord_type::TableFallbackCoordinate)
+    code = Cint(coord_type)
     with_error() do error_ptr
-        ccall((:osrmc_table_params_set_fallback_coordinate_type, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring_or_null(coord_type), error_pointer(error_ptr))
+        ccall((:osrmc_table_params_set_fallback_coordinate_type, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -109,19 +132,19 @@ function set_scale_factor!(params::TableParams, factor::Real)
 end
 
 """
-    add_coordinate!(params::TableParams, coord::LatLon)
+    add_coordinate!(params::TableParams, coord::Position)
 
-Append a coordinate in `(lat, lon)` order to the current Table request.
+Append a coordinate in `(lon, lat)` order to the current Table request.
 """
-function add_coordinate!(params::TableParams, coord::LatLon)
+function add_coordinate!(params::TableParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -130,20 +153,20 @@ function add_coordinate!(params::TableParams, coord::LatLon)
 end
 
 """
-    add_coordinate_with!(params::TableParams, coord::LatLon, radius, bearing, range)
+    add_coordinate_with!(params::TableParams, coord::Position, radius, bearing, range)
 
 Append a coordinate with radius and bearing hints so OSRM can snap more
 accurately when building distance/duration matrices.
 """
-function add_coordinate_with!(params::TableParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::TableParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             Cdouble(radius),
             Cint(bearing),
             Cint(range),
@@ -229,9 +252,9 @@ end
 Control which side of the road a vehicle should approach for a particular
 matrix coordinate.
 """
-function set_approach!(params::TableParams, coordinate_index::Integer, approach)
+function set_approach!(params::TableParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -274,7 +297,7 @@ end
 Toggle generation of reusable hints for all snapped coordinates in the table.
 """
 function set_generate_hints!(params::TableParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
@@ -284,7 +307,7 @@ end
 Ask OSRM to omit waypoints from the Table response to reduce payload size.
 """
 function set_skip_waypoints!(params::TableParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
@@ -294,8 +317,8 @@ end
 Configure how aggressively OSRM should snap matrix coordinates to the road
 network using the `Snapping` enum.
 """
-function set_snapping!(params::TableParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::TableParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),

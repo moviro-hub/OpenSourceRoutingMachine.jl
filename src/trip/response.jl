@@ -15,72 +15,49 @@ mutable struct TripResponse
     function TripResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TripResponse from NULL pointer")
         response = new(ptr)
-        Utils.finalize(response, _trip_response_destruct)
+        finalize(response, _trip_response_destruct)
         return response
     end
 end
 
 """
-   as_json(response::TripResponse) -> String
+    get_format(response::TripResponse) -> OutputFormat
+
+Returns the output format of the response (`json` or `flatbuffers`).
+"""
+function get_format(response::TripResponse)
+    code = with_error() do err
+        ccall((:osrmc_trip_response_format, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end
+    return OutputFormat(code)
+end
+
+"""
+   get_json(response::TripResponse) -> String
 
 Retrieve the entire response as JSON string.
 """
-function as_json(response::TripResponse)
+function get_json(response::TripResponse)
     blob = with_error() do err
         ccall((:osrmc_trip_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
-    return Utils.as_string(blob)
+    return as_string(blob)
 end
 
 """
-    get_distance(response::TripResponse) -> Float64
+    get_flatbuffer(response::TripResponse) -> Vector{UInt8}
+
+Returns the entire response as FlatBuffers binary data.
 """
-function get_distance(response::TripResponse)
-    return with_error() do err
-        ccall((:osrmc_trip_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+function get_flatbuffer(response::TripResponse)
+    blob = with_error() do err
+        ccall((:osrmc_trip_response_flatbuffer, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
-end
-
-"""
-    get_duration(response::TripResponse) -> Float64
-"""
-function get_duration(response::TripResponse)
-    return with_error() do err
-        ccall((:osrmc_trip_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-end
-
-"""
-    get_waypoint_count(response::TripResponse) -> Int
-"""
-get_waypoint_count(response::TripResponse) =
-    Int(
-    with_error() do err
-        ccall((:osrmc_trip_response_waypoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)
-
-
-function get_waypoint_latitude(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
-    end
-end
-
-function get_waypoint_longitude(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
-    end
-end
-
-"""
-    get_waypoint_coordinate(response::TripResponse, index) -> LatLon
-"""
-function get_waypoint_coordinate(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    lat = get_waypoint_latitude(response, index)
-    lon = get_waypoint_longitude(response, index)
-    return LatLon(lat, lon)
+    data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
+    len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
+    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own=false)
+    result = Vector{UInt8}(undef, len)
+    copyto!(result, data)
+    ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)
+    return result
 end

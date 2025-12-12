@@ -12,12 +12,12 @@ osm_path = "hamburg-latest.osm.pbf" # or any other OSM file
 osrm_base_path = "hamburg-latest.osrm"   # corresponding OSRM base path for all graph files
 
 # Build MLD graph (recommended for most use cases)
-extract(osm_path; profile = Profile.car)
+extract(osm_path; profile = Profile(0))  # car
 partition(osrm_base_path)
 customize(osrm_base_path)
 
 # Or build CH graph
-extract(osm_path; profile = Profile.car)
+extract(osm_path; profile = Profile(0))  # car
 contract(osrm_base_path)
 ```
 
@@ -33,7 +33,7 @@ osrm_base_path = "hamburg-latest.osrm"
 osrm = OSRM(osrm_base_path)
 
 params = NearestParams()
-add_coordinate!(params, LatLon(53.5511, 9.9937))
+add_coordinate!(params, Position(9.9937, 53.5511))
 set_number_of_results!(params, 5)  # Get 5 nearest points
 
 response = nearest(osrm, params)
@@ -59,8 +59,8 @@ osrm = OSRM(osrm_base_path)
 
 # Create route parameters
 params = RouteParams()
-add_coordinate!(params, LatLon(53.5511, 9.9937))  # Start: Hamburg city center
-add_coordinate!(params, LatLon(53.6304, 9.9882))  # End: Hamburg airport
+add_coordinate!(params, Position(9.9937, 53.5511))  # Start: Hamburg city center
+add_coordinate!(params, Position(9.9882, 53.6304))  # End: Hamburg airport
 
 # Calculate route
 response = route(osrm, params)
@@ -82,9 +82,9 @@ osrm_base_path = "hamburg-latest.osrm"
 osrm = OSRM(osrm_base_path)
 
 params = MatchParams()
-add_coordinate!(params, LatLon(53.5511, 9.9937))
-add_coordinate!(params, LatLon(53.5512, 9.9940))
-add_coordinate!(params, LatLon(53.5513, 9.9945))
+add_coordinate!(params, Position(9.9937, 53.5511))
+add_coordinate!(params, Position(9.9940, 53.5512))
+add_coordinate!(params, Position(9.9945, 53.5513))
 
 response = match(osrm, params)
 
@@ -106,10 +106,10 @@ osrm = OSRM(osrm_base_path)
 
 params = TableParams()
 # Add coordinates first
-add_coordinate!(params, LatLon(53.5511, 9.9937))  # Index 0
-add_coordinate!(params, LatLon(53.6304, 9.9882))  # Index 1
-add_coordinate!(params, LatLon(53.5417, 9.9667))  # Index 2
-add_coordinate!(params, LatLon(53.5528, 9.9352))  # Index 3
+add_coordinate!(params, Position(9.9937, 53.5511))  # Index 0
+add_coordinate!(params, Position(9.9882, 53.6304))  # Index 1
+add_coordinate!(params, Position(9.9667, 53.5417))  # Index 2
+add_coordinate!(params, Position(9.9352, 53.5528))  # Index 3
 
 # Mark which coordinates are sources and destinations
 add_source!(params, 1)

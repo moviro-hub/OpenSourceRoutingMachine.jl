@@ -10,7 +10,8 @@ module OpenSourceRoutingMachine
 using OSRM_jll
 using libosrmc_jll
 using Libdl
-using EnumX: @enumx
+using CEnum
+using FlatBuffers
 
 function __init__()
     # building with dont_dlopen=true means the JLLs won't autoload so we have to do it manually here.
@@ -39,11 +40,10 @@ was built against, so callers can fail fast on mismatched binaries.
 """
 is_abi_compatible() = ccall((:osrmc_is_abi_compatible, libosrmc), Cint, ()) != 0
 
+include("utils.jl")
+include("shared.jl")
 include("types.jl")
-include("functions.jl")
-include("utils/Utils.jl")
-# utils used in main
-using .Utils: with_error, error_pointer, as_cstring, as_cstring_or_null, to_cint
+include("deserialize.jl")
 include("main.jl")
 
 include("route/Routes.jl")
@@ -54,16 +54,14 @@ include("trip/Trips.jl")
 include("tile/Tiles.jl")
 include("graph/Graphs.jl")
 
+# Constructor for Position that takes (lon, lat) for convenience
+Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 
 # types
-export OSRM, OSRMConfig, LatLon # LatLon is a named tuple for convenience
+export OSRM, OSRMConfig, Position
 # enums
-export Algorithm, Snapping, Approach
+export Algorithm, Snapping, Approach, OutputFormat, Geometries, Overview, Annotations
 # functions
-export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
-
-# Export OSRMError from Utils (needed by tests)
-using .Utils: OSRMError
-export OSRMError
+export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 
 end # module OpenSourceRoutingMachine

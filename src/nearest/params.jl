@@ -17,9 +17,30 @@ mutable struct NearestParams
             ccall((:osrmc_nearest_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, nearest_params_destruct)
+        finalize(params, nearest_params_destruct)
         return params
     end
+end
+
+"""
+    set_format!(params::NearestParams, format)
+
+Set the output format for Nearest responses using the `OutputFormat` enum (`json` or `flatbuffers`).
+"""
+function set_format!(params::NearestParams, format::OutputFormat)
+    code = Cint(format)
+    with_error() do error_ptr
+        ccall(
+            (:osrmc_params_set_format, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
+            params.ptr,
+            code,
+            error_pointer(error_ptr),
+        )
+        nothing
+    end
+    return nothing
 end
 
 """
@@ -30,26 +51,26 @@ for UIs that only display the top-k matches.
 """
 function set_number_of_results!(params::NearestParams, n::Integer)
     with_error() do error_ptr
-        ccall((:osrmc_nearest_set_number_of_results, libosrmc), Cvoid, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), params.ptr, Cuint(n), error_pointer(error_ptr))
+        ccall((:osrmc_nearest_params_set_number_of_results, libosrmc), Cvoid, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), params.ptr, Cuint(n), error_pointer(error_ptr))
         nothing
     end
     return nothing
 end
 
 """
-    add_coordinate!(params::NearestParams, coord::LatLon)
+    add_coordinate!(params::NearestParams, coord::Position)
 
-Append a query coordinate for the Nearest search in `(lat, lon)` order.
+Append a query coordinate for the Nearest search in `(lon, lat)` order.
 """
-function add_coordinate!(params::NearestParams, coord::LatLon)
+function add_coordinate!(params::NearestParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -58,20 +79,20 @@ function add_coordinate!(params::NearestParams, coord::LatLon)
 end
 
 """
-    add_coordinate_with!(params::NearestParams, coord::LatLon, radius, bearing, range)
+    add_coordinate_with!(params::NearestParams, coord::Position, radius, bearing, range)
 
 Append a coordinate together with radius and bearing hints to influence how
 OSRM snaps to the road network when finding nearest points.
 """
-function add_coordinate_with!(params::NearestParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::NearestParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             Cdouble(radius),
             Cint(bearing),
             Cint(range),
@@ -156,9 +177,9 @@ end
 
 Control which side of the road to approach when evaluating nearest candidates.
 """
-function set_approach!(params::NearestParams, coordinate_index::Integer, approach)
+function set_approach!(params::NearestParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -202,7 +223,10 @@ Toggle generation of hints for Nearest results so callers can reuse them for
 follow-up queries.
 """
 function set_generate_hints!(params::NearestParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -213,7 +237,10 @@ Ask OSRM to omit waypoint objects from the response to keep Nearest payloads
 minimal.
 """
 function set_skip_waypoints!(params::NearestParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -222,8 +249,8 @@ end
 
 Configure the snapping strategy for Nearest requests using the `Snapping` enum.
 """
-function set_snapping!(params::NearestParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::NearestParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),

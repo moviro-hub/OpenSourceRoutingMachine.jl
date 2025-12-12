@@ -17,39 +17,67 @@ mutable struct MatchParams
             ccall((:osrmc_match_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, match_params_destruct)
+        finalize(params, match_params_destruct)
         return params
     end
 end
 
 """
-    add_steps!(params::MatchParams, on)
+    set_format!(params::MatchParams, format)
 
-Mirrors the Route behavior so callers can request per-step guidance while
-running map-matching.
+Set the output format for Match responses using the `OutputFormat` enum (`json` or `flatbuffers`).
 """
-function add_steps!(params::MatchParams, on::Bool)
-    ccall((:osrmc_match_params_add_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+function set_format!(params::MatchParams, format::OutputFormat)
+    code = Cint(format)
+    with_error() do error_ptr
+        ccall(
+            (:osrmc_params_set_format, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
+            params.ptr,
+            code,
+            error_pointer(error_ptr),
+        )
+        nothing
+    end
     return nothing
 end
 
 """
-    add_alternatives!(params::MatchParams, on)
+    set_steps!(params::MatchParams, on)
+
+Mirrors the Route behavior so callers can request per-step guidance while
+running map-matching.
+"""
+function set_steps!(params::MatchParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_alternatives!(params::MatchParams, on)
 
 Allows the matcher to keep alternate routes which helps downstream quality
 checks decide when to fall back.
 """
-function add_alternatives!(params::MatchParams, on::Bool)
-    ccall((:osrmc_match_params_add_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+function set_alternatives!(params::MatchParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_match_params_set_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
 """
     set_geometries!(params::MatchParams, geometries)
 """
-function set_geometries!(params::MatchParams, geometries::AbstractString)
+function set_geometries!(params::MatchParams, geometries::Geometries)
+    code = Cint(geometries)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(geometries), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -58,9 +86,10 @@ end
 """
     set_overview!(params::MatchParams, overview)
 """
-function set_overview!(params::MatchParams, overview::AbstractString)
+function set_overview!(params::MatchParams, overview::Overview)
+    code = Cint(overview)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(overview), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -71,7 +100,7 @@ end
 """
 function set_continue_straight!(params::MatchParams, on::Bool)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -91,9 +120,10 @@ end
 """
     set_annotations!(params::MatchParams, annotations)
 """
-function set_annotations!(params::MatchParams, annotations::AbstractString)
+function set_annotations!(params::MatchParams, annotations::Annotations)
+    code = Cint(annotations)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(annotations), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -139,9 +169,10 @@ end
 Tells OSRM how to treat missing samples (split vs. ignore), letting analytics
 pipelines encode their tolerance for GPS outages.
 """
-function set_gaps!(params::MatchParams, gaps::AbstractString)
+function set_gaps!(params::MatchParams, gaps::MatchGaps)
+    code = Cint(gaps)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_gaps, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(gaps), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_gaps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -155,21 +186,21 @@ when high-frequency logs are matched.
 """
 function set_tidy!(params::MatchParams, on::Bool)
     with_error() do error_ptr
-        ccall((:osrmc_match_params_set_tidy, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        ccall((:osrmc_match_params_set_tidy, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
         nothing
     end
     return nothing
 end
 
-function add_coordinate!(params::MatchParams, coord::LatLon)
+function add_coordinate!(params::MatchParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -177,15 +208,15 @@ function add_coordinate!(params::MatchParams, coord::LatLon)
     return nothing
 end
 
-function add_coordinate_with!(params::MatchParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::MatchParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             Cdouble(radius),
             Cint(bearing),
             Cint(range),
@@ -248,9 +279,9 @@ function set_bearing!(params::MatchParams, coordinate_index::Integer, value::Int
     return nothing
 end
 
-function set_approach!(params::MatchParams, coordinate_index::Integer, approach)
+function set_approach!(params::MatchParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -282,17 +313,17 @@ function add_exclude!(params::MatchParams, profile::AbstractString)
 end
 
 function set_generate_hints!(params::MatchParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
 function set_skip_waypoints!(params::MatchParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
-function set_snapping!(params::MatchParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::MatchParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),

@@ -17,33 +17,61 @@ mutable struct TripParams
             ccall((:osrmc_trip_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, trip_params_destruct)
+        finalize(params, trip_params_destruct)
         return params
     end
 end
 
 """
-    add_steps!(params::TripParams, on)
+    set_format!(params::TripParams, format)
+
+Set the output format for Trip responses using the `OutputFormat` enum (`json` or `flatbuffers`).
 """
-function add_steps!(params::TripParams, on::Bool)
-    ccall((:osrmc_trip_params_add_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+function set_format!(params::TripParams, format::OutputFormat)
+    code = Cint(format)
+    with_error() do error_ptr
+        ccall(
+            (:osrmc_params_set_format, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
+            params.ptr,
+            code,
+            error_pointer(error_ptr),
+        )
+        nothing
+    end
     return nothing
 end
 
 """
-    add_alternatives!(params::TripParams, on)
+    set_steps!(params::TripParams, on)
 """
-function add_alternatives!(params::TripParams, on::Bool)
-    ccall((:osrmc_trip_params_add_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+function set_steps!(params::TripParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_alternatives!(params::TripParams, on)
+"""
+function set_alternatives!(params::TripParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_set_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
 """
     set_geometries!(params::TripParams, geometries)
 """
-function set_geometries!(params::TripParams, geometries::AbstractString)
+function set_geometries!(params::TripParams, geometries::Geometries)
+    code = Cint(geometries)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(geometries), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -52,9 +80,10 @@ end
 """
     set_overview!(params::TripParams, overview)
 """
-function set_overview!(params::TripParams, overview::AbstractString)
+function set_overview!(params::TripParams, overview::Overview)
+    code = Cint(overview)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(overview), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -65,7 +94,7 @@ end
 """
 function set_continue_straight!(params::TripParams, on::Bool)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -85,51 +114,54 @@ end
 """
     set_annotations!(params::TripParams, annotations)
 """
-function set_annotations!(params::TripParams, annotations::AbstractString)
+function set_annotations!(params::TripParams, annotations::Annotations)
+    code = Cint(annotations)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(annotations), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
 end
 
 """
-    add_roundtrip!(params::TripParams, on)
+    set_roundtrip!(params::TripParams, on)
 
 Controls whether OSRM should force start and end to coincide, critical when
 optimizing delivery tours vs. point-to-point trips.
 """
-function add_roundtrip!(params::TripParams, on::Bool)
+function set_roundtrip!(params::TripParams, on::Bool)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_add_roundtrip, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_roundtrip, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
         nothing
     end
     return nothing
 end
 
 """
-    add_source!(params::TripParams, source)
+    set_source!(params::TripParams, source)
 
 Fixes the trip's start behavior (first/last/any), ensuring OSRM respects
 business constraints like fixed depots.
 """
-function add_source!(params::TripParams, source::AbstractString)
+function set_source!(params::TripParams, source::TripSource)
+    code = Cint(source)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_add_source, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(source), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_source, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
 end
 
 """
-    add_destination!(params::TripParams, destination)
+    set_destination!(params::TripParams, destination)
 
-Same as `add_source!` but for the tour endpoint so depot returns and open tours
+Same as `set_source!` but for the tour endpoint so depot returns and open tours
 can be modeled explicitly.
 """
-function add_destination!(params::TripParams, destination::AbstractString)
+function set_destination!(params::TripParams, destination::TripDestination)
+    code = Cint(destination)
     with_error() do error_ptr
-        ccall((:osrmc_trip_params_add_destination, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(destination), error_pointer(error_ptr))
+        ccall((:osrmc_trip_params_set_destination, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -161,15 +193,15 @@ function add_waypoint!(params::TripParams, index::Integer)
     return nothing
 end
 
-function add_coordinate!(params::TripParams, coord::LatLon)
+function add_coordinate!(params::TripParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -177,15 +209,15 @@ function add_coordinate!(params::TripParams, coord::LatLon)
     return nothing
 end
 
-function add_coordinate_with!(params::TripParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::TripParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             Cdouble(radius),
             Cint(bearing),
             Cint(range),
@@ -248,9 +280,9 @@ function set_bearing!(params::TripParams, coordinate_index::Integer, value::Inte
     return nothing
 end
 
-function set_approach!(params::TripParams, coordinate_index::Integer, approach)
+function set_approach!(params::TripParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -282,17 +314,17 @@ function add_exclude!(params::TripParams, profile::AbstractString)
 end
 
 function set_generate_hints!(params::TripParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
 function set_skip_waypoints!(params::TripParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
-function set_snapping!(params::TripParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::TripParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),

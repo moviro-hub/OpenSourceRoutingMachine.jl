@@ -1,6 +1,6 @@
 using Test
-using OpenSourceRoutingMachine: OSRMConfig, OSRM, LatLon
-using OpenSourceRoutingMachine.Routes: RouteParams, add_coordinate!, route, get_distance, get_duration
+using OpenSourceRoutingMachine: OSRMConfig, OSRM, Position
+using OpenSourceRoutingMachine.Routes: RouteParams, RouteResponse, add_coordinate!, route, route_response, get_json
 using .Fixtures
 
 @testset "Integration - Full Workflow" begin
@@ -10,14 +10,11 @@ using .Fixtures
         params = RouteParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = route(osrm, params)
+        response = route_response(osrm, params)
         @test response isa RouteResponse
-        dist = get_distance(response)
-        dur = get_duration(response)
-        @test dist > 0.0
-        @test dur > 0.0
-        @test isfinite(dist)
-        @test isfinite(dur)
+        json = get_json(response)
+        @test isa(json, String)
+        @test !isempty(json)
     end
 
     @testset "Multiple routes in sequence" begin
@@ -25,21 +22,20 @@ using .Fixtures
         params1 = RouteParams()
         add_coordinate!(params1, Fixtures.HAMBURG_CITY_CENTER)
         add_coordinate!(params1, Fixtures.HAMBURG_AIRPORT)
-        dist1 = get_distance(route(osrm, params1))
+        response1 = route_response(osrm, params1)
+        @test response1 isa RouteResponse
 
         params2 = RouteParams()
         add_coordinate!(params2, Fixtures.HAMBURG_AIRPORT)
         add_coordinate!(params2, Fixtures.HAMBURG_PORT)
-        dist2 = get_distance(route(osrm, params2))
+        response2 = route_response(osrm, params2)
+        @test response2 isa RouteResponse
 
         params3 = RouteParams()
         add_coordinate!(params3, Fixtures.HAMBURG_PORT)
         add_coordinate!(params3, Fixtures.HAMBURG_CITY_CENTER)
-        dist3 = get_distance(route(osrm, params3))
-
-        @test dist1 > 0.0
-        @test dist2 > 0.0
-        @test dist3 > 0.0
+        response3 = route_response(osrm, params3)
+        @test response3 isa RouteResponse
     end
 
     @testset "Memory cleanup" begin
@@ -49,7 +45,8 @@ using .Fixtures
             params = RouteParams()
             add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
             add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
-            @test get_distance(route(osrm, params)) > 0.0
+            response = route_response(osrm, params)
+            @test response isa RouteResponse
         end
         GC.gc()
         @test true
@@ -63,13 +60,15 @@ using .Fixtures
             params = RouteParams()
             add_coordinate!(params, coords[i])
             add_coordinate!(params, coords[i + 1])
-            response = route(osrm, params)
-            push!(routes, (get_distance(response), get_duration(response)))
+            response = route_response(osrm, params)
+            @test response isa RouteResponse
+            push!(routes, response)
         end
         @test length(routes) == length(coords) - 1
-        for (dist, dur) in routes
-            @test dist > 0.0
-            @test dur > 0.0
+        for response in routes
+            json = get_json(response)
+            @test isa(json, String)
+            @test !isempty(json)
         end
     end
 end

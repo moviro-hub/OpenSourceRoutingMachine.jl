@@ -17,56 +17,85 @@ mutable struct RouteParams
             ccall((:osrmc_route_params_construct, libosrmc), Ptr{Cvoid}, (Ptr{Ptr{Cvoid}},), error_pointer(error_ptr))
         end
         params = new(ptr)
-        Utils.finalize(params, route_params_destruct)
+        finalize(params, route_params_destruct)
         return params
     end
 end
 
 """
-    add_steps!(params::RouteParams, on)
+    set_format!(params::RouteParams, format::OutputFormat)
 
-Requests OSRM to emit per-step instructions, which is necessary when building
-turn-by-turn guidance layers.
+Set the output format for Route responses using the `OutputFormat` enum (`json` or `flatbuffers`).
 """
-function add_steps!(params::RouteParams, on::Bool)
-    ccall((:osrmc_route_params_add_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
-    return nothing
-end
-
-"""
-    add_alternatives!(params::RouteParams, on)
-
-Signals that clients plan to evaluate multiple candidate routes, so OSRM keeps
-producing alternates instead of pruning early.
-"""
-function add_alternatives!(params::RouteParams, on::Bool)
-    ccall((:osrmc_route_params_add_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
-    return nothing
-end
-
-"""
-    set_geometries!(params::RouteParams, geometries)
-
-Choose between polyline encodings to match downstream consumers (e.g. GeoJSON
-vs. polyline6) without rebuilding the request object.
-"""
-function set_geometries!(params::RouteParams, geometries::AbstractString)
+function set_format!(params::RouteParams, format::OutputFormat)
+    code = Cint(format)
     with_error() do error_ptr
-        ccall((:osrmc_route_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(geometries), error_pointer(error_ptr))
+        ccall(
+            (:osrmc_params_set_format, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
+            params.ptr,
+            code,
+            error_pointer(error_ptr),
+        )
         nothing
     end
     return nothing
 end
 
 """
-    set_overview!(params::RouteParams, overview)
+    set_steps!(params::RouteParams, on)
+
+Requests OSRM to emit per-step instructions, which is necessary when building
+turn-by-turn guidance layers.
+"""
+function set_steps!(params::RouteParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_route_params_set_steps, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_alternatives!(params::RouteParams, on)
+
+Signals that clients plan to evaluate multiple candidate routes, so OSRM keeps
+producing alternates instead of pruning early.
+"""
+function set_alternatives!(params::RouteParams, on::Bool)
+    with_error() do error_ptr
+        ccall((:osrmc_route_params_set_alternatives, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_geometries!(params::RouteParams, geometries::Geometries)
+
+Choose between polyline encodings to match downstream consumers (e.g. GeoJSON
+vs. polyline6) without rebuilding the request object.
+"""
+function set_geometries!(params::RouteParams, geometries::Geometries)
+    code = Cint(geometries)
+    with_error() do error_ptr
+        ccall((:osrmc_route_params_set_geometries, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
+        nothing
+    end
+    return nothing
+end
+
+"""
+    set_overview!(params::RouteParams, overview::Overview)
 
 Controls how much geometry OSRM should include (full, simplified, or none),
 which directly impacts payload size.
 """
-function set_overview!(params::RouteParams, overview::AbstractString)
+function set_overview!(params::RouteParams, overview::Overview)
+    code = Cint(overview)
     with_error() do error_ptr
-        ccall((:osrmc_route_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(overview), error_pointer(error_ptr))
+        ccall((:osrmc_route_params_set_overview, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -80,7 +109,7 @@ requires staying aligned with the current heading.
 """
 function set_continue_straight!(params::RouteParams, on::Bool)
     with_error() do error_ptr
-        ccall((:osrmc_route_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, as_cint(on), error_pointer(error_ptr))
+        ccall((:osrmc_route_params_set_continue_straight, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -101,14 +130,15 @@ function set_number_of_alternatives!(params::RouteParams, count::Integer)
 end
 
 """
-    set_annotations!(params::RouteParams, annotations)
+    set_annotations!(params::RouteParams, annotations::Annotations)
 
 Asks OSRM to emit per-edge metadata (speed, duration, etc.) so analytics jobs
 can inspect costs at a finer granularity.
 """
-function set_annotations!(params::RouteParams, annotations::AbstractString)
+function set_annotations!(params::RouteParams, annotations::Annotations)
+    code = Cint(annotations)
     with_error() do error_ptr
-        ccall((:osrmc_route_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), params.ptr, as_cstring(annotations), error_pointer(error_ptr))
+        ccall((:osrmc_route_params_set_annotations, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, code, error_pointer(error_ptr))
         nothing
     end
     return nothing
@@ -141,20 +171,20 @@ function clear_waypoints!(params::RouteParams)
 end
 
 """
-    add_coordinate!(params::RouteParams, coord::LatLon)
+    add_coordinate!(params::RouteParams, coord::Position)
 
-Append a coordinate to the current request in `(lat, lon)` order, reusing the
+Append a coordinate to the current request in `(lon, lat)` order, reusing the
 same `RouteParams` across multiple calls.
 """
-function add_coordinate!(params::RouteParams, coord::LatLon)
+function add_coordinate!(params::RouteParams, coord::Position)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             error_pointer(error_ptr),
         )
         nothing
@@ -163,20 +193,20 @@ function add_coordinate!(params::RouteParams, coord::LatLon)
 end
 
 """
-    add_coordinate_with!(params::RouteParams, coord::LatLon, radius, bearing, range)
+    add_coordinate_with!(params::RouteParams, coord::Position, radius, bearing, range)
 
 Append a coordinate together with search radius and bearing hints so OSRM can
 snap more accurately to the road network.
 """
-function add_coordinate_with!(params::RouteParams, coord::LatLon, radius::Real, bearing::Integer, range::Integer)
+function add_coordinate_with!(params::RouteParams, coord::Position, radius::Real, bearing::Integer, range::Integer)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_add_coordinate_with, libosrmc),
             Cvoid,
             (Ptr{Cvoid}, Cdouble, Cdouble, Cdouble, Cint, Cint, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Cdouble(coord.lon),
-            Cdouble(coord.lat),
+            Cdouble(coord.longitude),
+            Cdouble(coord.latitude),
             Cdouble(radius),
             Cint(bearing),
             Cint(range),
@@ -258,14 +288,14 @@ function set_bearing!(params::RouteParams, coordinate_index::Integer, value::Int
 end
 
 """
-    set_approach!(params::RouteParams, coordinate_index, approach)
+    set_approach!(params::RouteParams, coordinate_index, approach::Approach)
 
 Control whether vehicles should approach waypoints from the curb, be
 unrestricted, or use the opposite side where supported.
 """
-function set_approach!(params::RouteParams, coordinate_index::Integer, approach)
+function set_approach!(params::RouteParams, coordinate_index::Integer, approach::Approach)
     @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    code = to_cint(approach, Approach)
+    code = Cint(approach)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_approach, libosrmc),
@@ -309,7 +339,7 @@ Ask OSRM to emit reusable hints for snapped coordinates, which can be cached by
 clients to speed up future queries.
 """
 function set_generate_hints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
@@ -320,18 +350,18 @@ Toggle whether OSRM should omit waypoint objects from the response to reduce
 payload size when only geometry and metrics are needed.
 """
 function set_skip_waypoints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, as_cint(on))
+    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
     return nothing
 end
 
 """
-    set_snapping!(params::RouteParams, snapping)
+    set_snapping!(params::RouteParams, snapping::Snapping)
 
 Control how aggressively OSRM should snap coordinates to the road network,
 using the `Snapping` enum for type safety.
 """
-function set_snapping!(params::RouteParams, snapping)
-    code = to_cint(snapping, Snapping)
+function set_snapping!(params::RouteParams, snapping::Snapping)
+    code = Cint(snapping)
     with_error() do error_ptr
         ccall(
             (:osrmc_params_set_snapping, libosrmc),
