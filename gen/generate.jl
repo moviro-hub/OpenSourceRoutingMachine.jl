@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-include("Generator.jl")
+include("src/Generator.jl")
 using .Generator: download_flatbuffers, generate_julia_code
 
 # Configuration constants
@@ -27,8 +27,8 @@ const OUTPUT_FILE = joinpath(SRC_DIR, "types.jl")
 
 # Step 1: Download flatbuffer files
 println("Step 1: Downloading FlatBuffer schema files...")
-println("-" ^ 60)
-success = download_flatbuffers(OSRM_VERSION; base_url=BASE_URL, subdir=FBS_SUBDIR, files=DOWNLOAD_FILES, output_dir=FLATBUFFERS_DIR)
+println("-"^60)
+success = download_flatbuffers(OSRM_VERSION; base_url = BASE_URL, subdir = FBS_SUBDIR, files = DOWNLOAD_FILES, output_dir = FLATBUFFERS_DIR)
 if !success
     println()
     println("Error: Failed to download some FlatBuffer files")
@@ -36,13 +36,13 @@ end
 
 # Step 2: Generate Julia code
 println("Step 2: Generating Julia code...")
-println("-" ^ 60)
+println("-"^60)
 success = generate_julia_code(INPUT_FILE, OUTPUT_FILE)
 if !success
     println()
     println("Error: Failed to generate Julia code")
 end
 
-println("=" ^ 60)
+println("="^60)
 println("Successfully completed all steps!")
-println("=" ^ 60)
+println("="^60)
