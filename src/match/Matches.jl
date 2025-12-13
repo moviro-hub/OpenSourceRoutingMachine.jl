@@ -1,13 +1,63 @@
 module Matches
 
 using CEnum
-using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null, deserialize
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    OutputFormat,
+    Approach,
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # enum values
+    output_format_json,
+    output_format_flatbuffers,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # data access helpers
+    as_string, as_vector,
+    # response getters
+    get_json, get_flatbuffer,
+    # response deserializers
+    deserialize
+
 import ..OpenSourceRoutingMachine:
-    OSRM, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, Position, Approach, Snapping, Geometries, Overview, Annotations,
-    OutputFormat, output_format_json, output_format_flatbuffers, finalize, as_string
+    # parameters
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    set_steps!,
+    set_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    # response getters
+    get_json,
+    get_flatbuffer
+
 import Base: match
 using JSON: JSON
 
@@ -16,10 +66,12 @@ using JSON: JSON
 
 Controls how OSRM handles gaps in map matching traces (`match_gaps_split`, `match_gaps_ignore`).
 """
-@cenum(MatchGaps::Int32, begin
-    match_gaps_split = 0
-    match_gaps_ignore = 1
-end)
+@cenum(
+    MatchGaps::Int32, begin
+        match_gaps_split = 0
+        match_gaps_ignore = 1
+    end
+)
 
 include("response.jl")
 include("params.jl")
@@ -45,7 +97,7 @@ Calls the libosrm Match module and returns the response as either JSON or FlatBu
 function match(osrm::OSRM, params::MatchParams; deserialize::Bool = true)
     response = match_response(osrm, params)
     format = get_format(response)
-    if format == output_format_json
+    return if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else

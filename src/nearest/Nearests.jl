@@ -1,11 +1,48 @@
 module Nearests
 
-using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null, deserialize
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    OutputFormat,
+    Approach,
+    Snapping,
+    # enum values
+    output_format_json,
+    output_format_flatbuffers,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # data access helpers
+    as_string, as_vector,
+    # response getters
+    get_json, get_flatbuffer,
+    # response deserializers
+    deserialize
+
 import ..OpenSourceRoutingMachine:
-    OSRM, set_number_of_results!, libosrmc,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, Position, Approach, Snapping, OutputFormat, output_format_json, output_format_flatbuffers, finalize, as_string
+    # parameters
+    set_number_of_results!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    # response getters
+    get_json,
+    get_flatbuffer
+
 import Base: count
 using JSON: JSON
 
@@ -33,7 +70,7 @@ Calls the libosrm Nearest module and returns the response as either JSON or Flat
 function nearest(osrm::OSRM, params::NearestParams; deserialize::Bool = true)
     response = nearest_response(osrm, params)
     format = get_format(response)
-    if format == output_format_json
+    return if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
@@ -71,9 +108,9 @@ export nearest_response
 
 ## Response getter exports
 export NearestResponse,
-  get_format,
-  get_json,
-  get_flatbuffer
+    get_format,
+    get_json,
+    get_flatbuffer
 
 # compute nearest result exports
 export nearest

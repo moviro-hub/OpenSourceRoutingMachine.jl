@@ -8,11 +8,13 @@ using ..OpenSourceRoutingMachine: OSRM_jll
 
 Selects the routing profile for OSRM dataset generation (`profile_car`, `profile_bicycle`, `profile_foot`).
 """
-@cenum(Profile::Int32, begin
-    profile_car = 0
-    profile_bicycle = 1
-    profile_foot = 2
-end)
+@cenum(
+    Profile::Int32, begin
+        profile_car = 0
+        profile_bicycle = 1
+        profile_foot = 2
+    end
+)
 
 const ProfileType = Profile
 

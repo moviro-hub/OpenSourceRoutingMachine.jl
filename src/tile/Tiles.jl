@@ -1,11 +1,36 @@
 module Tiles
 
-using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    Approach,
+    Snapping,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize
+
 import ..OpenSourceRoutingMachine:
-    OSRM, set_x!, set_y!, set_z!, libosrmc,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, Position, Approach, Snapping, finalize
+    # parameters
+    set_x!,
+    set_y!,
+    set_z!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!
 
 include("response.jl")
 include("params.jl")

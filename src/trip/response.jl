@@ -55,7 +55,7 @@ function get_flatbuffer(response::TripResponse)
     end
     data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
     len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
-    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own=false)
+    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own = false)
     result = Vector{UInt8}(undef, len)
     copyto!(result, data)
     ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)

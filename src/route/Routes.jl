@@ -1,11 +1,37 @@
 module Routes
 
-using FlatBuffers
-using ..OpenSourceRoutingMachine: with_error, error_pointer, check_error, as_cstring, as_cstring_or_null, deserialize
-import ..OpenSourceRoutingMachine:
-    OSRM,
-    get_json,
+using ..OpenSourceRoutingMachine:
+    # modules
     libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    OutputFormat,
+    Approach,
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # enum values
+    output_format_json,
+    output_format_flatbuffers,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # data access helpers
+    as_string, as_vector,
+    # response getters
+    get_json, get_flatbuffer,
+    # response deserializers
+    deserialize
+
+
+import ..OpenSourceRoutingMachine:
+    # parameters
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -25,15 +51,10 @@ import ..OpenSourceRoutingMachine:
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!,
-    Position,
-    Approach,
-    Snapping,
-    Geometries,
-    Overview,
-    Annotations,
-    OutputFormat,
-    finalize,
-    as_string
+    # response getters
+    get_json,
+    get_flatbuffer
+
 using JSON: JSON
 
 include("response.jl")
@@ -60,7 +81,7 @@ Calls the libosrm Route module and returns the response as either JSON or FlatBu
 function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
     response = route_response(osrm, params)
     format = get_format(response)
-    if format == output_format_json
+    return if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else

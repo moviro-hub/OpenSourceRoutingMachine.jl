@@ -1,5 +1,3 @@
-
-
 """
     extract(osm_path; profile=profile_car, extra_args=String[])
 
@@ -15,7 +13,7 @@ extract("path/to/osm.pbf", profile = "path/to/profile.lua")
 """
 function extract(
         osm_path::AbstractString;
-        profile::Union{ProfileType,String} = profile_car,
+        profile::Union{ProfileType, String} = profile_car,
         extra_args::Vector{String} = String[],
     )
     cmd = extract_cmd(osm_path, profile; extra_args = extra_args)
@@ -24,10 +22,10 @@ end
 
 #  Use with default profiles
 function extract_cmd(
-    osm_path::AbstractString,
-    profile::ProfileType;
-    extra_args::Vector{String}=String[],
-)
+        osm_path::AbstractString,
+        profile::ProfileType;
+        extra_args::Vector{String} = String[],
+    )
     profile_path = profile_lua_path(profile)
     args = String["-p", profile_path, osm_path]
     append!(args, extra_args)
@@ -36,10 +34,10 @@ end
 
 #  Use with custom profile path
 function extract_cmd(
-    osm_path::AbstractString,
-    profile_path::String;
-    extra_args::Vector{String}=String[],
-)
+        osm_path::AbstractString,
+        profile_path::String;
+        extra_args::Vector{String} = String[],
+    )
     args = String["-p", profile_path, osm_path]
     append!(args, extra_args)
     return command_with_args(OSRM_jll.osrm_extract(), args)

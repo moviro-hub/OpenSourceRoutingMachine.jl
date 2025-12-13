@@ -61,6 +61,16 @@ Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 export OSRM, OSRMConfig, Position
 # enums
 export Algorithm, Snapping, Approach, OutputFormat, Geometries, Overview, Annotations
+# enum values
+export output_format_json, output_format_flatbuffers,
+    algorithm_ch, algorithm_mld,
+    snapping_default, snapping_any,
+    approach_curb, approach_unrestricted, approach_opposite,
+    geometries_polyline, geometries_polyline6, geometries_geojson,
+    overview_simplified, overview_full, overview_false,
+    annotations_none, annotations_duration, annotations_nodes,
+    annotations_distance, annotations_weight, annotations_datasources,
+    annotations_speed, annotations_all
 # functions
 export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 

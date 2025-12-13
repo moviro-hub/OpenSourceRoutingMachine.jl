@@ -8,18 +8,6 @@ Converts FlatBuffers binary data to a FBResult Julia object using FlatBuffers.de
 
 # Returns
 - `FBResult`: The deserialized FBResult object
-
-# Examples
-```julia
-using OpenSourceRoutingMachine.Routes
-
-# Get FlatBuffers binary data from a route response
-response = route_response(osrm, params)
-if get_format(response) == output_format_flatbuffers
-    buffer = get_flatbuffer(response)
-    fb_result = deserialize(buffer)
-end
-```
 """
 function deserialize(buffer::Vector{UInt8})::FBResult
     if isempty(buffer)
@@ -39,6 +27,5 @@ function deserialize(buffer::Vector{UInt8})::FBResult
         end
     end
 
-    # Return the full FBResult object (caller can access waypoints, routes, or table as needed)
     return result
 end

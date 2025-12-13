@@ -53,11 +53,5 @@ function get_flatbuffer(response::RouteResponse)
     blob = with_error() do err
         ccall((:osrmc_route_response_flatbuffer, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
     end
-    data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
-    len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
-    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own=false)
-    result = Vector{UInt8}(undef, len)
-    copyto!(result, data)
-    ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)
-    return result
+    return as_vector(blob)
 end

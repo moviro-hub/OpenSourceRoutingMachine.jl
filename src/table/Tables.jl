@@ -1,14 +1,54 @@
 module Tables
 
 using CEnum
-using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null, deserialize
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    OutputFormat,
+    Approach,
+    Snapping,
+    # enum values
+    output_format_json,
+    output_format_flatbuffers,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # data access helpers
+    as_string, as_vector,
+    # response getters
+    get_json, get_flatbuffer,
+    # response deserializers
+    deserialize
+
 import ..OpenSourceRoutingMachine:
-    OSRM, get_json, libosrmc,
-    add_source!, add_destination!, set_annotations!, set_fallback_speed!,
-    set_fallback_coordinate_type!, set_scale_factor!,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, Position, Approach, Snapping, OutputFormat, finalize, as_string
+    # parameters
+    add_source!,
+    add_destination!,
+    set_annotations!,
+    set_fallback_speed!,
+    set_fallback_coordinate_type!,
+    set_scale_factor!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!,
+    # response getters
+    get_json,
+    get_flatbuffer
+
 using JSON: JSON
 
 """
@@ -22,22 +62,26 @@ The enum values correspond to bit positions:
 - `table_annotations_distance = 2` (bit 1): Request distance annotations
 - `table_annotations_all = 3`: All annotations (table_annotations_duration | table_annotations_distance)
 """
-@cenum(TableAnnotations::Int32, begin
-    table_annotations_none = 0
-    table_annotations_duration = 1
-    table_annotations_distance = 2
-    table_annotations_all = 3  # table_annotations_duration | table_annotations_distance
-end)
+@cenum(
+    TableAnnotations::Int32, begin
+        table_annotations_none = 0
+        table_annotations_duration = 1
+        table_annotations_distance = 2
+        table_annotations_all = 3  # table_annotations_duration | table_annotations_distance
+    end
+)
 
 """
     TableFallbackCoordinate
 
 Controls whether fallback results use input coordinates or snapped coordinates (`table_fallback_coordinate_input`, `table_fallback_coordinate_snapped`).
 """
-@cenum(TableFallbackCoordinate::Int32, begin
-    table_fallback_coordinate_input = 0
-    table_fallback_coordinate_snapped = 1
-end)
+@cenum(
+    TableFallbackCoordinate::Int32, begin
+        table_fallback_coordinate_input = 0
+        table_fallback_coordinate_snapped = 1
+    end
+)
 
 include("response.jl")
 include("params.jl")
@@ -63,7 +107,7 @@ Calls the libosrm Table module and returns the response as either JSON or FlatBu
 function table(osrm::OSRM, params::TableParams; deserialize::Bool = true)
     response = table_response(osrm, params)
     format = get_format(response)
-    if format == output_format_json
+    return if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else

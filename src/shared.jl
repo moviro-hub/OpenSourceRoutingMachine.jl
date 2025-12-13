@@ -3,63 +3,75 @@
 
 Selects the output format for OSRM responses (`output_format_json`, `output_format_flatbuffers`).
 """
-@cenum(OutputFormat::Int32, begin
-    output_format_json = 0
-    output_format_flatbuffers = 1
-end)
+@cenum(
+    OutputFormat::Int32, begin
+        output_format_json = 0
+        output_format_flatbuffers = 1
+    end
+)
 
 """
     Algorithm
 
 Selects the routing algorithm OSRM should use for a given dataset (`algorithm_ch`, `algorithm_mld`).
 """
-@cenum(Algorithm::Int32, begin
-    algorithm_ch = 0
-    algorithm_mld = 1
-end)
+@cenum(
+    Algorithm::Int32, begin
+        algorithm_ch = 0
+        algorithm_mld = 1
+    end
+)
 
 """
     Snapping
 
 Selects the snapping behavior OSRM should use for a given dataset (`snapping_default`, `snapping_any`).
 """
-@cenum(Snapping::Int32, begin
-    snapping_default = 0
-    snapping_any = 1
-end)
+@cenum(
+    Snapping::Int32, begin
+        snapping_default = 0
+        snapping_any = 1
+    end
+)
 
 """
     Approach
 
 Selects the approach behavior OSRM should use for a given dataset (`approach_curb`, `approach_unrestricted`, `approach_opposite`).
 """
-@cenum(Approach::Int32, begin
-    approach_curb = 0
-    approach_unrestricted = 1
-    approach_opposite = 2
-end)
+@cenum(
+    Approach::Int32, begin
+        approach_curb = 0
+        approach_unrestricted = 1
+        approach_opposite = 2
+    end
+)
 
 """
     Geometries
 
 Selects the geometry encoding format for route geometries (`geometries_polyline`, `geometries_polyline6`, `geometries_geojson`).
 """
-@cenum(Geometries::Int32, begin
-    geometries_polyline = 0
-    geometries_polyline6 = 1
-    geometries_geojson = 2
-end)
+@cenum(
+    Geometries::Int32, begin
+        geometries_polyline = 0
+        geometries_polyline6 = 1
+        geometries_geojson = 2
+    end
+)
 
 """
     Overview
 
 Controls how much geometry detail OSRM should include (`overview_simplified`, `overview_full`, `overview_false`).
 """
-@cenum(Overview::Int32, begin
-    overview_simplified = 0
-    overview_full = 1
-    overview_false = 2
-end)
+@cenum(
+    Overview::Int32, begin
+        overview_simplified = 0
+        overview_full = 1
+        overview_false = 2
+    end
+)
 
 """
     Annotations
@@ -76,18 +88,20 @@ The enum values correspond to bit positions:
 - `annotations_speed = 32` (bit 5): Request speed annotations
 - `annotations_all = 63`: All annotations (bitwise OR of all flags)
 """
-@cenum(Annotations::Int32, begin
-    annotations_none = 0
-    annotations_duration = 1
-    annotations_nodes = 2
-    annotations_distance = 4
-    annotations_weight = 8
-    annotations_datasources = 16
-    annotations_speed = 32
-    annotations_all = 63 # annotations_duration | annotations_nodes | annotations_distance | annotations_weight | annotations_datasources | annotations_speed
-end)
+@cenum(
+    Annotations::Int32, begin
+        annotations_none = 0
+        annotations_duration = 1
+        annotations_nodes = 2
+        annotations_distance = 4
+        annotations_weight = 8
+        annotations_datasources = 16
+        annotations_speed = 32
+        annotations_all = 63 # annotations_duration | annotations_nodes | annotations_distance | annotations_weight | annotations_datasources | annotations_speed
+    end
+)
 
-# Parameter helper declarations live here so service modules can extend these functions
+# Parameter helper declarations
 function set_steps! end
 function set_alternatives! end
 function set_geometries! end
@@ -124,7 +138,7 @@ function set_generate_hints! end
 function set_skip_waypoints! end
 function set_snapping! end
 
-# Response helper declarations live here so service modules can extend these functions
+# Response helper declarations
 function get_format end
 function get_json end
 function get_flatbuffer end

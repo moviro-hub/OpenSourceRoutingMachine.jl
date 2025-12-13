@@ -5,36 +5,40 @@ using FlatBuffers
 using CEnum
 
 # Enums
-@cenum(ManeuverType::UInt8, begin
-    maneuver_type_turn = 0
-    maneuver_type_new_name = 1
-    maneuver_type_depart = 2
-    maneuver_type_arrive = 3
-    maneuver_type_merge = 4
-    maneuver_type_on_ramp = 5
-    maneuver_type_off_ramp = 6
-    maneuver_type_fork = 7
-    maneuver_type_end_of_road = 8
-    maneuver_type_continue = 9
-    maneuver_type_roundabout = 10
-    maneuver_type_rotary = 11
-    maneuver_type_roundabout_turn = 12
-    maneuver_type_notification = 13
-    maneuver_type_exit_roundabout = 14
-    maneuver_type_exit_rotary = 15
-end)
+@cenum(
+    ManeuverType::UInt8, begin
+        maneuver_type_turn = 0
+        maneuver_type_new_name = 1
+        maneuver_type_depart = 2
+        maneuver_type_arrive = 3
+        maneuver_type_merge = 4
+        maneuver_type_on_ramp = 5
+        maneuver_type_off_ramp = 6
+        maneuver_type_fork = 7
+        maneuver_type_end_of_road = 8
+        maneuver_type_continue = 9
+        maneuver_type_roundabout = 10
+        maneuver_type_rotary = 11
+        maneuver_type_roundabout_turn = 12
+        maneuver_type_notification = 13
+        maneuver_type_exit_roundabout = 14
+        maneuver_type_exit_rotary = 15
+    end
+)
 
-@cenum(Turn::UInt8, begin
-    turn_none = 0
-    turn_u_turn = 1
-    turn_sharp_right = 2
-    turn_right = 3
-    turn_slight_right = 4
-    turn_straight = 5
-    turn_slight_left = 6
-    turn_left = 7
-    turn_sharp_left = 8
-end)
+@cenum(
+    Turn::UInt8, begin
+        turn_none = 0
+        turn_u_turn = 1
+        turn_sharp_right = 2
+        turn_right = 3
+        turn_slight_right = 4
+        turn_straight = 5
+        turn_slight_left = 6
+        turn_left = 7
+        turn_sharp_left = 8
+    end
+)
 
 # Structs (immutable value types)
 FlatBuffers.@STRUCT struct Position

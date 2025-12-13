@@ -1,14 +1,47 @@
 module Trips
 
 using CEnum
-using ..OpenSourceRoutingMachine: with_error, error_pointer, as_cstring, as_cstring_or_null, deserialize
-import ..OpenSourceRoutingMachine:
-    OSRM,
-    get_json,
+using ..OpenSourceRoutingMachine:
+    # modules
     libosrmc,
+    # types
+    OSRM,
+    Position,
+    # enums
+    OutputFormat,
+    Approach,
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # enum values
+    output_format_json,
+    output_format_flatbuffers,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring, as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # data access helpers
+    as_string, as_vector,
+    # response getters
+    get_json, get_flatbuffer,
+    # response deserializers
+    deserialize
+
+import ..OpenSourceRoutingMachine:
+    # parameters
     set_roundtrip!,
     set_source!,
     set_destination!,
+    set_steps!,
+    set_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
     add_waypoint!,
     clear_waypoints!,
     add_coordinate!,
@@ -21,17 +54,10 @@ import ..OpenSourceRoutingMachine:
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!,
-    Position,
-    Approach,
-    Snapping,
-    Geometries,
-    Overview,
-    Annotations,
-    OutputFormat,
-    output_format_json,
-    output_format_flatbuffers,
-    finalize,
-    as_string
+    # response getters
+    get_json,
+    get_flatbuffer
+
 using JSON: JSON
 
 """
@@ -39,20 +65,24 @@ using JSON: JSON
 
 Selects the source location strategy for trip queries (`trip_source_any_source`, `trip_source_first`).
 """
-@cenum(TripSource::Int32, begin
-    trip_source_any_source = 0
-    trip_source_first = 1
-end)
+@cenum(
+    TripSource::Int32, begin
+        trip_source_any_source = 0
+        trip_source_first = 1
+    end
+)
 
 """
     TripDestination
 
 Selects the destination location strategy for trip queries (`trip_destination_any_destination`, `trip_destination_last`).
 """
-@cenum(TripDestination::Int32, begin
-    trip_destination_any_destination = 0
-    trip_destination_last = 1
-end)
+@cenum(
+    TripDestination::Int32, begin
+        trip_destination_any_destination = 0
+        trip_destination_last = 1
+    end
+)
 
 include("response.jl")
 include("params.jl")
@@ -78,7 +108,7 @@ Calls the libosrm Trip module and returns the response as either JSON or FlatBuf
 function trip(osrm::OSRM, params::TripParams; deserialize::Bool = true)
     response = trip_response(osrm, params)
     format = get_format(response)
-    if format == output_format_json
+    return if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
