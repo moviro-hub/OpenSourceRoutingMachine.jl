@@ -1,5 +1,5 @@
 """
-    deserialize(buffer::Vector{UInt8}) -> FBResult
+    as_struct(buffer::Vector{UInt8}) -> FBResult
 
 Converts FlatBuffers binary data to a FBResult Julia object using FlatBuffers.deserialize.
 
@@ -9,7 +9,7 @@ Converts FlatBuffers binary data to a FBResult Julia object using FlatBuffers.de
 # Returns
 - `FBResult`: The deserialized FBResult object
 """
-function deserialize(buffer::Vector{UInt8})::FBResult
+function as_struct(buffer::Vector{UInt8})::FBResult
     if isempty(buffer)
         error("Empty buffer provided")
     end

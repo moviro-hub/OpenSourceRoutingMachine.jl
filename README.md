@@ -120,7 +120,8 @@ The Route module provides the functionality to calculate the shortest path betwe
 
 The main function is `route(osrm, params)`, which takes the OSRM instance and a route-specific parameters object as input.
 
-It is similar in spirit to the Nearest module.
+This module structure is similar to the Nearest module.
+For more details, of the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Routes
@@ -130,7 +131,8 @@ params = RouteParams()
 set_format!(params, output_format_flatbuffers)
 set_geometries!(params, geometries_geojson) # geometry in an uncompressed format
 set_overview!(params, overview_full) # detail geometry information
-set_alternatives!(params, false)  # no alternatives
+set_steps!(params, true) # include steps in the response
+set_annotations!(params, annotations_all) # include all annotations
 add_coordinate!(params, Position(9.9937, 53.5511))  # Start: Hamburg city center
 add_coordinate!(params, Position(9.9882, 53.6304))  # End: Hamburg airport
 # many more parameters are available, see the documentation
@@ -145,7 +147,8 @@ The Table module provides the functionality to calculate the distance/duration m
 
 The main function is `table(osrm, params)`, which takes the OSRM instance and a table-specific parameters object as input.
 
-It is similar in spirit to the Route module.
+This module structure is similar to the Nearest module.
+For more details, of the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Tables
@@ -171,7 +174,8 @@ The Match module provides the functionality to map noisy GPS traces to a road ne
 
 The main function is `match(osrm, params)`, which takes the OSRM instance and a match-specific parameters object as input.
 
-It is similar in spirit to the Route module.
+This module structure is similar to the Nearest module.
+For more details, of the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Matches
@@ -195,7 +199,8 @@ The Trip module provides the functionality to solve the traveling salesman probl
 
 The main function is `trip(osrm, params)`, which takes the OSRM instance and a trip-specific parameters object as input.
 
-It is similar in spirit to the Route module.
+This module structure is similar to the Nearest module.
+For more details, of the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Trips

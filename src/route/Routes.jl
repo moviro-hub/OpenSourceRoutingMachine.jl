@@ -7,15 +7,12 @@ using ..OpenSourceRoutingMachine:
     OSRM,
     Position,
     # enums
-    OutputFormat,
+    OutputFormat, output_format_json, output_format_flatbuffers,
     Approach,
     Snapping,
     Overview,
     Annotations,
     Geometries,
-    # enum values
-    output_format_json,
-    output_format_flatbuffers,
     # error helpers
     with_error, error_pointer, check_error,
     # string helpers
@@ -27,7 +24,7 @@ using ..OpenSourceRoutingMachine:
     # response getters
     get_json, get_flatbuffer,
     # response deserializers
-    deserialize
+    as_struct
 
 
 import ..OpenSourceRoutingMachine:
@@ -89,7 +86,7 @@ function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
         end
     elseif format == output_format_flatbuffers
         if deserialize
-            return deserialize(get_flatbuffer(response))
+            return as_struct(get_flatbuffer(response))
         else
             return get_flatbuffer(response)
         end
