@@ -60,13 +60,13 @@ Calls the libosrm Route module and returns the response as either JSON or FlatBu
 function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
     response = route_response(osrm, params)
     format = get_format(response)
-    if format == OutputFormat(0)  # json
+    if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
             return get_json(response)
         end
-    elseif format == OutputFormat(1)  # flatbuffers
+    elseif format == output_format_flatbuffers
         if deserialize
             return deserialize(get_flatbuffer(response))
         else

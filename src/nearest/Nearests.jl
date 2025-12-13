@@ -5,7 +5,7 @@ import ..OpenSourceRoutingMachine:
     OSRM, set_number_of_results!, libosrmc,
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, Position, Approach, Snapping, OutputFormat, finalize, as_string
+    set_snapping!, Position, Approach, Snapping, OutputFormat, output_format_json, output_format_flatbuffers, finalize, as_string
 import Base: count
 using JSON: JSON
 
@@ -33,13 +33,13 @@ Calls the libosrm Nearest module and returns the response as either JSON or Flat
 function nearest(osrm::OSRM, params::NearestParams; deserialize::Bool = true)
     response = nearest_response(osrm, params)
     format = get_format(response)
-    if format == OutputFormat(0)  # json
+    if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
             return get_json(response)
         end
-    elseif format == OutputFormat(1)  # flatbuffers
+    elseif format == output_format_flatbuffers
         if deserialize
             return deserialize(get_flatbuffer(response))
         else

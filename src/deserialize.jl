@@ -15,7 +15,7 @@ using OpenSourceRoutingMachine.Routes
 
 # Get FlatBuffers binary data from a route response
 response = route_response(osrm, params)
-if get_format(response) == OutputFormat(1)  # flatbuffers
+if get_format(response) == output_format_flatbuffers
     buffer = get_flatbuffer(response)
     fb_result = deserialize(buffer)
 end

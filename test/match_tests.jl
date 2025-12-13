@@ -4,14 +4,15 @@ using OpenSourceRoutingMachine.Matches:
     MatchParams,
     MatchResponse,
     MatchGaps,
+    match_gaps_split,
+    match_gaps_ignore,
     add_coordinate!,
     add_coordinate_with!,
     add_timestamp!,
     set_gaps!,
     set_tidy!,
     match,
-    match_response,
-    get_json
+    match_response
 const Matches = OpenSourceRoutingMachine.Matches
 using Base: C_NULL, length, isfinite
 using .Fixtures
@@ -37,7 +38,7 @@ using .Fixtures
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -48,9 +49,10 @@ using .Fixtures
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_PORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
         @test response.ptr != C_NULL
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -66,8 +68,8 @@ end
 
     @testset "set_gaps!" begin
         params = MatchParams()
-        set_gaps!(params, MatchGaps(0))  # split
-        set_gaps!(params, "ignore")
+        set_gaps!(params, match_gaps_split)
+        set_gaps!(params, match_gaps_ignore)
         @test true
     end
 
@@ -90,7 +92,7 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -98,13 +100,13 @@ end
     @testset "Match with gaps set to split" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        set_gaps!(params, MatchGaps(0))  # split
+        set_gaps!(params, match_gaps_split)
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -118,7 +120,7 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -137,8 +139,9 @@ end
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
-        response = match(osrm, params)
-        json_str = get_json(response)
+        response = match_response(osrm, params)
+        @test response isa MatchResponse
+        json_str = Matches.get_json(response)
         @test isa(json_str, String)
         @test !isempty(json_str)
         @test startswith(json_str, '{') || startswith(json_str, '[')
@@ -152,9 +155,9 @@ end
         add_coordinate!(params, Position(0.0, 0.0))
         add_coordinate!(params, Position(1.0, 1.0))
         try
-            response = match(osrm, params)
+            response = match_response(osrm, params)
             @test response isa MatchResponse
-            json = get_json(response)
+            json = Matches.get_json(response)
             @test isa(json, String)
         catch e
             @test e isa OSRMError
@@ -185,9 +188,9 @@ end
         add_coordinate!(params, coord)
         add_coordinate!(params, coord)
         try
-            response = match(osrm, params)
+            response = match_response(osrm, params)
             @test response isa MatchResponse
-            json = get_json(response)
+            json = Matches.get_json(response)
             @test isa(json, String)
         catch e
             @test e isa OSRMError
@@ -202,7 +205,7 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end
@@ -215,12 +218,12 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = get_json(response)
+        json = Matches.get_json(response)
         @test isa(json, String)
         @test !isempty(json)
     end

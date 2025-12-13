@@ -27,9 +27,9 @@ mutable struct OSRMConfig
             base_name = basename(base_path)
             files = readdir(dir)
             if Base.any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
-                set_algorithm!(config, Algorithm(1))  # mld
+                set_algorithm!(config, algorithm_mld)
             elseif Base.any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
-                set_algorithm!(config, Algorithm(0))  # ch
+                set_algorithm!(config, algorithm_ch)
             else
                 error("Could not determine algorithm from dataset files in $base_path, are you sure this is a valid OSRM dataset?")
             end

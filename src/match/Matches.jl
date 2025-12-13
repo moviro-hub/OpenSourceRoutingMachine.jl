@@ -7,18 +7,18 @@ import ..OpenSourceRoutingMachine:
     add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
     set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
     set_snapping!, Position, Approach, Snapping, Geometries, Overview, Annotations,
-    OutputFormat, finalize, as_string
+    OutputFormat, output_format_json, output_format_flatbuffers, finalize, as_string
 import Base: match
 using JSON: JSON
 
 """
     MatchGaps
 
-Controls how OSRM handles gaps in map matching traces (`split`, `ignore`).
+Controls how OSRM handles gaps in map matching traces (`match_gaps_split`, `match_gaps_ignore`).
 """
 @cenum(MatchGaps::Int32, begin
-    split = 0
-    ignore = 1
+    match_gaps_split = 0
+    match_gaps_ignore = 1
 end)
 
 include("response.jl")
@@ -45,13 +45,13 @@ Calls the libosrm Match module and returns the response as either JSON or FlatBu
 function match(osrm::OSRM, params::MatchParams; deserialize::Bool = true)
     response = match_response(osrm, params)
     format = get_format(response)
-    if format == OutputFormat(0)  # json
+    if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
             return get_json(response)
         end
-    elseif format == OutputFormat(1)  # flatbuffers
+    elseif format == output_format_flatbuffers
         if deserialize
             return deserialize(get_flatbuffer(response))
         else

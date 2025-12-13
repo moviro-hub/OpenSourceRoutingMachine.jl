@@ -1,12 +1,12 @@
 using Test
-using OpenSourceRoutingMachine: Position, OSRMError, Approach, Snapping, Geometries, Overview, Annotations
+using OpenSourceRoutingMachine: Position, OSRMError, Approach, Snapping, Geometries, Overview, Annotations, geometries_geojson, overview_full, annotations_duration, annotations_distance, annotations_all, approach_curb, snapping_default
 using OpenSourceRoutingMachine.Routes:
     RouteParams,
     RouteResponse,
     # params
     add_coordinate!,
     add_coordinate_with!,
-    add_steps!,
+    set_steps!,
     set_alternatives!,
     set_geometries!,
     set_overview!,
@@ -125,11 +125,11 @@ end
 
         # toggles and options
         # use a known-valid geometries value
-        set_geometries!(params, Geometries(2))  # geojson
-        set_overview!(params, Overview(1))  # full
+        set_geometries!(params, geometries_geojson)
+        set_overview!(params, overview_full)
         set_continue_straight!(params, true)
         set_number_of_alternatives!(params, 2)
-        set_annotations!(params, Annotations(5))  # distance | duration
+        set_annotations!(params, Annotations(annotations_duration | annotations_distance))
 
         # waypoint helpers
         # clear/add waypoints without requiring endpoints to be waypoints
@@ -139,13 +139,13 @@ end
         set_hint!(params, 1, "")
         set_radius!(params, 1, 10.0)
         set_bearing!(params, 1, 0, 180)
-        set_approach!(params, 1, Approach(0))  # curb
+        set_approach!(params, 1, approach_curb)
 
         # global behavior
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, Snapping(0))  # default
+        set_snapping!(params, snapping_default)
 
         response = route_response(osrm, params)
         @test response isa RouteResponse
@@ -241,9 +241,9 @@ end
         add_coordinate!(params, coord)
     end
 
-    add_steps!(params, true)
-    set_geometries!(params, Geometries(2))  # geojson
-    set_annotations!(params, Annotations(5))  # distance | duration
+    set_steps!(params, true)
+    set_geometries!(params, geometries_geojson)
+    set_annotations!(params, annotations_all)
 
     response = route_response(osrm, params)
 

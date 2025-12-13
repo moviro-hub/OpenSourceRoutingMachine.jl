@@ -1,10 +1,13 @@
 using Test
 using OpenSourceRoutingMachine: Position, OSRMError
-using OpenSourceRoutingMachine: Snapping, Approach
+using OpenSourceRoutingMachine: Snapping, Approach, approach_curb, snapping_default
 using OpenSourceRoutingMachine.Tables:
     TableParams,
     TableResponse,
     TableAnnotations,
+    TableFallbackCoordinate,
+    table_annotations_all,
+    table_fallback_coordinate_input,
     add_coordinate!,
     add_coordinate_with!,
     add_source!,
@@ -82,22 +85,22 @@ end
         add_coordinate_with!(params, Fixtures.HAMBURG_AIRPORT, 10.0, 0, 180)
 
         # table-specific knobs
-        set_annotations!(params, TableAnnotations(3))  # distance | duration
+        set_annotations!(params, table_annotations_all)
         set_fallback_speed!(params, 50.0)
-        set_fallback_coordinate_type!(params, "input")
+        set_fallback_coordinate_type!(params, table_fallback_coordinate_input)
         set_scale_factor!(params, 1.0)
 
         # generic per-coordinate helpers
         set_hint!(params, 1, "")
         set_radius!(params, 1, 5.0)
         set_bearing!(params, 1, 0, 90)
-        set_approach!(params, 1, Approach(0))  # curb
+        set_approach!(params, 1, approach_curb)
 
         # generic global helpers
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, Snapping(0))  # default
+        set_snapping!(params, snapping_default)
 
         response = table_response(osrm, params)
         @test response isa TableResponse
@@ -119,7 +122,7 @@ end
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        set_annotations!(params, TableAnnotations(3))  # distance | duration
+        set_annotations!(params, table_annotations_all)
         response = table_response(osrm, params)
         @test response isa TableResponse
         json = get_json(response)

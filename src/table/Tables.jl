@@ -17,26 +17,26 @@ using JSON: JSON
 Bit flags for selecting which annotations to include in table/matrix responses. Values can be combined using bitwise OR (`|`).
 
 The enum values correspond to bit positions:
-- `none = 0`: No annotations
-- `duration = 1` (bit 0): Request duration annotations
-- `distance = 2` (bit 1): Request distance annotations
-- `all = 3`: All annotations (duration | distance)
+- `table_annotations_none = 0`: No annotations
+- `table_annotations_duration = 1` (bit 0): Request duration annotations
+- `table_annotations_distance = 2` (bit 1): Request distance annotations
+- `table_annotations_all = 3`: All annotations (table_annotations_duration | table_annotations_distance)
 """
 @cenum(TableAnnotations::Int32, begin
-    none = 0
-    duration = 1
-    distance = 2
-    all = 3  # duration | distance
+    table_annotations_none = 0
+    table_annotations_duration = 1
+    table_annotations_distance = 2
+    table_annotations_all = 3  # table_annotations_duration | table_annotations_distance
 end)
 
 """
     TableFallbackCoordinate
 
-Controls whether fallback results use input coordinates or snapped coordinates (`input`, `snapped`).
+Controls whether fallback results use input coordinates or snapped coordinates (`table_fallback_coordinate_input`, `table_fallback_coordinate_snapped`).
 """
 @cenum(TableFallbackCoordinate::Int32, begin
-    input = 0
-    snapped = 1
+    table_fallback_coordinate_input = 0
+    table_fallback_coordinate_snapped = 1
 end)
 
 include("response.jl")
@@ -63,13 +63,13 @@ Calls the libosrm Table module and returns the response as either JSON or FlatBu
 function table(osrm::OSRM, params::TableParams; deserialize::Bool = true)
     response = table_response(osrm, params)
     format = get_format(response)
-    if format == OutputFormat(0)  # json
+    if format == output_format_json
         if deserialize
             return JSON.parse(get_json(response))
         else
             return get_json(response)
         end
-    elseif format == OutputFormat(1)  # flatbuffers
+    elseif format == output_format_flatbuffers
         if deserialize
             return deserialize(get_flatbuffer(response))
         else
