@@ -29,7 +29,9 @@ function get_flatbuffer(response::RouteResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()
     size_ref = Ref{Csize_t}(0)
     # deleter is a pointer to a function pointer: void (**deleter)(void*)
-    # The C code sets deleter to std::free, and unsafe_wrap with own=true uses free by default
+    # Note: The C code always sets deleter to std::free (via osrmc_free_deleter).
+    # We use unsafe_wrap with own=true which uses free() by default, matching the C deleter.
+    # The deleter_pp_ref is passed for API completeness but not used since we know it's always free.
     deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
     with_error() do err
         ccall(
@@ -46,6 +48,6 @@ function get_flatbuffer(response::RouteResponse)
         return UInt8[]
     end
 
-    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd)
+    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd via free())
     return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own = true)
 end
