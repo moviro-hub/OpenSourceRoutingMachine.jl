@@ -40,10 +40,9 @@ was built against, so callers can fail fast on mismatched binaries.
 """
 is_abi_compatible() = ccall((:osrmc_is_abi_compatible, libosrmc), Cint, ()) != 0
 
+include("types.jl")
 include("utils.jl")
 include("shared.jl")
-include("types.jl")
-include("deserialize.jl")
 include("main.jl")
 
 include("route/Routes.jl")
@@ -60,17 +59,14 @@ Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 # types
 export OSRM, OSRMConfig, Position
 # enums
-export Algorithm, Snapping, Approach, Geometries, Overview, Annotations
-# enum values
-export
-    algorithm_ch, algorithm_mld,
-    snapping_default, snapping_any,
-    approach_curb, approach_unrestricted, approach_opposite,
-    geometries_polyline, geometries_polyline6, geometries_geojson,
-    overview_simplified, overview_full, overview_false,
-    annotations_none, annotations_duration, annotations_nodes,
-    annotations_distance, annotations_weight, annotations_datasources,
-    annotations_speed, annotations_all
+export Algorithm, ALGORITHM_CH, ALGORITHM_MLD,
+    Snapping, SNAPPING_DEFAULT, SNAPPING_ANY,
+    Approach, APPROACH_CURB, APPROACH_UNRESTRICTED, APPROACH_OPPOSITE,
+    Geometries, GEOMETRIES_POLYLINE, GEOMETRIES_POLYLINE6, GEOMETRIES_GEOJSON,
+    Overview, OVERVIEW_SIMPLIFIED, OVERVIEW_FULL, OVERVIEW_FALSE,
+    Annotations, ANNOTATIONS_NONE, ANNOTATIONS_DURATION, ANNOTATIONS_NODES,
+    ANNOTATIONS_DISTANCE, ANNOTATIONS_WEIGHT, ANNOTATIONS_DATASOURCES,
+    ANNOTATIONS_SPEED, ANNOTATIONS_ALL
 # functions
 export get_version, is_abi_compatible, set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 

@@ -74,7 +74,7 @@ function build_osrm_graph(osm_path::String)
     base = joinpath(dirname(osm_path), name)
     osrm_base_path = "$base.osrm"
 
-    extract(osm_path; profile = profile_car)
+    extract(osm_path; profile = PROFILE_CAR)
     partition(osrm_base_path)
     customize(osrm_base_path)
 

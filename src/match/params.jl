@@ -215,7 +215,7 @@ function set_hint!(params::MatchParams, coordinate_index::Integer, hint::Abstrac
             (Ptr{Cvoid}, Csize_t, Cstring, Ptr{Ptr{Cvoid}}),
             params.ptr,
             Csize_t(coordinate_index - 1),
-            as_cstring(hint),
+            Base.unsafe_convert(Cstring, Base.cconvert(Cstring, hint)),
             error_pointer(error_ptr),
         )
         nothing
@@ -283,7 +283,7 @@ function add_exclude!(params::MatchParams, profile::AbstractString)
             Cvoid,
             (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            as_cstring(profile),
+            Base.unsafe_convert(Cstring, Base.cconvert(Cstring, profile)),
             error_pointer(error_ptr),
         )
         nothing

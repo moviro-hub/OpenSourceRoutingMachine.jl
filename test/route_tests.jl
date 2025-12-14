@@ -1,5 +1,5 @@
 using Test
-using OpenSourceRoutingMachine: Position, OSRMError, Approach, Snapping, Geometries, Overview, Annotations, geometries_geojson, overview_full, annotations_duration, annotations_distance, annotations_all, approach_curb, snapping_default
+using OpenSourceRoutingMachine: Position, OSRMError, Approach, Snapping, Geometries, Overview, Annotations, GEOMETRIES_GEOJSON, OVERVIEW_FULL, ANNOTATIONS_DURATION, ANNOTATIONS_DISTANCE, ANNOTATIONS_ALL, APPROACH_CURB, SNAPPING_DEFAULT
 using OpenSourceRoutingMachine.Routes:
     RouteParams,
     RouteResponse,
@@ -25,8 +25,7 @@ using OpenSourceRoutingMachine.Routes:
     set_snapping!,
     # responses
     route,
-    route_response,
-    get_json
+    route_response
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -50,9 +49,6 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Route response validity" begin
@@ -62,9 +58,6 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_PORT)
         response = route_response(osrm, params)
         @test response.ptr != C_NULL
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -97,9 +90,6 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_ALTONA)
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Route with alternatives enabled" begin
@@ -110,9 +100,6 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Other parameter helpers smoke test" begin
@@ -125,11 +112,11 @@ end
 
         # toggles and options
         # use a known-valid geometries value
-        set_geometries!(params, geometries_geojson)
-        set_overview!(params, overview_full)
+        set_geometries!(params, GEOMETRIES_GEOJSON)
+        set_overview!(params, OVERVIEW_FULL)
         set_continue_straight!(params, true)
         set_number_of_alternatives!(params, 2)
-        set_annotations!(params, Annotations(annotations_duration | annotations_distance))
+        set_annotations!(params, Annotations(ANNOTATIONS_DURATION | ANNOTATIONS_DISTANCE))
 
         # waypoint helpers
         # clear/add waypoints without requiring endpoints to be waypoints
@@ -139,19 +126,16 @@ end
         set_hint!(params, 1, "")
         set_radius!(params, 1, 10.0)
         set_bearing!(params, 1, 0, 180)
-        set_approach!(params, 1, approach_curb)
+        set_approach!(params, 1, APPROACH_CURB)
 
         # global behavior
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, snapping_default)
+        set_snapping!(params, SNAPPING_DEFAULT)
 
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -164,8 +148,6 @@ end
         try
             response = route_response(osrm, params)
             @test response isa RouteResponse
-            json = get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -197,8 +179,6 @@ end
         try
             response = route_response(osrm, params)
             @test response isa RouteResponse
-            json = get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -213,9 +193,6 @@ end
         add_coordinate!(params, coord2)
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Route with multiple waypoints" begin
@@ -226,29 +203,5 @@ end
         end
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
-end
-
-@testset "Route - Response Accessors" begin
-    osrm = Fixtures.get_test_osrm()
-    params = RouteParams()
-
-    # Three-waypoint route for waypoint/leg/step tests
-    for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT, Fixtures.HAMBURG_PORT]
-        add_coordinate!(params, coord)
-    end
-
-    set_steps!(params, true)
-    set_geometries!(params, geometries_geojson)
-    set_annotations!(params, annotations_all)
-
-    response = route_response(osrm, params)
-
-    # get_json and basic validation
-    json = get_json(response)
-    @test isa(json, String)
-    @test !isempty(json)
 end

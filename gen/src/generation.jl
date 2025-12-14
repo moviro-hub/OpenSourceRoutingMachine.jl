@@ -31,14 +31,14 @@ function generate_enum_code(parser::FBSParser, enum_name::String, lines::Vector{
 
     push!(lines, "@cenum($enum_name::$cenum_type, begin")
     current_value = 0
-    enum_prefix = pascal_to_snake_case(enum_name)
+    enum_prefix = uppercase(pascal_to_snake_case(enum_name))
     for val in enum_def.values
         val_name = val["name"]
         val_value = val["value"]
         if val_value !== nothing
             current_value = parse(Int, val_value)
         end
-        val_snake = pascal_to_snake_case(val_name)
+        val_snake = uppercase(pascal_to_snake_case(val_name))
         push!(lines, "    $(enum_prefix)_$(val_snake) = $current_value")
         current_value += 1
     end

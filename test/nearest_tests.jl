@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: Position, OSRMError
-using OpenSourceRoutingMachine: Approach, Snapping, approach_curb
+using OpenSourceRoutingMachine: Approach, Snapping, APPROACH_CURB
 using OpenSourceRoutingMachine.Nearests:
     NearestParams,
     NearestResponse,
@@ -40,9 +40,6 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Nearest response validity" begin
@@ -52,8 +49,6 @@ using .Fixtures
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
         @test response.ptr != C_NULL
-        json = Nearests.get_json(response)
-        @test isa(json, String)
     end
 end
 
@@ -72,9 +67,6 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Nearest with single result" begin
@@ -84,9 +76,6 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "add_coordinate_with!" begin
@@ -105,32 +94,15 @@ end
         set_hint!(params, 1, "")
         set_radius!(params, 1, 5.0)
         set_bearing!(params, 1, 0, 90)
-        set_approach!(params, 1, approach_curb)
+        set_approach!(params, 1, APPROACH_CURB)
 
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, snapping_default)
+        set_snapping!(params, SNAPPING_DEFAULT)
 
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
-    end
-end
-
-@testset "Nearest - Response Accessors" begin
-    @testset "get_json returns valid JSON" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest_response(osrm, params)
-        @test response isa NearestResponse
-        json_str = Nearests.get_json(response)
-        @test isa(json_str, String)
-        @test !isempty(json_str)
-        @test startswith(json_str, '{') || startswith(json_str, '[')
     end
 end
 
@@ -142,8 +114,6 @@ end
         try
             response = nearest_response(osrm, params)
             @test response isa NearestResponse
-            json = Nearests.get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -172,9 +142,6 @@ end
             add_coordinate!(params, coord)
             response = nearest_response(osrm, params)
             @test response isa NearestResponse
-            json = Nearests.get_json(response)
-            @test isa(json, String)
-            @test !isempty(json)
         end
     end
 
@@ -186,8 +153,6 @@ end
         try
             response = nearest_response(osrm, params)
             @test response isa NearestResponse
-            json = Nearests.get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -200,9 +165,6 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Nearest result distance is reasonable" begin
@@ -211,8 +173,5 @@ end
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
         response = nearest_response(osrm, params)
         @test response isa NearestResponse
-        json = Nearests.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end

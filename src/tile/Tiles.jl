@@ -12,7 +12,7 @@ using ..OpenSourceRoutingMachine:
     # error helpers
     with_error, error_pointer, check_error,
     # string helpers
-    as_cstring, as_cstring_or_null,
+    as_cstring_or_null,
     # finalize helpers
     finalize
 

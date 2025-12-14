@@ -27,9 +27,9 @@ mutable struct OSRMConfig
             base_name = basename(base_path)
             files = readdir(dir)
             if Base.any(f -> startswith(f, base_name) && occursin(r"\.partition", f), files)
-                set_algorithm!(config, algorithm_mld)
+                set_algorithm!(config, ALGORITHM_MLD)
             elseif Base.any(f -> startswith(f, base_name) && occursin(r"\.hsgr", f), files)
-                set_algorithm!(config, algorithm_ch)
+                set_algorithm!(config, ALGORITHM_CH)
             else
                 error("Could not determine algorithm from dataset files in $base_path, are you sure this is a valid OSRM dataset?")
             end
@@ -269,7 +269,7 @@ set_verbosity!(osrm::OSRM, verbosity::Union{AbstractString, Nothing}) = set_verb
 
 function disable_feature_dataset!(config::OSRMConfig, dataset_name::AbstractString)
     with_error() do error_ptr
-        ccall((:osrmc_config_disable_feature_dataset, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring(dataset_name), error_pointer(error_ptr))
+        ccall((:osrmc_config_disable_feature_dataset, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, Base.unsafe_convert(Cstring, Base.cconvert(Cstring, dataset_name)), error_pointer(error_ptr))
         nothing
     end
     return nothing

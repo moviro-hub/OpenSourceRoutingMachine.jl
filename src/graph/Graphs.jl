@@ -6,13 +6,13 @@ using ..OpenSourceRoutingMachine: OSRM_jll
 """
     Profile
 
-Selects the routing profile for OSRM dataset generation (`profile_car`, `profile_bicycle`, `profile_foot`).
+Selects the routing profile for OSRM dataset generation (`PROFILE_CAR`, `PROFILE_BICYCLE`, `PROFILE_FOOT`).
 """
 @cenum(
     Profile::Int32, begin
-        profile_car = 0
-        profile_bicycle = 1
-        profile_foot = 2
+        PROFILE_CAR = 0
+        PROFILE_BICYCLE = 1
+        PROFILE_FOOT = 2
     end
 )
 
@@ -21,9 +21,9 @@ const ProfileType = Profile
 export
     Profile,
     ProfileType,
-    profile_car,
-    profile_bicycle,
-    profile_foot,
+    PROFILE_CAR,
+    PROFILE_BICYCLE,
+    PROFILE_FOOT,
     OSRMCommandError,
     profile_lua_path,
     extract,

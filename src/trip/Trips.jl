@@ -17,7 +17,7 @@ using ..OpenSourceRoutingMachine:
     # error helpers
     with_error, error_pointer, check_error,
     # string helpers
-    as_cstring, as_cstring_or_null,
+    as_cstring_or_null,
     # finalize helpers
     finalize,
     # response deserializers
@@ -51,24 +51,24 @@ import ..OpenSourceRoutingMachine:
 """
     TripSource
 
-Selects the source location strategy for trip queries (`trip_source_any_source`, `trip_source_first`).
+Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`, `TRIP_SOURCE_FIRST`).
 """
 @cenum(
     TripSource::Int32, begin
-        trip_source_any_source = 0
-        trip_source_first = 1
+        TRIP_SOURCE_ANY_SOURCE = 0
+        TRIP_SOURCE_FIRST = 1
     end
 )
 
 """
     TripDestination
 
-Selects the destination location strategy for trip queries (`trip_destination_any_destination`, `trip_destination_last`).
+Selects the destination location strategy for trip queries (`TRIP_DESTINATION_ANY_DESTINATION`, `TRIP_DESTINATION_LAST`).
 """
 @cenum(
     TripDestination::Int32, begin
-        trip_destination_any_destination = 0
-        trip_destination_last = 1
+        TRIP_DESTINATION_ANY_DESTINATION = 0
+        TRIP_DESTINATION_LAST = 1
     end
 )
 

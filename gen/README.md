@@ -4,9 +4,9 @@ Tools for automatically generating Julia type definitions from OSRM's [FlatBuffe
 
 ## Components
 
-- **`Generator.jl`**: Main module that downloads schema files from the OSRM GitHub repository, parses `.fbs` files to extract enums/structs/tables, maps FlatBuffers types to Julia equivalents, and generates Julia code with proper dependency resolution.
+- **`Generator.jl`**: Main module containing code for downloading schema files from the OSRM GitHub repository, parsing `.fbs` files to extract enums/structs/tables, mapping FlatBuffers types to Julia equivalents, and generating Julia code with proper dependency resolution.
 
-- **`generate.jl`**: Convenience script that downloads schemas and generates `../src/types.jl`. Configured for OSRM `v6.0.0` by default; update `OSRM_VERSION` in the script for other versions.
+- **`generate.jl`**: Convenience script uses the Module to download schemas and generates `../src/types.jl`. Configured for OSRM `v6.0.0` by default; update `OSRM_VERSION` in the script for other versions.
 
 ## Usage
 

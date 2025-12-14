@@ -7,36 +7,36 @@ using CEnum
 # Enums
 @cenum(
     ManeuverType::UInt8, begin
-        maneuver_type_turn = 0
-        maneuver_type_new_name = 1
-        maneuver_type_depart = 2
-        maneuver_type_arrive = 3
-        maneuver_type_merge = 4
-        maneuver_type_on_ramp = 5
-        maneuver_type_off_ramp = 6
-        maneuver_type_fork = 7
-        maneuver_type_end_of_road = 8
-        maneuver_type_continue = 9
-        maneuver_type_roundabout = 10
-        maneuver_type_rotary = 11
-        maneuver_type_roundabout_turn = 12
-        maneuver_type_notification = 13
-        maneuver_type_exit_roundabout = 14
-        maneuver_type_exit_rotary = 15
+        MANEUVER_TYPE_TURN = 0
+        MANEUVER_TYPE_NEW_NAME = 1
+        MANEUVER_TYPE_DEPART = 2
+        MANEUVER_TYPE_ARRIVE = 3
+        MANEUVER_TYPE_MERGE = 4
+        MANEUVER_TYPE_ON_RAMP = 5
+        MANEUVER_TYPE_OFF_RAMP = 6
+        MANEUVER_TYPE_FORK = 7
+        MANEUVER_TYPE_END_OF_ROAD = 8
+        MANEUVER_TYPE_CONTINUE = 9
+        MANEUVER_TYPE_ROUNDABOUT = 10
+        MANEUVER_TYPE_ROTARY = 11
+        MANEUVER_TYPE_ROUNDABOUT_TURN = 12
+        MANEUVER_TYPE_NOTIFICATION = 13
+        MANEUVER_TYPE_EXIT_ROUNDABOUT = 14
+        MANEUVER_TYPE_EXIT_ROTARY = 15
     end
 )
 
 @cenum(
     Turn::UInt8, begin
-        turn_none = 0
-        turn_u_turn = 1
-        turn_sharp_right = 2
-        turn_right = 3
-        turn_slight_right = 4
-        turn_straight = 5
-        turn_slight_left = 6
-        turn_left = 7
-        turn_sharp_left = 8
+        TURN_NONE = 0
+        TURN_U_TURN = 1
+        TURN_SHARP_RIGHT = 2
+        TURN_RIGHT = 3
+        TURN_SLIGHT_RIGHT = 4
+        TURN_STRAIGHT = 5
+        TURN_SLIGHT_LEFT = 6
+        TURN_LEFT = 7
+        TURN_SHARP_LEFT = 8
     end
 )
 

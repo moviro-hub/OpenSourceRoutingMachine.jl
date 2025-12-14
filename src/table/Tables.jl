@@ -14,7 +14,7 @@ using ..OpenSourceRoutingMachine:
     # error helpers
     with_error, error_pointer, check_error,
     # string helpers
-    as_cstring, as_cstring_or_null,
+    as_cstring_or_null,
     # finalize helpers
     finalize,
     # response deserializers
@@ -45,29 +45,29 @@ import ..OpenSourceRoutingMachine:
 Bit flags for selecting which annotations to include in table/matrix responses. Values can be combined using bitwise OR (`|`).
 
 The enum values correspond to bit positions:
-- `table_annotations_none = 0`: No annotations
-- `table_annotations_duration = 1` (bit 0): Request duration annotations
-- `table_annotations_distance = 2` (bit 1): Request distance annotations
-- `table_annotations_all = 3`: All annotations (table_annotations_duration | table_annotations_distance)
+- `TABLE_ANNOTATIONS_NONE = 0`: No annotations
+- `TABLE_ANNOTATIONS_DURATION = 1` (bit 0): Request duration annotations
+- `TABLE_ANNOTATIONS_DISTANCE = 2` (bit 1): Request distance annotations
+- `TABLE_ANNOTATIONS_ALL = 3`: All annotations (TABLE_ANNOTATIONS_DURATION | TABLE_ANNOTATIONS_DISTANCE)
 """
 @cenum(
     TableAnnotations::Int32, begin
-        table_annotations_none = 0
-        table_annotations_duration = 1
-        table_annotations_distance = 2
-        table_annotations_all = 3  # table_annotations_duration | table_annotations_distance
+        TABLE_ANNOTATIONS_NONE = 0
+        TABLE_ANNOTATIONS_DURATION = 1
+        TABLE_ANNOTATIONS_DISTANCE = 2
+        TABLE_ANNOTATIONS_ALL = 3  # TABLE_ANNOTATIONS_DURATION | TABLE_ANNOTATIONS_DISTANCE
     end
 )
 
 """
     TableFallbackCoordinate
 
-Controls whether fallback results use input coordinates or snapped coordinates (`table_fallback_coordinate_input`, `table_fallback_coordinate_snapped`).
+Controls whether fallback results use input coordinates or snapped coordinates (`TABLE_FALLBACK_COORDINATE_INPUT`, `TABLE_FALLBACK_COORDINATE_SNAPPED`).
 """
 @cenum(
     TableFallbackCoordinate::Int32, begin
-        table_fallback_coordinate_input = 0
-        table_fallback_coordinate_snapped = 1
+        TABLE_FALLBACK_COORDINATE_INPUT = 0
+        TABLE_FALLBACK_COORDINATE_SNAPPED = 1
     end
 )
 

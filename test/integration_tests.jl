@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: OSRMConfig, OSRM, Position
-using OpenSourceRoutingMachine.Routes: RouteParams, RouteResponse, add_coordinate!, route, route_response, get_json
+using OpenSourceRoutingMachine.Routes: RouteParams, RouteResponse, add_coordinate!, route, route_response
 using .Fixtures
 
 @testset "Integration - Full Workflow" begin
@@ -12,9 +12,6 @@ using .Fixtures
         add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
         response = route_response(osrm, params)
         @test response isa RouteResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Multiple routes in sequence" begin
@@ -66,9 +63,7 @@ using .Fixtures
         end
         @test length(routes) == length(coords) - 1
         for response in routes
-            json = get_json(response)
-            @test isa(json, String)
-            @test !isempty(json)
+            @test response isa RouteResponse
         end
     end
 end

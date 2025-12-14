@@ -1,13 +1,13 @@
 using Test
 using OpenSourceRoutingMachine: Position, OSRMError
-using OpenSourceRoutingMachine: Snapping, Approach, approach_curb, snapping_default
+using OpenSourceRoutingMachine: Snapping, Approach, APPROACH_CURB, SNAPPING_DEFAULT
 using OpenSourceRoutingMachine.Tables:
     TableParams,
     TableResponse,
     TableAnnotations,
     TableFallbackCoordinate,
-    table_annotations_all,
-    table_fallback_coordinate_input,
+    TABLE_ANNOTATIONS_ALL,
+    TABLE_FALLBACK_COORDINATE_INPUT,
     add_coordinate!,
     add_coordinate_with!,
     add_source!,
@@ -25,8 +25,7 @@ using OpenSourceRoutingMachine.Tables:
     set_skip_waypoints!,
     set_snapping!,
     table,
-    table_response,
-    get_json
+    table_response
 using Base: C_NULL, size, length, isfinite, isapprox
 using .Fixtures
 
@@ -52,9 +51,6 @@ using .Fixtures
         end
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Specific sources and destinations" begin
@@ -69,9 +65,6 @@ using .Fixtures
         add_destination!(params, 4)
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -85,28 +78,25 @@ end
         add_coordinate_with!(params, Fixtures.HAMBURG_AIRPORT, 10.0, 0, 180)
 
         # table-specific knobs
-        set_annotations!(params, table_annotations_all)
+        set_annotations!(params, TABLE_ANNOTATIONS_ALL)
         set_fallback_speed!(params, 50.0)
-        set_fallback_coordinate_type!(params, table_fallback_coordinate_input)
+        set_fallback_coordinate_type!(params, TABLE_FALLBACK_COORDINATE_INPUT)
         set_scale_factor!(params, 1.0)
 
         # generic per-coordinate helpers
         set_hint!(params, 1, "")
         set_radius!(params, 1, 5.0)
         set_bearing!(params, 1, 0, 90)
-        set_approach!(params, 1, approach_curb)
+        set_approach!(params, 1, APPROACH_CURB)
 
         # generic global helpers
         add_exclude!(params, "toll")
         set_generate_hints!(params, true)
         set_skip_waypoints!(params, false)
-        set_snapping!(params, snapping_default)
+        set_snapping!(params, SNAPPING_DEFAULT)
 
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -122,12 +112,9 @@ end
         osrm = Fixtures.get_test_osrm()
         params = TableParams()
         add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        set_annotations!(params, table_annotations_all)
+        set_annotations!(params, TABLE_ANNOTATIONS_ALL)
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -145,9 +132,6 @@ end
         end
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "One-to-many table" begin
@@ -159,9 +143,6 @@ end
         add_source!(params, 1)
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Many-to-one table" begin
@@ -173,20 +154,5 @@ end
         add_destination!(params, 1)
         response = table_response(osrm, params)
         @test response isa TableResponse
-        json = get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
-    end
-
-    @testset "JSON output" begin
-        osrm = Fixtures.get_test_osrm()
-        params = TableParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = table_response(osrm, params)
-        json_str = get_json(response)
-        @test json_str isa String
-        @test !isempty(json_str)
-        @test occursin("durations", json_str) || occursin("distances", json_str)
     end
 end

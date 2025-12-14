@@ -4,8 +4,8 @@ using OpenSourceRoutingMachine.Matches:
     MatchParams,
     MatchResponse,
     MatchGaps,
-    match_gaps_split,
-    match_gaps_ignore,
+    MATCH_GAPS_SPLIT,
+    MATCH_GAPS_IGNORE,
     add_coordinate!,
     add_coordinate_with!,
     add_timestamp!,
@@ -38,9 +38,6 @@ using .Fixtures
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Match response validity" begin
@@ -52,9 +49,6 @@ using .Fixtures
         response = match_response(osrm, params)
         @test response isa MatchResponse
         @test response.ptr != C_NULL
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end
 
@@ -68,8 +62,8 @@ end
 
     @testset "set_gaps!" begin
         params = MatchParams()
-        set_gaps!(params, match_gaps_split)
-        set_gaps!(params, match_gaps_ignore)
+        set_gaps!(params, MATCH_GAPS_SPLIT)
+        set_gaps!(params, MATCH_GAPS_IGNORE)
         @test true
     end
 
@@ -92,23 +86,17 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Match with gaps set to split" begin
         osrm = Fixtures.get_test_osrm()
         params = MatchParams()
-        set_gaps!(params, match_gaps_split)
+        set_gaps!(params, MATCH_GAPS_SPLIT)
         for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
             add_coordinate!(params, coord)
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Match with tidy enabled" begin
@@ -120,9 +108,6 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "add_coordinate_with!" begin
@@ -132,21 +117,6 @@ end
     end
 end
 
-@testset "Match - Response Accessors" begin
-    @testset "get_json returns valid JSON" begin
-        osrm = Fixtures.get_test_osrm()
-        params = MatchParams()
-        for coord in Fixtures.MATCH_TEST_COORDS_CITY_CENTER_TO_AIRPORT
-            add_coordinate!(params, coord)
-        end
-        response = match_response(osrm, params)
-        @test response isa MatchResponse
-        json_str = Matches.get_json(response)
-        @test isa(json_str, String)
-        @test !isempty(json_str)
-        @test startswith(json_str, '{') || startswith(json_str, '[')
-    end
-end
 
 @testset "Match - Error Handling" begin
     @testset "Invalid coordinates" begin
@@ -157,8 +127,6 @@ end
         try
             response = match_response(osrm, params)
             @test response isa MatchResponse
-            json = Matches.get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -190,8 +158,6 @@ end
         try
             response = match_response(osrm, params)
             @test response isa MatchResponse
-            json = Matches.get_json(response)
-            @test isa(json, String)
         catch e
             @test e isa OSRMError
         end
@@ -205,9 +171,6 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 
     @testset "Match with multiple tracepoints" begin
@@ -218,13 +181,7 @@ end
         end
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
         response = match_response(osrm, params)
         @test response isa MatchResponse
-        json = Matches.get_json(response)
-        @test isa(json, String)
-        @test !isempty(json)
     end
 end

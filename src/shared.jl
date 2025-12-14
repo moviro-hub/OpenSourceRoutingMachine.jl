@@ -1,63 +1,64 @@
+# Shared declarations for all modules
 """
     Algorithm
 
-Selects the routing algorithm OSRM should use for a given dataset (`algorithm_ch`, `algorithm_mld`).
+Selects the routing algorithm OSRM should use for a given dataset (`ALGORITHM_CH`, `ALGORITHM_MLD`).
 """
 @cenum(
     Algorithm::Int32, begin
-        algorithm_ch = 0
-        algorithm_mld = 1
+        ALGORITHM_CH = 0
+        ALGORITHM_MLD = 1
     end
 )
 
 """
     Snapping
 
-Selects the snapping behavior OSRM should use for a given dataset (`snapping_default`, `snapping_any`).
+Selects the snapping behavior OSRM should use for a given dataset (`SNAPPING_DEFAULT`, `SNAPPING_ANY`).
 """
 @cenum(
     Snapping::Int32, begin
-        snapping_default = 0
-        snapping_any = 1
+        SNAPPING_DEFAULT = 0
+        SNAPPING_ANY = 1
     end
 )
 
 """
     Approach
 
-Selects the approach behavior OSRM should use for a given dataset (`approach_curb`, `approach_unrestricted`, `approach_opposite`).
+Selects the approach behavior OSRM should use for a given dataset (`APPROACH_CURB`, `APPROACH_UNRESTRICTED`, `APPROACH_OPPOSITE`).
 """
 @cenum(
     Approach::Int32, begin
-        approach_curb = 0
-        approach_unrestricted = 1
-        approach_opposite = 2
+        APPROACH_CURB = 0
+        APPROACH_UNRESTRICTED = 1
+        APPROACH_OPPOSITE = 2
     end
 )
 
 """
     Geometries
 
-Selects the geometry encoding format for route geometries (`geometries_polyline`, `geometries_polyline6`, `geometries_geojson`).
+Selects the geometry encoding format for route geometries (`GEOMETRIES_POLYLINE`, `GEOMETRIES_POLYLINE6`, `GEOMETRIES_GEOJSON`).
 """
 @cenum(
     Geometries::Int32, begin
-        geometries_polyline = 0
-        geometries_polyline6 = 1
-        geometries_geojson = 2
+        GEOMETRIES_POLYLINE = 0
+        GEOMETRIES_POLYLINE6 = 1
+        GEOMETRIES_GEOJSON = 2
     end
 )
 
 """
     Overview
 
-Controls how much geometry detail OSRM should include (`overview_simplified`, `overview_full`, `overview_false`).
+Controls how much geometry detail OSRM should include (`OVERVIEW_SIMPLIFIED`, `OVERVIEW_FULL`, `OVERVIEW_FALSE`).
 """
 @cenum(
     Overview::Int32, begin
-        overview_simplified = 0
-        overview_full = 1
-        overview_false = 2
+        OVERVIEW_SIMPLIFIED = 0
+        OVERVIEW_FULL = 1
+        OVERVIEW_FALSE = 2
     end
 )
 
@@ -67,25 +68,25 @@ Controls how much geometry detail OSRM should include (`overview_simplified`, `o
 Bit flags for requesting additional metadata in route responses. Values can be combined using bitwise OR (`|`).
 
 The enum values correspond to bit positions:
-- `annotations_none = 0`: No annotations
-- `annotations_duration = 1` (bit 0): Request duration annotations
-- `annotations_nodes = 2` (bit 1): Request node annotations
-- `annotations_distance = 4` (bit 2): Request distance annotations
-- `annotations_weight = 8` (bit 3): Request weight annotations
-- `annotations_datasources = 16` (bit 4): Request datasource annotations
-- `annotations_speed = 32` (bit 5): Request speed annotations
-- `annotations_all = 63`: All annotations (bitwise OR of all flags)
+- `ANNOTATIONS_NONE = 0`: No annotations
+- `ANNOTATIONS_DURATION = 1` (bit 0): Request duration annotations
+- `ANNOTATIONS_NODES = 2` (bit 1): Request node annotations
+- `ANNOTATIONS_DISTANCE = 4` (bit 2): Request distance annotations
+- `ANNOTATIONS_WEIGHT = 8` (bit 3): Request weight annotations
+- `ANNOTATIONS_DATASOURCES = 16` (bit 4): Request datasource annotations
+- `ANNOTATIONS_SPEED = 32` (bit 5): Request speed annotations
+- `ANNOTATIONS_ALL = 63`: All annotations (bitwise OR of all flags)
 """
 @cenum(
     Annotations::Int32, begin
-        annotations_none = 0
-        annotations_duration = 1
-        annotations_nodes = 2
-        annotations_distance = 4
-        annotations_weight = 8
-        annotations_datasources = 16
-        annotations_speed = 32
-        annotations_all = 63 # annotations_duration | annotations_nodes | annotations_distance | annotations_weight | annotations_datasources | annotations_speed
+        ANNOTATIONS_NONE = 0
+        ANNOTATIONS_DURATION = 1
+        ANNOTATIONS_NODES = 2
+        ANNOTATIONS_DISTANCE = 4
+        ANNOTATIONS_WEIGHT = 8
+        ANNOTATIONS_DATASOURCES = 16
+        ANNOTATIONS_SPEED = 32
+        ANNOTATIONS_ALL = 63 # ANNOTATIONS_DURATION | ANNOTATIONS_NODES | ANNOTATIONS_DISTANCE | ANNOTATIONS_WEIGHT | ANNOTATIONS_DATASOURCES | ANNOTATIONS_SPEED
     end
 )
 

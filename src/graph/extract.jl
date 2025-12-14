@@ -1,19 +1,19 @@
 """
-    extract(osm_path; profile=profile_car, extra_args=String[])
+    extract(osm_path; profile=PROFILE_CAR, extra_args=String[])
 
-Runs the `osrm-extract` command with a Lua profile, either a default profile (profile_car, profile_bicycle, profile_foot) or a custom profile path.
+Runs the `osrm-extract` command with a Lua profile, either a default profile (PROFILE_CAR, PROFILE_BICYCLE, PROFILE_FOOT) or a custom profile path.
 extra_args can be used to pass additional arguments to the `osrm-extract` command.
 
 # Examples
 ```julia
 extract("path/to/osm.pbf")
-extract("path/to/osm.pbf", profile = profile_car)
+extract("path/to/osm.pbf", profile = PROFILE_CAR)
 extract("path/to/osm.pbf", profile = "path/to/profile.lua")
 ```
 """
 function extract(
         osm_path::AbstractString;
-        profile::Union{ProfileType, String} = profile_car,
+        profile::Union{ProfileType, String} = PROFILE_CAR,
         extra_args::Vector{String} = String[],
     )
     cmd = extract_cmd(osm_path, profile; extra_args = extra_args)

@@ -5,8 +5,8 @@ using OpenSourceRoutingMachine.Trips:
     TripResponse,
     TripSource,
     TripDestination,
-    trip_source_first,
-    trip_destination_last,
+    TRIP_SOURCE_FIRST,
+    TRIP_DESTINATION_LAST,
     add_coordinate!,
     set_roundtrip!,
     set_source!,
@@ -14,8 +14,7 @@ using OpenSourceRoutingMachine.Trips:
     add_waypoint!,
     clear_waypoints!,
     trip,
-    trip_response,
-    get_json
+    trip_response
 using Base: C_NULL, length, isfinite
 using .Fixtures
 
@@ -31,19 +30,14 @@ using .Fixtures
 
     response = trip_response(osrm, params)
     @test response isa TripResponse
-
-    json_str = get_json(response)
-    @test isa(json_str, String)
-    @test !isempty(json_str)
-    @test startswith(json_str, '{') || startswith(json_str, '[')
 end
 
 @testset "Trip - Parameters" begin
     params = TripParams()
     set_roundtrip!(params, true)
     set_roundtrip!(params, false)
-    set_source!(params, trip_source_first)
-    set_destination!(params, trip_destination_last)
+    set_source!(params, TRIP_SOURCE_FIRST)
+    set_destination!(params, TRIP_DESTINATION_LAST)
     clear_waypoints!(params)
     add_waypoint!(params, 1)
     add_waypoint!(params, 1)

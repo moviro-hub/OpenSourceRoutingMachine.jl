@@ -20,6 +20,8 @@ The rest of the functionality is organized in submodules. The submodules have th
 
 All modules expose the full configuration and parameter handling API of OSRM through setter functions, providing fine-grained control over query behavior.
 
+The only difference is the output format option is not available, as it is always `flatbuffers`.
+
 ## Installation
 
 ```julia
@@ -53,7 +55,7 @@ osm_path = "hamburg-latest.osm.pbf"
 osrm_base_path = "hamburg-latest.osrm"   # base path for all graph files
 
 # Build MLD graph (recommended for most use cases)
-extract(osm_path; profile = profile_car)
+extract(osm_path; profile = PROFILE_CAR)
 partition(osrm_base_path)
 customize(osrm_base_path)
 ```
@@ -86,13 +88,10 @@ The Nearest module provides the functionality to find the nearest road segment t
 
 The main function is `nearest(osrm, params)`, which takes the OSRM instance and a nearest-specific parameters object as input.
 
-The response format depends on the parameters set. The most common approach is to set the format to `output_format_flatbuffers` and `deserialize` to `true` to obtain a Julia object. See the documentation for more details.
-
 ```julia
 using OpenSourceRoutingMachine.Nearests
 
 params = NearestParams()
-set_format!(params, output_format_flatbuffers)
 add_coordinate!(params, Position(9.9937, 53.5511))
 set_number_of_results!(params, 5)  # Get 5 nearest points
 # many more parameters are available, see the documentation
@@ -103,16 +102,11 @@ This results in a `FBResult` object containing the entire response as native Jul
 
 With `deserialize = false`, the response is a `Vector{UInt8}` containing the flatbuffers binary data.
 
-If JSON output is desired, you can set the format to `output_format_json` and `deserialize` to `false` to obtain a JSON string response.
-
 ```julia
-set_format!(params, output_format_json)
 response = nearest(osrm, params; deserialize = false)
 ```
 
-This results in a `Dict` containing the JSON data in basic Julia types if `deserialize = true`.
-
-This pattern of format selection and deserialization options applies to all query modules: `nearest`, `route`, `match`, `table`, and `trip`.
+This deserialization options applies to the following modules: `nearest`, `route`, `match`, `table`, and `trip`.
 
 ### Route example
 
@@ -128,11 +122,10 @@ using OpenSourceRoutingMachine.Routes
 
 # Create route parameters
 params = RouteParams()
-set_format!(params, output_format_flatbuffers)
-set_geometries!(params, geometries_geojson) # geometry in an uncompressed format
-set_overview!(params, overview_full) # detail geometry information
+set_geometries!(params, GEOMETRIES_GEOJSON) # geometry in an uncompressed format
+set_overview!(params, OVERVIEW_FULL) # detail geometry information
 set_steps!(params, true) # include steps in the response
-set_annotations!(params, annotations_all) # include all annotations
+set_annotations!(params, ANNOTATIONS_ALL) # include all annotations
 add_coordinate!(params, Position(9.9937, 53.5511))  # Start: Hamburg city center
 add_coordinate!(params, Position(9.9882, 53.6304))  # End: Hamburg airport
 # many more parameters are available, see the documentation
@@ -181,9 +174,8 @@ For more details, of the response options, see the nearest example.
 using OpenSourceRoutingMachine.Matches
 
 params = MatchParams()
-set_format!(params, output_format_flatbuffers)
-set_geometries!(params, geometries_geojson)
-set_overview!(params, overview_false)
+set_geometries!(params, GEOMETRIES_GEOJSON)
+set_overview!(params, OVERVIEW_FALSE)
 set_alternatives!(params, false)  # no alternatives
 add_coordinate!(params, Position(9.9937, 53.5511))
 add_coordinate!(params, Position(9.9940, 53.5512))
@@ -206,9 +198,8 @@ For more details, of the response options, see the nearest example.
 using OpenSourceRoutingMachine.Trips
 
 params = TripParams()
-set_format!(params, output_format_flatbuffers)
-set_geometries!(params, geometries_geojson)
-set_overview!(params, overview_false)
+set_geometries!(params, GEOMETRIES_GEOJSON)
+set_overview!(params, OVERVIEW_FALSE)
 set_alternatives!(params, false)  # no alternatives
 add_coordinate!(params, Position(9.9937, 53.5511))
 add_coordinate!(params, Position(9.9940, 53.5512))

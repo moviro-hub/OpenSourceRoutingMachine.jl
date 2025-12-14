@@ -17,7 +17,7 @@ using ..OpenSourceRoutingMachine:
     # error helpers
     with_error, error_pointer, check_error,
     # string helpers
-    as_cstring, as_cstring_or_null,
+    as_cstring_or_null,
     # finalize helpers
     finalize,
     # response deserializers
@@ -53,12 +53,12 @@ import Base: match
 """
     MatchGaps
 
-Controls how OSRM handles gaps in map matching traces (`match_gaps_split`, `match_gaps_ignore`).
+Controls how OSRM handles gaps in map matching traces (`MATCH_GAPS_SPLIT`, `MATCH_GAPS_IGNORE`).
 """
 @cenum(
     MatchGaps::Int32, begin
-        match_gaps_split = 0
-        match_gaps_ignore = 1
+        MATCH_GAPS_SPLIT = 0
+        MATCH_GAPS_IGNORE = 1
     end
 )
 

@@ -9,8 +9,8 @@ struct OSRMCommandError <: Exception
     exitcode::Int32
 end
 
-_profile_symbol(profile::ProfileType) = profile === profile_car ? :car :
-    profile === profile_bicycle ? :bicycle :
+_profile_symbol(profile::ProfileType) = profile === PROFILE_CAR ? :car :
+    profile === PROFILE_BICYCLE ? :bicycle :
     :foot
 
 """

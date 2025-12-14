@@ -30,14 +30,23 @@ function get_flatbuffer(response::NearestResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()
     size_ref = Ref{Csize_t}(0)
     # deleter is a pointer to a function pointer: void (**deleter)(void*)
+    # The C code sets deleter to std::free, and unsafe_wrap with own=true uses free by default
     deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
     with_error() do err
-        ccall((:osrmc_nearest_response_transfer_flatbuffer, libosrmc),
-              Cvoid,
-              (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
-              response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err))
+        ccall(
+            (:osrmc_nearest_response_transfer_flatbuffer, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
+            response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err)
+        )
     end
+
+    # Validate that we received valid data
+    # The C code should set an error if data is invalid, but we check defensively
+    if data_ptr_ref[] == C_NULL || size_ref[] == 0
+        return UInt8[]
+    end
+
     # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd)
-    # The C code sets deleter to std::free, and unsafe_wrap with own=true uses free by default
-    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own=true)
+    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own = true)
 end
