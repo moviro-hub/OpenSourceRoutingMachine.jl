@@ -1,16 +1,4 @@
 """
-    OutputFormat
-
-Selects the output format for OSRM responses (`output_format_json`, `output_format_flatbuffers`).
-"""
-@cenum(
-    OutputFormat::Int32, begin
-        output_format_json = 0
-        output_format_flatbuffers = 1
-    end
-)
-
-"""
     Algorithm
 
 Selects the routing algorithm OSRM should use for a given dataset (`algorithm_ch`, `algorithm_mld`).
@@ -139,6 +127,4 @@ function set_skip_waypoints! end
 function set_snapping! end
 
 # Response helper declarations
-function get_format end
-function get_json end
 function get_flatbuffer end

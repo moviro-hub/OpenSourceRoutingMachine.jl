@@ -6,8 +6,8 @@ using ..OpenSourceRoutingMachine:
     # types
     OSRM,
     Position,
+    OSRMError,
     # enums
-    OutputFormat, output_format_json, output_format_flatbuffers,
     Approach,
     Snapping,
     # error helpers
@@ -16,10 +16,6 @@ using ..OpenSourceRoutingMachine:
     as_cstring, as_cstring_or_null,
     # finalize helpers
     finalize,
-    # data access helpers
-    as_string, as_vector,
-    # response getters
-    get_json, get_flatbuffer,
     # response deserializers
     as_struct
 
@@ -35,13 +31,9 @@ import ..OpenSourceRoutingMachine:
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    # response getters
-    get_json,
-    get_flatbuffer
+    set_snapping!
 
 import Base: count
-using JSON: JSON
 
 include("response.jl")
 include("params.jl")
@@ -60,34 +52,20 @@ function nearest_response(osrm::OSRM, params::NearestParams)::NearestResponse
 end
 
 """
-    nearest(osrm::OSRM, params::NearestParams) -> Union{String, Vector{UInt8}}
+    nearest(osrm::OSRM, params::NearestParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Nearest module and returns the response as either JSON or FlatBuffers.
+Calls the libosrm Nearest module and returns the response as FlatBuffers.
 """
 function nearest(osrm::OSRM, params::NearestParams; deserialize::Bool = true)
     response = nearest_response(osrm, params)
-    format = get_format(response)
-    return if format == output_format_json
-        if deserialize
-            return JSON.parse(get_json(response))
-        else
-            return get_json(response)
-        end
-    elseif format == output_format_flatbuffers
-        if deserialize
-            return as_struct(get_flatbuffer(response))
-        else
-            return get_flatbuffer(response)
-        end
-    else
-        error("Invalid output format: $format")
-    end
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
 end
 
 ## Parameter setter exports
 export
     NearestParams,
-    set_format!,
     set_number_of_results!,
     add_coordinate!,
     add_coordinate_with!,
@@ -105,8 +83,6 @@ export nearest_response
 
 ## Response getter exports
 export NearestResponse,
-    get_format,
-    get_json,
     get_flatbuffer
 
 # compute nearest result exports

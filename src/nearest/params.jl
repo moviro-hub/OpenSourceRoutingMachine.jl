@@ -23,27 +23,6 @@ mutable struct NearestParams
 end
 
 """
-    set_format!(params::NearestParams, format)
-
-Set the output format for Nearest responses using the `OutputFormat` enum (`json` or `flatbuffers`).
-"""
-function set_format!(params::NearestParams, format::OutputFormat)
-    code = Cint(format)
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            code,
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end
-
-"""
     set_number_of_results!(params::NearestParams, n)
 
 Caps how many candidates OSRM should return, keeping proximity lookups bounded

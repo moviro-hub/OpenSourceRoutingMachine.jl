@@ -7,8 +7,8 @@ using ..OpenSourceRoutingMachine:
     # types
     OSRM,
     Position,
+    OSRMError,
     # enums
-    OutputFormat, output_format_json, output_format_flatbuffers,
     Approach,
     Snapping,
     # error helpers
@@ -17,10 +17,6 @@ using ..OpenSourceRoutingMachine:
     as_cstring, as_cstring_or_null,
     # finalize helpers
     finalize,
-    # data access helpers
-    as_string, as_vector,
-    # response getters
-    get_json, get_flatbuffer,
     # response deserializers
     as_struct
 
@@ -41,12 +37,7 @@ import ..OpenSourceRoutingMachine:
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    # response getters
-    get_json,
-    get_flatbuffer
-
-using JSON: JSON
+    set_snapping!
 
 """
     TableAnnotations
@@ -97,28 +88,15 @@ function table_response(osrm::OSRM, params::TableParams)::TableResponse
 end
 
 """
-    table(osrm::OSRM, params::TableParams) -> Union{String, Vector{UInt8}}
+    table(osrm::OSRM, params::TableParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Table module and returns the response as either JSON or FlatBuffers.
+Calls the libosrm Table module and returns the response as FlatBuffers.
 """
 function table(osrm::OSRM, params::TableParams; deserialize::Bool = true)
     response = table_response(osrm, params)
-    format = get_format(response)
-    return if format == output_format_json
-        if deserialize
-            return JSON.parse(get_json(response))
-        else
-            return get_json(response)
-        end
-    elseif format == output_format_flatbuffers
-        if deserialize
-            return as_struct(get_flatbuffer(response))
-        else
-            return get_flatbuffer(response)
-        end
-    else
-        error("Invalid output format: $format")
-    end
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
 end
 
 ## Parameter setter exports
@@ -126,7 +104,6 @@ export
     TableParams,
     TableAnnotations,
     TableFallbackCoordinate,
-    set_format!,
     add_source!,
     add_destination!,
     set_annotations!,
@@ -149,8 +126,6 @@ export table_response
 
 ## Response getter exports
 export TableResponse,
-    get_format,
-    get_json,
     get_flatbuffer
 
 # compute table result exports

@@ -23,27 +23,6 @@ mutable struct MatchParams
 end
 
 """
-    set_format!(params::MatchParams, format)
-
-Set the output format for Match responses using the `OutputFormat` enum (`json` or `flatbuffers`).
-"""
-function set_format!(params::MatchParams, format::OutputFormat)
-    code = Cint(format)
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            code,
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end
-
-"""
     set_steps!(params::MatchParams, on)
 
 Mirrors the Route behavior so callers can request per-step guidance while

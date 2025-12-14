@@ -6,8 +6,8 @@ using ..OpenSourceRoutingMachine:
     # types
     OSRM,
     Position,
+    OSRMError,
     # enums
-    OutputFormat, output_format_json, output_format_flatbuffers,
     Approach,
     Snapping,
     Overview,
@@ -19,10 +19,6 @@ using ..OpenSourceRoutingMachine:
     as_cstring, as_cstring_or_null,
     # finalize helpers
     finalize,
-    # data access helpers
-    as_string, as_vector,
-    # response getters
-    get_json, get_flatbuffer,
     # response deserializers
     as_struct
 
@@ -47,12 +43,7 @@ import ..OpenSourceRoutingMachine:
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    # response getters
-    get_json,
-    get_flatbuffer
-
-using JSON: JSON
+    set_snapping!
 
 include("response.jl")
 include("params.jl")
@@ -71,34 +62,20 @@ function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
 end
 
 """
-    route(osrm::OSRM, params::RouteParams) -> Union{String, Vector{UInt8}}
+    route(osrm::OSRM, params::RouteParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Route module and returns the response as either JSON or FlatBuffers.
+Calls the libosrm Route module and returns the response as FlatBuffers.
 """
 function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
     response = route_response(osrm, params)
-    format = get_format(response)
-    return if format == output_format_json
-        if deserialize
-            return JSON.parse(get_json(response))
-        else
-            return get_json(response)
-        end
-    elseif format == output_format_flatbuffers
-        if deserialize
-            return as_struct(get_flatbuffer(response))
-        else
-            return get_flatbuffer(response)
-        end
-    else
-        error("Invalid output format: $format")
-    end
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
 end
 
 ## Parameter setter exports
 export
     RouteParams,
-    set_format!,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -124,8 +101,6 @@ export route_response
 
 ## Response getter exports
 export RouteResponse,
-    get_format,
-    get_json,
     get_flatbuffer
 
 # compute route result exports

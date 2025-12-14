@@ -23,27 +23,6 @@ mutable struct TableParams
 end
 
 """
-    set_format!(params::TableParams, format::OutputFormat)
-
-Set the output format for Table responses using the `OutputFormat` enum (`json` or `flatbuffers`).
-"""
-function set_format!(params::TableParams, format::OutputFormat)
-    code = Cint(format)
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            code,
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end
-
-"""
     add_source!(params::TableParams, index)
 
 Selects which coordinate acts as a source so you can build sparse matrices

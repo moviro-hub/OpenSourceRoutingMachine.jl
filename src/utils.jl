@@ -8,37 +8,7 @@ end
     return str === nothing ? C_NULL : as_cstring(str)
 end
 
-# data access helpers
-# json blob to string helpers
-"""
-    as_string(blob) -> String
-
-Takes ownership of a libosrm blob and returns a Julia String, guaranteeing the
-blob is freed exactly once.
-"""
-function as_string(blob::Ptr{Cvoid})
-    data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
-    len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
-    str = unsafe_string(Ptr{UInt8}(data_ptr), len)
-    ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)
-    return str
-end
-# flatbuffers blob to vector{UInt8} helpers
-"""
-    as_vector(blob) -> Vector{UInt8}
-
-Takes ownership of a libosrmc blob and returns a Julia Vector{UInt8}, guaranteeing the
-blob is freed exactly once.
-"""
-function as_vector(blob::Ptr{Cvoid})
-    data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
-    len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
-    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own = false)
-    result = Vector{UInt8}(undef, len)
-    copyto!(result, data)
-    ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)
-    return result
-end
+# data access helpers removed - now using direct access APIs
 
 # error helpers
 """

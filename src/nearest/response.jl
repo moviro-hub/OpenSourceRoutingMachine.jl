@@ -21,43 +21,23 @@ mutable struct NearestResponse
 end
 
 """
-    get_format(response::NearestResponse) -> OutputFormat
-
-Returns the output format of the response (`json` or `flatbuffers`).
-"""
-function get_format(response::NearestResponse)
-    code = with_error() do err
-        ccall((:osrmc_nearest_response_format, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-    return OutputFormat(code)
-end
-
-"""
-    get_json(response::NearestResponse) -> String
-
-Returns the entire response as JSON string.
-"""
-function get_json(response::NearestResponse)
-    blob = with_error() do err
-        ccall((:osrmc_nearest_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-    return as_string(blob)
-end
-
-"""
     get_flatbuffer(response::NearestResponse) -> Vector{UInt8}
 
-Returns the entire response as FlatBuffers binary data.
+Returns the entire response as FlatBuffers binary data with zero-copy ownership transfer.
+The buffer is moved from C++ to Julia without copying.
 """
 function get_flatbuffer(response::NearestResponse)
-    blob = with_error() do err
-        ccall((:osrmc_nearest_response_flatbuffer, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    data_ptr_ref = Ref{Ptr{UInt8}}()
+    size_ref = Ref{Csize_t}(0)
+    # deleter is a pointer to a function pointer: void (**deleter)(void*)
+    deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
+    with_error() do err
+        ccall((:osrmc_nearest_response_transfer_flatbuffer, libosrmc),
+              Cvoid,
+              (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
+              response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err))
     end
-    data_ptr = ccall((:osrmc_blob_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid},), blob)
-    len = ccall((:osrmc_blob_size, libosrmc), Csize_t, (Ptr{Cvoid},), blob)
-    data = unsafe_wrap(Array, Ptr{UInt8}(data_ptr), len; own = false)
-    result = Vector{UInt8}(undef, len)
-    copyto!(result, data)
-    ccall((:osrmc_blob_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), blob)
-    return result
+    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd)
+    # The C code sets deleter to std::free, and unsafe_wrap with own=true uses free by default
+    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own=true)
 end

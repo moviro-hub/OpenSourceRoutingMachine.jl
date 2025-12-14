@@ -23,27 +23,6 @@ mutable struct TripParams
 end
 
 """
-    set_format!(params::TripParams, format)
-
-Set the output format for Trip responses using the `OutputFormat` enum (`json` or `flatbuffers`).
-"""
-function set_format!(params::TripParams, format::OutputFormat)
-    code = Cint(format)
-    with_error() do error_ptr
-        ccall(
-            (:osrmc_params_set_format, libosrmc),
-            Cvoid,
-            (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}),
-            params.ptr,
-            code,
-            error_pointer(error_ptr),
-        )
-        nothing
-    end
-    return nothing
-end
-
-"""
     set_steps!(params::TripParams, on)
 """
 function set_steps!(params::TripParams, on::Bool)

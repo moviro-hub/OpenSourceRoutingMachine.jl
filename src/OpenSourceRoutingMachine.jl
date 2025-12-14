@@ -60,9 +60,9 @@ Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 # types
 export OSRM, OSRMConfig, Position
 # enums
-export Algorithm, Snapping, Approach, OutputFormat, Geometries, Overview, Annotations
+export Algorithm, Snapping, Approach, Geometries, Overview, Annotations
 # enum values
-export output_format_json, output_format_flatbuffers,
+export
     algorithm_ch, algorithm_mld,
     snapping_default, snapping_any,
     approach_curb, approach_unrestricted, approach_opposite,
