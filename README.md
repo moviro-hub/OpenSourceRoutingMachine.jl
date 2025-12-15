@@ -104,7 +104,7 @@ With `deserialize = false`, the response is a `Vector{UInt8}` containing the fla
 response = nearest(osrm, params; deserialize = false)
 ```
 
-This deserialization options applies to the following modules: `nearest`, `route`, `match`, `table`, and `trip`.
+This deserialization option applies to the following modules: `nearest`, `route`, `match`, `table`, and `trip`.
 
 ### Route example
 
@@ -113,7 +113,7 @@ The Route module provides the functionality to calculate the shortest path betwe
 The main function is `route(osrm, params)`, which takes the OSRM instance and a route-specific parameters object as input.
 
 This module structure is similar to the Nearest module.
-For more details, of the response options, see the nearest example.
+For more details on the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Routes
@@ -139,7 +139,7 @@ The Table module provides the functionality to calculate the distance/duration m
 The main function is `table(osrm, params)`, which takes the OSRM instance and a table-specific parameters object as input.
 
 This module structure is similar to the Nearest module.
-For more details, of the response options, see the nearest example.
+For more details on the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Tables
@@ -166,7 +166,7 @@ The Match module provides the functionality to map noisy GPS traces to a road ne
 The main function is `match(osrm, params)`, which takes the OSRM instance and a match-specific parameters object as input.
 
 This module structure is similar to the Nearest module.
-For more details, of the response options, see the nearest example.
+For more details on the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Matches
@@ -190,7 +190,7 @@ The Trip module provides the functionality to solve the traveling salesman probl
 The main function is `trip(osrm, params)`, which takes the OSRM instance and a trip-specific parameters object as input.
 
 This module structure is similar to the Nearest module.
-For more details, of the response options, see the nearest example.
+For more details on the response options, see the nearest example.
 
 ```julia
 using OpenSourceRoutingMachine.Trips
