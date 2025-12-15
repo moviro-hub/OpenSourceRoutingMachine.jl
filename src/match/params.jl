@@ -799,28 +799,6 @@ function get_snapping(params::MatchParams)
     return Snapping(out_snapping[])
 end
 
-function get_coordinate_with(params::MatchParams, coordinate_index::Integer)
-    @assert coordinate_index >= 1 "Julia uses 1-based indexing"
-    coord = get_coordinate(params, coordinate_index)
-    radius = get_radius(params, coordinate_index)
-    bearing = get_bearing(params, coordinate_index)
-    return (coord, radius, bearing)
-end
-
-"""
-    get_coordinates_with(params::MatchParams) -> Vector{Tuple{Position, Union{Float64, Nothing}, Union{Tuple{Int, Int}, Nothing}}}
-
-Get all coordinates with hints for the Match request.
-"""
-function get_coordinates_with(params::MatchParams)
-    count = get_coordinate_count(params)
-    coordinates_with = Vector{Tuple{Position, Union{Float64, Nothing}, Union{Tuple{Int, Int}, Nothing}}}(undef, count)
-    for i in 1:count
-        coordinates_with[i] = get_coordinate_with(params, i)
-    end
-    return coordinates_with
-end
-
 """
     get_waypoints(params::MatchParams) -> Vector{Int}
 

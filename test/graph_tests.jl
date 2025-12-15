@@ -1,8 +1,10 @@
 using Test
 using OpenSourceRoutingMachine.Graphs: extract, contract, partition, customize, Profile, PROFILE_CAR
 
-include("TestUtils.jl")
-using .TestUtils: TEST_DATA_DIR, HAMBURG_OSM_PATH
+if !isdefined(Main, :TestUtils)
+    include("TestUtils.jl")
+    using TestUtils: TestUtils
+end
 
 """
     get_osrm_base_path(osm_path::String) -> String
@@ -142,12 +144,12 @@ end
 
 @testset "Graph - CH (Contraction Hierarchy)" begin
     # Use a temporary copy of the PBF file for testing
-    test_pbf = joinpath(TEST_DATA_DIR, "test_ch_hamburg-latest.osm.pbf")
+    test_pbf = joinpath(TestUtils.TEST_DATA_DIR, "test_ch_hamburg-latest.osm.pbf")
     test_base = get_osrm_base_path(test_pbf)
 
     # Copy the original PBF if test file doesn't exist
     if !isfile(test_pbf)
-        cp(HAMBURG_OSM_PATH, test_pbf)
+        cp(TestUtils.HAMBURG_OSM_PATH, test_pbf)
     end
 
     @testset "Step 1: Ensure only PBF exists" begin
@@ -175,12 +177,12 @@ end
 
 @testset "Graph - MLD (Multi-Level Dijkstra)" begin
     # Use a temporary copy of the PBF file for testing
-    test_pbf = joinpath(TEST_DATA_DIR, "test_mld_hamburg-latest.osm.pbf")
+    test_pbf = joinpath(TestUtils.TEST_DATA_DIR, "test_mld_hamburg-latest.osm.pbf")
     test_base = get_osrm_base_path(test_pbf)
 
     # Copy the original PBF if test file doesn't exist
     if !isfile(test_pbf)
-        cp(HAMBURG_OSM_PATH, test_pbf)
+        cp(TestUtils.HAMBURG_OSM_PATH, test_pbf)
     end
 
     @testset "Step 1: Ensure only PBF exists" begin
