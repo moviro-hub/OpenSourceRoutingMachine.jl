@@ -53,7 +53,11 @@ include("trip/Trips.jl")
 include("tile/Tiles.jl")
 include("graph/Graphs.jl")
 
-# Constructor for Position that reads real numbers for convenience
+"""
+    Position(lon::Real, lat::Real) -> Position
+
+Constructor for Position that accepts real numbers (converts to Float32).
+"""
 Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 
 # types
@@ -73,6 +77,6 @@ export get_version, is_abi_compatible
 # setter
 export set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
 # getter
-export get_algorithm, get_max_locations_trip!, get_max_locations_viaroute!, get_max_locations_distance_table!, get_max_locations_map_matching!, get_max_radius_map_matching!, get_max_results_nearest!, get_default_radius!, get_max_alternatives!, get_use_mmap!, get_use_shared_memory!, get_dataset_name!
+export get_algorithm, get_max_locations_trip, get_max_locations_viaroute, get_max_locations_distance_table, get_max_locations_map_matching, get_max_radius_map_matching, get_max_results_nearest, get_default_radius, get_max_alternatives, get_use_mmap, get_use_shared_memory, get_dataset_name
 
 end # module OpenSourceRoutingMachine

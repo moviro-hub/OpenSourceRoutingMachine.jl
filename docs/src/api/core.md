@@ -6,16 +6,25 @@ Core types, configuration, and utilities.
 
 ```@autodocs
 Modules = [OpenSourceRoutingMachine]
-Pages = ["types.jl", "main.jl", "OpenSourceRoutingMachine.jl"]
+Pages = ["types.jl", "instance.jl", "OpenSourceRoutingMachine.jl"]
 Order = [:type, :constant]
 ```
 
-## Configuration Functions
+## Configuration Setter Functions
 
 ```@autodocs
 Modules = [OpenSourceRoutingMachine]
-Pages = ["main.jl"]
+Pages = ["instance.jl"]
 Filter = t -> startswith(string(t), "set_") || startswith(string(t), "disable_") || startswith(string(t), "clear_")
+Order = [:function]
+```
+
+## Configuration Getter Functions
+
+```@autodocs
+Modules = [OpenSourceRoutingMachine]
+Pages = ["instance.jl"]
+Filter = t -> startswith(string(t), "get_")
 Order = [:function]
 ```
 
