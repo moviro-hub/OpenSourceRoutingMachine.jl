@@ -78,7 +78,7 @@ include("params.jl")
 """
     trip_response(osrm::OSRM, params::TripParams) -> TripResponse
 
-Calls the libosrm Trip module and returns the response as a TripResponse object.
+Call Trip service and return response object.
 """
 function trip_response(osrm::OSRM, params::TripParams)::TripResponse
     ptr = with_error() do err
@@ -91,7 +91,7 @@ end
 """
     trip(osrm::OSRM, params::TripParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Trip module and returns the response as FlatBuffers.
+Call Trip service and return FlatBuffers response.
 """
 function trip(osrm::OSRM, params::TripParams; deserialize::Bool = true)
     response = trip_response(osrm, params)
@@ -127,6 +127,30 @@ export
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!
+
+## Parameter getter exports
+export
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_roundtrip,
+    get_source,
+    get_destination,
+    get_waypoints,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
 
 ## compute response exports
 export trip_response

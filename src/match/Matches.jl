@@ -117,6 +117,30 @@ export
     set_skip_waypoints!,
     set_snapping!
 
+## Parameter getter exports
+export
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_waypoints,
+    get_timestamps,
+    get_gaps,
+    get_tidy,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
+
 ## compute response exports
 export match_response
 

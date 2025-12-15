@@ -41,7 +41,7 @@ include("params.jl")
 """
     nearest_response(osrm::OSRM, params::NearestParams) -> NearestResponse
 
-Calls the libosrm Nearest module and returns the response as a NearestResponse object.
+Call Nearest service and return response object.
 """
 function nearest_response(osrm::OSRM, params::NearestParams)::NearestResponse
     ptr = with_error() do err
@@ -54,7 +54,7 @@ end
 """
     nearest(osrm::OSRM, params::NearestParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Nearest module and returns the response as FlatBuffers.
+Call Nearest service and return FlatBuffers response.
 """
 function nearest(osrm::OSRM, params::NearestParams; deserialize::Bool = true)
     response = nearest_response(osrm, params)
@@ -77,6 +77,20 @@ export
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!
+
+## Parameter getter exports
+export
+    get_number_of_results,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
 
 ## compute response exports
 export nearest_response

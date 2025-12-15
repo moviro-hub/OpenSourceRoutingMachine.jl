@@ -51,7 +51,7 @@ include("params.jl")
 """
     route_response(osrm::OSRM, params::RouteParams) -> RouteResponse
 
-Calls the libosrm Route module and returns the response as a RouteResponse object.
+Call Route service and return response object.
 """
 function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
     ptr = with_error() do err
@@ -64,7 +64,7 @@ end
 """
     route(osrm::OSRM, params::RouteParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Route module and returns the response as FlatBuffers.
+Call Route service and return FlatBuffers response.
 """
 function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
     response = route_response(osrm, params)
@@ -95,6 +95,27 @@ export
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!
+
+## Parameter getter exports
+export
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_waypoints,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
 
 ## compute response exports
 export route_response

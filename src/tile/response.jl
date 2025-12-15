@@ -1,8 +1,7 @@
 """
     TileResponse
 
-Owns the libosrmc tile response pointer and ensures it gets freed when the Julia
-object is garbage collected.
+Owns the libosrmc tile response pointer with automatic cleanup.
 """
 mutable struct TileResponse
     ptr::Ptr{Cvoid}
@@ -21,15 +20,21 @@ mutable struct TileResponse
 end
 
 """
-    tile(osrm::OSRM, params::TileParams) -> TileResponse
+    get_size(response::TileResponse) -> Int
 
-Defined in `Tiles.tile`.
+Get vector tile size in bytes.
 """
+get_size(response::TileResponse) =
+    Int(
+    with_error() do err
+        ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
+    end,
+)
 
 """
     get_data(response::TileResponse) -> Vector{UInt8}
 
-Copy the binary vector-tile payload into a Julia-owned buffer.
+Get vector tile binary data.
 """
 function get_data(response::TileResponse)
     len_ref = Ref{Csize_t}(0)
@@ -42,15 +47,3 @@ function get_data(response::TileResponse)
     unsafe_copyto!(pointer(buffer), Ptr{UInt8}(ptr), len)
     return buffer
 end
-
-"""
-    get_size(response::TileResponse) -> Int
-
-Get the raw byte size of the vector tile payload.
-"""
-get_size(response::TileResponse) =
-    Int(
-    with_error() do err
-        ccall((:osrmc_tile_response_size, libosrmc), Csize_t, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)

@@ -1,8 +1,7 @@
 """
     NearestResponse
 
-Owns the libosrmc nearest response pointer and frees it automatically when the
-object is garbage collected.
+Owns the libosrmc nearest response pointer with automatic cleanup.
 """
 function _nearest_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_nearest_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -23,8 +22,7 @@ end
 """
     get_flatbuffer(response::NearestResponse) -> Vector{UInt8}
 
-Returns the entire response as FlatBuffers binary data with zero-copy ownership transfer.
-The buffer is moved from C++ to Julia without copying.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
 function get_flatbuffer(response::NearestResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()

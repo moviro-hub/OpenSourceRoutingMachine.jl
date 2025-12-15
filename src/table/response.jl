@@ -1,8 +1,7 @@
 """
     TableResponse
 
-Owns the libosrmc table response pointer and releases it when the Julia object
-gets garbage collected.
+Owns the libosrmc table response pointer with automatic cleanup.
 """
 function _table_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_table_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -23,7 +22,7 @@ end
 """
     get_flatbuffer(response::TableResponse) -> Vector{UInt8}
 
-Returns the entire response as FlatBuffers binary data with zero-copy ownership transfer.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
 function get_flatbuffer(response::TableResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()

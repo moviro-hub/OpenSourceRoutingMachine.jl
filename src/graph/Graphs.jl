@@ -1,7 +1,8 @@
 module Graphs
 
 using CEnum
-using ..OpenSourceRoutingMachine: OSRM_jll
+using ..OpenSourceRoutingMachine: OSRM_jll, Verbosity, verbosity_enum_to_string,
+    VERBOSITY_NONE, VERBOSITY_ERROR, VERBOSITY_WARNING, VERBOSITY_INFO, VERBOSITY_DEBUG
 
 """
     Profile
@@ -16,16 +17,13 @@ Selects the routing profile for OSRM dataset generation (`PROFILE_CAR`, `PROFILE
     end
 )
 
-const ProfileType = Profile
-
 export
-    Profile,
-    ProfileType,
-    PROFILE_CAR,
-    PROFILE_BICYCLE,
-    PROFILE_FOOT,
+    # enums
+    Profile, PROFILE_CAR, PROFILE_BICYCLE, PROFILE_FOOT,
+    # Types
     OSRMCommandError,
-    profile_lua_path,
+    # functions
+    profile_path,
     extract,
     partition,
     customize,

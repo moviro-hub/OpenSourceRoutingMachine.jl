@@ -5,14 +5,8 @@ using ..OpenSourceRoutingMachine:
     libosrmc,
     # types
     OSRM,
-    Position,
-    # enums
-    Approach,
-    Snapping,
     # error helpers
     with_error, error_pointer, check_error,
-    # string helpers
-    as_cstring_or_null,
     # finalize helpers
     finalize
 
@@ -20,17 +14,7 @@ import ..OpenSourceRoutingMachine:
     # parameters
     set_x!,
     set_y!,
-    set_z!,
-    add_coordinate!,
-    add_coordinate_with!,
-    set_hint!,
-    set_radius!,
-    set_bearing!,
-    set_approach!,
-    add_exclude!,
-    set_generate_hints!,
-    set_skip_waypoints!,
-    set_snapping!
+    set_z!
 
 include("response.jl")
 include("params.jl")
@@ -38,7 +22,7 @@ include("params.jl")
 """
     tile(osrm::OSRM, params::TileParams) -> TileResponse
 
-Query the Tile service and return a response object.
+Call Tile service and return response object.
 """
 function tile(osrm::OSRM, params::TileParams)
     ptr = with_error() do err
@@ -47,28 +31,26 @@ function tile(osrm::OSRM, params::TileParams)
     return TileResponse(ptr)
 end
 
-## Parameter exports
+## Parameter setter exports
 export
     TileParams,
     set_x!,
     set_y!,
-    set_z!,
-    add_coordinate!,
-    add_coordinate_with!,
-    set_hint!,
-    set_radius!,
-    set_bearing!,
-    set_approach!,
-    add_exclude!,
-    set_generate_hints!,
-    set_skip_waypoints!,
-    set_snapping!
+    set_z!
+
+## Parameter getter exports
+export
+    get_x,
+    get_y,
+    get_z
 
 ## Response exports
 export
     TileResponse,
-    tile,
-    get_data,
-    get_size
+    get_size,
+    get_data
+
+# main function
+export tile
 
 end # module Tiles

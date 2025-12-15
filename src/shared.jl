@@ -90,6 +90,21 @@ The enum values correspond to bit positions:
     end
 )
 
+"""
+    Verbosity
+
+Log verbosity level for OSRM tools (`VERBOSITY_NONE`, `VERBOSITY_ERROR`, `VERBOSITY_WARNING`, `VERBOSITY_INFO`, `VERBOSITY_DEBUG`).
+"""
+@cenum(
+    Verbosity::Int32, begin
+        VERBOSITY_NONE = 0
+        VERBOSITY_ERROR = 1
+        VERBOSITY_WARNING = 2
+        VERBOSITY_INFO = 3
+        VERBOSITY_DEBUG = 4
+    end
+)
+
 # Parameter helper declarations
 function set_steps! end
 function set_alternatives! end

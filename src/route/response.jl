@@ -1,8 +1,7 @@
 """
     RouteResponse
 
-Owns the libosrmc route response pointer and cleans it up automatically when
-the Julia object is collected.
+Owns the libosrmc route response pointer with automatic cleanup.
 """
 function _route_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_route_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -23,7 +22,7 @@ end
 """
     get_flatbuffer(response::RouteResponse) -> Vector{UInt8}
 
-Returns the entire response as FlatBuffers binary data with zero-copy ownership transfer.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
 function get_flatbuffer(response::RouteResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()

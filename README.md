@@ -6,7 +6,7 @@ A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance 
 
 The structure of the package is as follows.
 
-A core module `OpenSourceRoutingMachine` provides the constructor `OSRM` for creating an OSRM instance and setter functions for basic configuration.
+A core module `OpenSourceRoutingMachine` provides the constructor `OSRM` for creating an OSRM instance and setter & getter functions for basic configuration.
 
 The rest of the functionality is organized in submodules. The submodules have the following scope:
 
@@ -18,9 +18,8 @@ The rest of the functionality is organized in submodules. The submodules have th
 - **Trip module**: Solves traveling salesman problems.
 - **Tile module**: Generates road network vector tiles (PBF format).
 
-All modules expose the full configuration and parameter handling API of OSRM through setter functions, providing fine-grained control over query behavior.
-
-The only difference is the output format option is not available, as it is always `flatbuffers`.
+All modules expose the full configuration and parameter handling API of OSRM through setter & getter functions, providing fine-grained control over query behavior.
+Except for the output format, which is restricted to `flatbuffers`.
 
 ## Installation
 
@@ -76,11 +75,10 @@ osrm_base_path = "hamburg-latest.osrm"
 osrm = OSRM(osrm_base_path)
 # set the default snapping radius to 100 meters
 set_default_radius!(osrm, 100.0)
+get_default_radius(osrm)
 # many more parameters are available, see the documentation
 ```
 This instance can then be used with the following submodules for querying.
-
-Each submodule has its own parameter types and response types, allowing for module-specific configuration.
 
 ### Nearest query
 

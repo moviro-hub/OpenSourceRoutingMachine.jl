@@ -1,8 +1,7 @@
 """
     TripResponse
 
-Owns the raw libosrmc trip response pointer and ensures it is freed when the
-Julia object goes out of scope.
+Owns the libosrmc trip response pointer with automatic cleanup.
 """
 function _trip_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_trip_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -23,7 +22,7 @@ end
 """
     get_flatbuffer(response::TripResponse) -> Vector{UInt8}
 
-Returns the entire response as FlatBuffers binary data with zero-copy ownership transfer.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
 function get_flatbuffer(response::TripResponse)
     data_ptr_ref = Ref{Ptr{UInt8}}()

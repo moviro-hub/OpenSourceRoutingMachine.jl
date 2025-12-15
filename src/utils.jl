@@ -1,15 +1,4 @@
 # FlatBuffers helpers
-"""
-    as_struct(buffer::Vector{UInt8}) -> FBResult
-
-Converts FlatBuffers binary data to a FBResult Julia object using FlatBuffers.deserialize.
-
-# Arguments
-- `buffer::Vector{UInt8}`: The FlatBuffers binary data
-
-# Returns
-- `FBResult`: The deserialized FBResult object
-"""
 function as_struct(buffer::Vector{UInt8})::FBResult
     if isempty(buffer)
         error("Empty buffer provided")
@@ -44,8 +33,7 @@ end
 """
     OSRMError(code, message)
 
-Represents an error returned by libosrmc. `code` and `message` come directly from
-the native library so callers can display meaningful diagnostics.
+Error returned by libosrmc with code and message from the native library.
 """
 struct OSRMError <: Exception
     code::String
@@ -56,19 +44,9 @@ function Base.showerror(io::IO, e::OSRMError)
     return print(io, "OSRMError: [$(e.code)] $(e.message)")
 end
 
-"""
-    error_pointer(error_ref) -> Ptr{Ptr{Cvoid}}
-
-Lifts a `Ref{Ptr{Cvoid}}` so it can be passed to `ccall` error parameters.
-"""
 @inline error_pointer(error_ref::Ref{Ptr{Cvoid}}) = Base.unsafe_convert(Ptr{Ptr{Cvoid}}, error_ref)
 
-"""
-    take_error!(error_ref) -> Union{OSRMError, Nothing}
 
-Consumes the native error object referenced by `error_ref`, converts it into an
-`OSRMError`, and frees the underlying resource.
-"""
 function take_error!(error_ref::Ref{Ptr{Cvoid}})
     error_obj = error_ref[]
     error_obj == C_NULL && return nothing
@@ -81,22 +59,11 @@ function take_error!(error_ref::Ref{Ptr{Cvoid}})
     return OSRMError(code_str, msg_str)
 end
 
-"""
-    check_error(error_ref)
-
-Throws an `OSRMError` if `error_ref` points to a native error.
-"""
 function check_error(error_ref::Ref{Ptr{Cvoid}})
     err = take_error!(error_ref)
     return err !== nothing && throw(err)
 end
 
-"""
-    with_error(f) -> Any
-
-Allocates a native error pointer, passes it to `f`, and raises an `OSRMError`
-when the C-side reports a failure.
-"""
 function with_error(f::Function)
     error_ref = Ref{Ptr{Cvoid}}(C_NULL)
     result = f(error_ref)
@@ -105,13 +72,6 @@ function with_error(f::Function)
 end
 
 # finalize helpers
-"""
-    finalize(owner, destructor)
-
-Installs a GC finalizer for `owner` that invokes `destructor` on its `ptr`
-field. This is used by both parameter and response wrappers to ensure native
-handles always get released exactly once.
-"""
 function finalize(owner, destructor)
     return finalizer(owner) do obj
         if obj.ptr != C_NULL
@@ -119,4 +79,27 @@ function finalize(owner, destructor)
             obj.ptr = C_NULL
         end
     end
+end
+
+function verbosity_string_to_enum(verbosity::String)
+    verbosity_upper = uppercase(verbosity)
+    if verbosity_upper == "NONE"
+        return VERBOSITY_NONE
+    elseif verbosity_upper == "ERROR"
+        return VERBOSITY_ERROR
+    elseif verbosity_upper == "WARNING"
+        return VERBOSITY_WARNING
+    elseif verbosity_upper == "INFO"
+        return VERBOSITY_INFO
+    elseif verbosity_upper == "DEBUG"
+        return VERBOSITY_DEBUG
+    else
+        return VERBOSITY_INFO  # Default fallback
+    end
+end
+
+function verbosity_enum_to_string(verbosity::Verbosity)::String
+    verbosity_strings = ("NONE", "ERROR", "WARNING", "INFO", "DEBUG")
+    idx = Int(verbosity) + 1
+    return idx <= length(verbosity_strings) ? verbosity_strings[idx] : "INFO"
 end

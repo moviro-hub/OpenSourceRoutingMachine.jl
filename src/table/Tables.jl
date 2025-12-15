@@ -77,7 +77,7 @@ include("params.jl")
 """
     table_response(osrm::OSRM, params::TableParams) -> TableResponse
 
-Calls the libosrm Table module and returns the response as a TableResponse object.
+Call Table service and return response object.
 """
 function table_response(osrm::OSRM, params::TableParams)::TableResponse
     ptr = with_error() do err
@@ -90,7 +90,7 @@ end
 """
     table(osrm::OSRM, params::TableParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Table module and returns the response as FlatBuffers.
+Call Table service and return FlatBuffers response.
 """
 function table(osrm::OSRM, params::TableParams; deserialize::Bool = true)
     response = table_response(osrm, params)
@@ -120,6 +120,25 @@ export
     set_generate_hints!,
     set_skip_waypoints!,
     set_snapping!
+
+## Parameter getter exports
+export
+    get_sources,
+    get_destinations,
+    get_annotations,
+    get_fallback_speed,
+    get_fallback_coordinate_type,
+    get_scale_factor,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
 
 ## compute response exports
 export table_response
