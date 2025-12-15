@@ -49,9 +49,11 @@ function get_all_osrm_files(base_path::String)::Vector{String}
     base_name = basename(base_path)
     all_files = readdir(dir)
     # Match files that start with base_name and contain .osrm. or end with .osrm
-    matching_files = filter(f -> startswith(f, base_name) &&
-                                  (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
-                            all_files)
+    matching_files = filter(
+        f -> startswith(f, base_name) &&
+            (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
+        all_files
+    )
     return [joinpath(dir, f) for f in matching_files]
 end
 
@@ -67,6 +69,7 @@ function delete_osrm_files(base_path::String)
             rm(file)
         end
     end
+    return
 end
 
 @testset "Instance - Config Setters and Getters" begin

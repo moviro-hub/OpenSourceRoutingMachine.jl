@@ -29,9 +29,11 @@ function get_all_osrm_files(base_path::String)::Vector{String}
     base_name = basename(base_path)
     all_files = readdir(dir)
     # Match files that start with base_name and contain .osrm. or end with .osrm
-    matching_files = filter(f -> startswith(f, base_name) &&
-                                  (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
-                            all_files)
+    matching_files = filter(
+        f -> startswith(f, base_name) &&
+            (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
+        all_files
+    )
     return [joinpath(dir, f) for f in matching_files]
 end
 
@@ -47,6 +49,7 @@ function delete_osrm_files(base_path::String)
             rm(file)
         end
     end
+    return
 end
 
 """
@@ -59,7 +62,7 @@ function ensure_only_pbf_exists(osm_path::String)
     delete_osrm_files(base_path)
     @test isfile(osm_path)
     files = get_all_osrm_files(base_path)
-    @test isempty(files)
+    return @test isempty(files)
 end
 
 """
@@ -87,6 +90,7 @@ function check_extract_files_exist(base_path::String)
     for file in required_files
         @test isfile(file)
     end
+    return
 end
 
 """
@@ -97,7 +101,7 @@ Check that files created by contract() exist.
 function check_contract_files_exist(base_path::String)
     osrm_base = "$base_path.osrm"
     required_file = "$osrm_base.hsgr"
-    @test isfile(required_file)
+    return @test isfile(required_file)
 end
 
 """
@@ -116,6 +120,7 @@ function check_partition_files_exist(base_path::String)
     for file in required_files
         @test isfile(file)
     end
+    return
 end
 
 """
@@ -132,6 +137,7 @@ function check_customize_files_exist(base_path::String)
     for file in required_files
         @test isfile(file)
     end
+    return
 end
 
 @testset "Graph - CH (Contraction Hierarchy)" begin
@@ -149,7 +155,7 @@ end
     end
 
     @testset "Step 2: Extract" begin
-        extract(test_pbf; profile=PROFILE_CAR)
+        extract(test_pbf; profile = PROFILE_CAR)
         check_extract_files_exist(test_base)
     end
 
@@ -182,7 +188,7 @@ end
     end
 
     @testset "Step 2: Extract" begin
-        extract(test_pbf; profile=PROFILE_CAR)
+        extract(test_pbf; profile = PROFILE_CAR)
         check_extract_files_exist(test_base)
     end
 

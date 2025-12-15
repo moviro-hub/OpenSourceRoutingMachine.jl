@@ -24,7 +24,7 @@ end
 # Known coordinates in Hamburg for testing
 const HAMBURG_COORDINATES = Dict(
     "city_center" => Position(9.9937, 53.5511),
-    "airport" => Position(10.0060, 53.6325),
+    "airport" => Position(10.006, 53.6325),
     "port" => Position(9.9691, 53.5301),
     "altona" => Position(9.9362, 53.5522),
 )
@@ -51,21 +51,21 @@ const TRACE_COORDS_CITY_CENTER_TO_ALTONA = [
 # Trace from city center to airport
 const TRACE_COORDS_CITY_CENTER_TO_AIRPORT = [
     Position(9.9937, 53.5511),
-    Position(9.9950, 53.5520),
-    Position(9.9965, 53.5530),
-    Position(9.9980, 53.5540),
-    Position(10.0000, 53.5550),
-    Position(10.0020, 53.5560),
-    Position(10.0040, 53.5570),
-    Position(10.0060, 53.6325),
+    Position(9.995, 53.552),
+    Position(9.9965, 53.553),
+    Position(9.998, 53.554),
+    Position(10.0, 53.555),
+    Position(10.002, 53.556),
+    Position(10.004, 53.557),
+    Position(10.006, 53.6325),
 ]
 
 # Trace from city center to port
 const TRACE_COORDS_CITY_CENTER_TO_PORT = [
     Position(9.9937, 53.5511),
-    Position(9.9920, 53.5500),
-    Position(9.9900, 53.5490),
-    Position(9.9880, 53.5480),
+    Position(9.992, 53.55),
+    Position(9.99, 53.549),
+    Position(9.988, 53.548),
     Position(9.9691, 53.5301),
 ]
 

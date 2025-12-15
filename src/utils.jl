@@ -7,7 +7,7 @@ function as_struct(buffer::Vector{UInt8})::FBResult
     # Use FlatBuffers.deserialize to parse the buffer
     # IOBuffer is efficient - it wraps the Vector without copying
     # Alternative: could use pointer(buffer) if FlatBuffers.deserialize supports it
-    io = IOBuffer(buffer; read=true, write=false)
+    io = IOBuffer(buffer; read = true, write = false)
     result = FlatBuffers.deserialize(io, FBResult)
 
     # Check for errors
