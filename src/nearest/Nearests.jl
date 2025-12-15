@@ -1,29 +1,69 @@
 module Nearests
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    OSRMError,
+    # enums
+    Approach,
+    Snapping,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # response deserializers
+    as_struct
+
 import ..OpenSourceRoutingMachine:
-    OSRM, get_distance, set_number_of_results!, libosrmc,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, LatLon, Approach, Snapping
+    # parameters
+    set_number_of_results!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!
+
 import Base: count
 
 include("response.jl")
 include("params.jl")
 
 """
-    nearest(osrm::OSRM, params::NearestParams) -> NearestResponse
+    nearest_response(osrm::OSRM, params::NearestParams) -> NearestResponse
 
-Calls the libosrmc Nearest endpoint directly, avoiding HTTP round-trips.
+Call Nearest service and return response object.
 """
-function nearest(osrm::OSRM, params::NearestParams)
+function nearest_response(osrm::OSRM, params::NearestParams)::NearestResponse
     ptr = with_error() do err
         ccall((:osrmc_nearest, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    return NearestResponse(ptr)
+    response = NearestResponse(ptr)
+    return response
 end
 
-## Parameter exports
+"""
+    nearest(osrm::OSRM, params::NearestParams) -> Union{FBResult, Vector{UInt8}}
+
+Call Nearest service and return FlatBuffers response.
+"""
+function nearest(osrm::OSRM, params::NearestParams; deserialize::Bool = true)
+    response = nearest_response(osrm, params)
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
+end
+
+## Parameter setter exports
 export
     NearestParams,
     set_number_of_results!,
@@ -38,14 +78,28 @@ export
     set_skip_waypoints!,
     set_snapping!
 
-## Response exports
+## Parameter getter exports
 export
-    NearestResponse,
-    as_json,
-    get_count,
-    get_coordinate,
-    get_name,
-    get_distance,
-    get_hint
+    get_number_of_results,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
+
+## compute response exports
+export nearest_response
+
+## Response getter exports
+export NearestResponse,
+    get_flatbuffer
+
+# compute nearest result exports
+export nearest
 
 end # module Nearests

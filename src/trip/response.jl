@@ -1,8 +1,7 @@
 """
     TripResponse
 
-Owns the raw libosrmc trip response pointer and ensures it is freed when the
-Julia object goes out of scope.
+Owns the libosrmc trip response pointer with automatic cleanup.
 """
 function _trip_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_trip_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -15,72 +14,39 @@ mutable struct TripResponse
     function TripResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TripResponse from NULL pointer")
         response = new(ptr)
-        Utils.finalize(response, _trip_response_destruct)
+        finalize(response, _trip_response_destruct)
         return response
     end
 end
 
 """
-   as_json(response::TripResponse) -> String
+    get_flatbuffer(response::TripResponse) -> Vector{UInt8}
 
-Retrieve the entire response as JSON string.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
-function as_json(response::TripResponse)
-    blob = with_error() do err
-        ccall((:osrmc_trip_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-    return Utils.as_string(blob)
-end
-
-"""
-    get_distance(response::TripResponse) -> Float64
-"""
-function get_distance(response::TripResponse)
-    return with_error() do err
-        ccall((:osrmc_trip_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-end
-
-"""
-    get_duration(response::TripResponse) -> Float64
-"""
-function get_duration(response::TripResponse)
-    return with_error() do err
-        ccall((:osrmc_trip_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-end
-
-"""
-    get_waypoint_count(response::TripResponse) -> Int
-"""
-get_waypoint_count(response::TripResponse) =
-    Int(
+function get_flatbuffer(response::TripResponse)
+    data_ptr_ref = Ref{Ptr{UInt8}}()
+    size_ref = Ref{Csize_t}(0)
+    # deleter is a pointer to a function pointer: void (**deleter)(void*)
+    # Note: The C code always sets deleter to std::free (via osrmc_free_deleter).
+    # We use unsafe_wrap with own=true which uses free() by default, matching the C deleter.
+    # The deleter_pp_ref is passed for API completeness but not used since we know it's always free.
+    deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
     with_error() do err
-        ccall((:osrmc_trip_response_waypoint_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)
-
-
-function get_waypoint_latitude(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall(
+            (:osrmc_trip_response_transfer_flatbuffer, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
+            response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err)
+        )
     end
-end
 
-function get_waypoint_longitude(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    return with_error() do err
-        ccall((:osrmc_trip_response_waypoint_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+    # Validate that we received valid data
+    # The C code should set an error if data is invalid, but we check defensively
+    if data_ptr_ref[] == C_NULL || size_ref[] == 0
+        return UInt8[]
     end
-end
 
-"""
-    get_waypoint_coordinate(response::TripResponse, index) -> LatLon
-"""
-function get_waypoint_coordinate(response::TripResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    lat = get_waypoint_latitude(response, index)
-    lon = get_waypoint_longitude(response, index)
-    return LatLon(lat, lon)
+    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd via free())
+    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own = true)
 end

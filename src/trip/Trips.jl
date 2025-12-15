@@ -1,17 +1,40 @@
 module Trips
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
-import ..OpenSourceRoutingMachine:
-    OSRM,
-    get_distance,
-    get_duration,
-    as_json,
-    get_waypoint_count,
-    get_waypoint_coordinate,
+using CEnum
+using ..OpenSourceRoutingMachine:
+    # modules
     libosrmc,
-    add_roundtrip!,
-    add_source!,
-    add_destination!,
+    # types
+    OSRM,
+    Position,
+    OSRMError,
+    # enums
+    Approach,
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # response deserializers
+    as_struct
+
+import ..OpenSourceRoutingMachine:
+    # parameters
+    set_roundtrip!,
+    set_source!,
+    set_destination!,
+    set_steps!,
+    set_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
     add_waypoint!,
     clear_waypoints!,
     add_coordinate!,
@@ -23,39 +46,75 @@ import ..OpenSourceRoutingMachine:
     add_exclude!,
     set_generate_hints!,
     set_skip_waypoints!,
-    set_snapping!,
-    LatLon,
-    Approach,
-    Snapping
+    set_snapping!
+
+"""
+    TripSource
+
+Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`, `TRIP_SOURCE_FIRST`).
+"""
+@cenum(
+    TripSource::Int32, begin
+        TRIP_SOURCE_ANY_SOURCE = 0
+        TRIP_SOURCE_FIRST = 1
+    end
+)
+
+"""
+    TripDestination
+
+Selects the destination location strategy for trip queries (`TRIP_DESTINATION_ANY_DESTINATION`, `TRIP_DESTINATION_LAST`).
+"""
+@cenum(
+    TripDestination::Int32, begin
+        TRIP_DESTINATION_ANY_DESTINATION = 0
+        TRIP_DESTINATION_LAST = 1
+    end
+)
 
 include("response.jl")
 include("params.jl")
 
 """
-    trip(osrm::OSRM, params::TripParams) -> TripResponse
+    trip_response(osrm::OSRM, params::TripParams) -> TripResponse
 
-Query the Trip service and return a response object.
+Call Trip service and return response object.
 """
-function trip(osrm::OSRM, params::TripParams)
+function trip_response(osrm::OSRM, params::TripParams)::TripResponse
     ptr = with_error() do err
         ccall((:osrmc_trip, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    return TripResponse(ptr)
+    response = TripResponse(ptr)
+    return response
 end
 
-## Parameter exports
+"""
+    trip(osrm::OSRM, params::TripParams) -> Union{FBResult, Vector{UInt8}}
+
+Call Trip service and return FlatBuffers response.
+"""
+function trip(osrm::OSRM, params::TripParams; deserialize::Bool = true)
+    response = trip_response(osrm, params)
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
+end
+
+## Parameter setter exports
 export
     TripParams,
-    add_steps!,
-    add_alternatives!,
+    TripSource,
+    TripDestination,
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
     set_number_of_alternatives!,
     set_annotations!,
-    add_roundtrip!,
-    add_source!,
-    add_destination!,
+    set_roundtrip!,
+    set_source!,
+    set_destination!,
     clear_waypoints!,
     add_waypoint!,
     add_coordinate!,
@@ -69,14 +128,38 @@ export
     set_skip_waypoints!,
     set_snapping!
 
-## Response exports
+## Parameter getter exports
 export
-    TripResponse,
-    trip,
-    as_json,
-    get_distance,
-    get_duration,
-    get_waypoint_count,
-    get_waypoint_coordinate
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_roundtrip,
+    get_source,
+    get_destination,
+    get_waypoints,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
+
+## compute response exports
+export trip_response
+
+## Response getter exports
+export TripResponse,
+    get_flatbuffer
+
+# compute trip result exports
+export trip
 
 end # module Trips

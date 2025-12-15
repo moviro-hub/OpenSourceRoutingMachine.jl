@@ -1,58 +1,32 @@
 module Routes
 
-using ..Utils: Utils, with_error, error_pointer, check_error, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
-import ..OpenSourceRoutingMachine:
-    OSRM,
-    get_distance,
-    get_duration,
-    as_json,
-    get_waypoint_count,
-    get_waypoint_coordinate,
+using ..OpenSourceRoutingMachine:
+    # modules
     libosrmc,
-    add_steps!,
-    add_alternatives!,
-    set_geometries!,
-    set_overview!,
-    set_continue_straight!,
-    set_number_of_alternatives!,
-    set_annotations!,
-    add_waypoint!,
-    clear_waypoints!,
-    add_coordinate!,
-    add_coordinate_with!,
-    set_hint!,
-    set_radius!,
-    set_bearing!,
-    set_approach!,
-    add_exclude!,
-    set_generate_hints!,
-    set_skip_waypoints!,
-    set_snapping!,
-    LatLon,
+    # types
+    OSRM,
+    Position,
+    OSRMError,
+    # enums
     Approach,
-    Snapping
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # response deserializers
+    as_struct
 
-include("response.jl")
-include("params.jl")
 
-"""
-    route(osrm::OSRM, params::RouteParams) -> RouteResponse
-
-Calls the libosrmc Route endpoint directly, avoiding HTTP and keeping responses
-in-memory.
-"""
-function route(osrm::OSRM, params::RouteParams)
-    ptr = with_error() do err
-        ccall((:osrmc_route, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
-    end
-    return RouteResponse(ptr)
-end
-
-## Parameter exports
-export
-    RouteParams,
-    add_steps!,
-    add_alternatives!,
+import ..OpenSourceRoutingMachine:
+    # parameters
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
@@ -71,26 +45,86 @@ export
     set_skip_waypoints!,
     set_snapping!
 
-## Response exports
+include("response.jl")
+include("params.jl")
+
+"""
+    route_response(osrm::OSRM, params::RouteParams) -> RouteResponse
+
+Call Route service and return response object.
+"""
+function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
+    ptr = with_error() do err
+        ccall((:osrmc_route, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
+    end
+    response = RouteResponse(ptr)
+    return response
+end
+
+"""
+    route(osrm::OSRM, params::RouteParams) -> Union{FBResult, Vector{UInt8}}
+
+Call Route service and return FlatBuffers response.
+"""
+function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
+    response = route_response(osrm, params)
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
+end
+
+## Parameter setter exports
 export
-    RouteResponse,
-    route,
-    as_json,
-    get_distance,
-    get_duration,
-    get_alternative_count,
-    get_distance_at,
-    get_duration_at,
-    get_geometry_polyline,
-    get_geometry_coordinate_count,
-    get_geometry_coordinate,
-    get_waypoint_count,
-    get_waypoint_coordinate,
-    get_waypoint_name,
-    get_leg_count,
-    get_step_count,
-    get_step_distance,
-    get_step_duration,
-    get_step_instruction
+    RouteParams,
+    set_steps!,
+    set_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!
+
+## Parameter getter exports
+export
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_waypoints,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
+
+## compute response exports
+export route_response
+
+## Response getter exports
+export RouteResponse,
+    get_flatbuffer
+
+# compute route result exports
+export route
 
 end # module Routes

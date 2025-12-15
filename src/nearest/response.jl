@@ -1,8 +1,7 @@
 """
     NearestResponse
 
-Owns the libosrmc nearest response pointer and frees it automatically when the
-object is garbage collected.
+Owns the libosrmc nearest response pointer with automatic cleanup.
 """
 function _nearest_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_nearest_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -15,103 +14,39 @@ mutable struct NearestResponse
     function NearestResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct NearestResponse from NULL pointer")
         response = new(ptr)
-        Utils.finalize(response, _nearest_response_destruct)
+        finalize(response, _nearest_response_destruct)
         return response
     end
 end
 
 """
-    as_json(response::NearestResponse) -> String
+    get_flatbuffer(response::NearestResponse) -> Vector{UInt8}
 
-Returns the entire response as JSON string.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
-function as_json(response::NearestResponse)
-    blob = with_error() do err
-        ccall((:osrmc_nearest_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-    return Utils.as_string(blob)
-end
-
-"""
-    get_count(response::NearestResponse) -> Int
-
-Extends `Base.count` so callers can ask how many nearest hits OSRM returned
-without parsing JSON payloads.
-"""
-get_count(response::NearestResponse) =
-    Int(
+function get_flatbuffer(response::NearestResponse)
+    data_ptr_ref = Ref{Ptr{UInt8}}()
+    size_ref = Ref{Csize_t}(0)
+    # deleter is a pointer to a function pointer: void (**deleter)(void*)
+    # Note: The C code always sets deleter to std::free (via osrmc_free_deleter).
+    # We use unsafe_wrap with own=true which uses free() by default, matching the C deleter.
+    # The deleter_pp_ref is passed for API completeness but not used since we know it's always free.
+    deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
     with_error() do err
-        ccall((:osrmc_nearest_response_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)
-
-function get_latitude(response::NearestResponse, index::Integer)
-    n = get_count(response)
-    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return with_error() do err
-        ccall((:osrmc_nearest_response_latitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+        ccall(
+            (:osrmc_nearest_response_transfer_flatbuffer, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
+            response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err)
+        )
     end
-end
 
-function get_longitude(response::NearestResponse, index::Integer)
-    n = get_count(response)
-    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return with_error() do err
-        ccall((:osrmc_nearest_response_longitude, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
+    # Validate that we received valid data
+    # The C code should set an error if data is invalid, but we check defensively
+    if data_ptr_ref[] == C_NULL || size_ref[] == 0
+        return UInt8[]
     end
-end
 
-"""
-    get_coordinate(response::NearestResponse, index) -> LatLon
-
-Return the latitude and longitude of the `index`-th nearest point in the response.
-"""
-function get_coordinate(response::NearestResponse, index::Integer)
-    @assert index >= 1 "Julia uses 1-based indexing"
-    lat = get_latitude(response, index)
-    lon = get_longitude(response, index)
-    return LatLon(lat, lon)
-end
-
-"""
-    get_name(response::NearestResponse, index) -> String
-
-Pull the textual label directly from OSRM to keep UI strings consistent with
-the engine.
-"""
-function get_name(response::NearestResponse, index::Integer)
-    n = get_count(response)
-    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    cstr = with_error() do err
-        ccall((:osrmc_nearest_response_name, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
-    end
-    return unsafe_string(cstr)
-end
-
-"""
-    get_distance(response::NearestResponse, index) -> Float64
-
-Reuse OSRM's precomputed meters-to-target instead of recomputing client-side.
-"""
-function get_distance(response::NearestResponse, index::Integer)
-    n = get_count(response)
-    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    return with_error() do err
-        ccall((:osrmc_nearest_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
-    end
-end
-
-"""
-    get_hint(response::NearestResponse, index) -> String
-
-Returns the base64-encoded hint produced by OSRM so callers can reuse it for
-follow-up queries.
-"""
-function get_hint(response::NearestResponse, index::Integer)
-    n = get_count(response)
-    @assert 1 <= index <= n "Index $index out of bounds [1, $n]"
-    cstr = with_error() do err
-        ccall((:osrmc_nearest_response_hint, libosrmc), Cstring, (Ptr{Cvoid}, Cuint, Ptr{Ptr{Cvoid}}), response.ptr, Cuint(index - 1), error_pointer(err))
-    end
-    return cstr == C_NULL ? "" : unsafe_string(cstr)
+    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd via free())
+    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own = true)
 end

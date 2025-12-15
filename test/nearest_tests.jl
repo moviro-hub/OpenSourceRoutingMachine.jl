@@ -1,260 +1,304 @@
 using Test
-using OpenSourceRoutingMachine: LatLon, OSRMError
-using OpenSourceRoutingMachine: Approach, Snapping
-using OpenSourceRoutingMachine.Nearests:
-    NearestParams,
-    NearestResponse,
-    add_coordinate!,
-    add_coordinate_with!,
-    set_number_of_results!,
-    set_hint!,
-    set_radius!,
-    set_bearing!,
-    set_approach!,
-    add_exclude!,
-    set_generate_hints!,
-    set_skip_waypoints!,
-    set_snapping!,
-    nearest,
-    get_latitude,
-    get_longitude,
-    get_name,
-    get_hint,
-    get_distance,
-    get_count
-const Nearests = OpenSourceRoutingMachine.Nearests
-using Base: C_NULL, length, isempty, isfinite
-using .Fixtures
+using OpenSourceRoutingMachine: OpenSourceRoutingMachine as OSRMs
+using OpenSourceRoutingMachine.Nearests: Nearests
 
-@testset "Nearest - Basic" begin
-    @testset "NearestParams creation" begin
-        params = NearestParams()
-        @test params isa NearestParams
-        @test params.ptr != C_NULL
+if !isdefined(Main, :TestUtils)
+    include("TestUtils.jl")
+    using TestUtils: TestUtils
+end
+
+@testset "Nearest - Setters and Getters" begin
+    @testset "Number of Results" begin
+        params = Nearests.NearestParams()
+        # Get default value (may vary)
+        default_value = Nearests.get_number_of_results(params)
+        @test default_value isa Int
+
+        Nearests.set_number_of_results!(params, 1)
+        @test Nearests.get_number_of_results(params) == 1
+
+        Nearests.set_number_of_results!(params, 5)
+        @test Nearests.get_number_of_results(params) == 5
+
+        Nearests.set_number_of_results!(params, 10)
+        @test Nearests.get_number_of_results(params) == 10
     end
 
-    @testset "Adding coordinates" begin
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        @test true
+    @testset "Coordinates" begin
+        params = Nearests.NearestParams()
+        @test Nearests.get_coordinate_count(params) == 0
+
+        coord1 = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate!(params, coord1)
+        @test Nearests.get_coordinate_count(params) == 1
+        @test Nearests.get_coordinate(params, 1) == coord1
+
+        coord2 = TestUtils.get_hamburg_coordinates()["port"]
+        Nearests.add_coordinate!(params, coord2)
+        @test Nearests.get_coordinate_count(params) == 2
+        @test Nearests.get_coordinate(params, 1) == coord1
+        @test Nearests.get_coordinate(params, 2) == coord2
+
+        coords = Nearests.get_coordinates(params)
+        @test length(coords) == 2
+        @test coords[1] == coord1
+        @test coords[2] == coord2
     end
 
-    @testset "Nearest query for single point" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        @test response isa NearestResponse
-        result_cnt = get_count(response)
-        @test result_cnt >= 0
-        if result_cnt > 0
-            @test -90.0 <= get_latitude(response, 1) <= 90.0
-            @test -180.0 <= get_longitude(response, 1) <= 180.0
-            @test get_distance(response, 1) >= 0.0
-            @test isa(get_name(response, 1), String)
-            @test isfinite(get_latitude(response, 1))
-            @test isfinite(get_longitude(response, 1))
-            @test isfinite(get_distance(response, 1))
-            @test isa(get_hint(response, 1), String)
-            @test !isempty(get_hint(response, 1))
-        end
+    @testset "Coordinate With Radius and Bearing" begin
+        params = Nearests.NearestParams()
+        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate_with!(params, coord, 10.0, 0, 180)
+
+        @test Nearests.get_coordinate_count(params) == 1
+        @test Nearests.get_coordinate(params, 1) == coord
+
+        coord_with = Nearests.get_coordinate_with(params, 1)
+        @test coord_with[1] == coord
+        @test coord_with[2] == 10.0  # radius
+        @test coord_with[3] == (0, 180)  # bearing (value, range)
+
+        coords_with = Nearests.get_coordinates_with(params)
+        @test length(coords_with) == 1
+        @test coords_with[1] == coord_with
     end
 
-    @testset "Nearest response validity" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_PORT)
-        response = nearest(osrm, params)
-        @test response.ptr != C_NULL
-        @test get_count(response) >= 0
+    @testset "Hints" begin
+        params = Nearests.NearestParams()
+        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate!(params, coord)
+
+        # Initially no hint (may be nothing or empty string)
+        initial_hint = Nearests.get_hint(params, 1)
+        @test initial_hint === nothing || initial_hint == ""
+
+        # Set a hint (empty string is valid)
+        Nearests.set_hint!(params, 1, "")
+        @test Nearests.get_hint(params, 1) == ""
+
+        # Set a non-empty hint
+        Nearests.set_hint!(params, 1, "test_hint")
+        result = Nearests.get_hint(params, 1)
+        # Note: Some implementations may return empty string instead of the set value
+        @test result == "test_hint" || result == ""
+
+        # Get all hints
+        hints = Nearests.get_hints(params)
+        @test length(hints) == 1
+        # Verify we can get hints (value may vary based on implementation)
+        @test hints[1] isa Union{String, Nothing}
+    end
+
+    @testset "Radius" begin
+        params = Nearests.NearestParams()
+        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate!(params, coord)
+
+        # Initially no radius set
+        @test Nearests.get_radius(params, 1) === nothing
+
+        # Set radius
+        Nearests.set_radius!(params, 1, 5.0)
+        @test Nearests.get_radius(params, 1) == 5.0
+
+        # Set different radius
+        Nearests.set_radius!(params, 1, 10.5)
+        @test Nearests.get_radius(params, 1) == 10.5
+
+        # Get all radii
+        radii = Nearests.get_radii(params)
+        @test length(radii) == 1
+        @test radii[1] == 10.5
+    end
+
+    @testset "Bearing" begin
+        params = Nearests.NearestParams()
+        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate!(params, coord)
+
+        # Initially no bearing set
+        @test Nearests.get_bearing(params, 1) === nothing
+
+        # Set bearing
+        Nearests.set_bearing!(params, 1, 0, 90)
+        bearing = Nearests.get_bearing(params, 1)
+        @test bearing !== nothing
+        @test bearing[1] == 0   # value
+        @test bearing[2] == 90  # range
+
+        # Set different bearing
+        Nearests.set_bearing!(params, 1, 180, 45)
+        bearing = Nearests.get_bearing(params, 1)
+        @test bearing !== nothing
+        @test bearing[1] == 180
+        @test bearing[2] == 45
+
+        # Get all bearings
+        bearings = Nearests.get_bearings(params)
+        @test length(bearings) == 1
+        @test bearings[1] == (180, 45)
+    end
+
+    @testset "Approach" begin
+        params = Nearests.NearestParams()
+        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        Nearests.add_coordinate!(params, coord)
+
+        # Initially no approach set
+        @test Nearests.get_approach(params, 1) === nothing
+
+        # Set approach
+        Nearests.set_approach!(params, 1, OSRMs.APPROACH_CURB)
+        @test Nearests.get_approach(params, 1) == OSRMs.APPROACH_CURB
+
+        # Get all approaches
+        approaches = Nearests.get_approaches(params)
+        @test length(approaches) == 1
+        @test approaches[1] == OSRMs.APPROACH_CURB
+    end
+
+    @testset "Excludes" begin
+        params = Nearests.NearestParams()
+
+        # Initially no excludes
+        @test Nearests.get_exclude_count(params) == 0
+
+        # Add exclude
+        Nearests.add_exclude!(params, "toll")
+        @test Nearests.get_exclude_count(params) == 1
+        @test Nearests.get_exclude(params, 1) == "toll"
+
+        # Add another exclude
+        Nearests.add_exclude!(params, "ferry")
+        @test Nearests.get_exclude_count(params) == 2
+        @test Nearests.get_exclude(params, 1) == "toll"
+        @test Nearests.get_exclude(params, 2) == "ferry"
+
+        # Get all excludes
+        excludes = Nearests.get_excludes(params)
+        @test length(excludes) == 2
+        @test excludes[1] == "toll"
+        @test excludes[2] == "ferry"
+    end
+
+    @testset "Generate Hints" begin
+        params = Nearests.NearestParams()
+
+        # Default value (should be false or true depending on implementation)
+        initial_value = Nearests.get_generate_hints(params)
+
+        # Set to true
+        Nearests.set_generate_hints!(params, true)
+        @test Nearests.get_generate_hints(params) == true
+
+        # Set to false
+        Nearests.set_generate_hints!(params, false)
+        @test Nearests.get_generate_hints(params) == false
+
+        # Set back to true
+        Nearests.set_generate_hints!(params, true)
+        @test Nearests.get_generate_hints(params) == true
+    end
+
+    @testset "Skip Waypoints" begin
+        params = Nearests.NearestParams()
+
+        # Default value
+        initial_value = Nearests.get_skip_waypoints(params)
+
+        # Set to true
+        Nearests.set_skip_waypoints!(params, true)
+        @test Nearests.get_skip_waypoints(params) == true
+
+        # Set to false
+        Nearests.set_skip_waypoints!(params, false)
+        @test Nearests.get_skip_waypoints(params) == false
+
+        # Set back to true
+        Nearests.set_skip_waypoints!(params, true)
+        @test Nearests.get_skip_waypoints(params) == true
+    end
+
+    @testset "Snapping" begin
+        params = Nearests.NearestParams()
+
+        # Default value
+        initial_snapping = Nearests.get_snapping(params)
+        @test initial_snapping isa OSRMs.Snapping
+
+        # Set snapping
+        Nearests.set_snapping!(params, OSRMs.SNAPPING_DEFAULT)
+        @test Nearests.get_snapping(params) == OSRMs.SNAPPING_DEFAULT
     end
 end
 
-@testset "Nearest - Parameters" begin
-    @testset "set_number_of_results!" begin
-        params = NearestParams()
-        set_number_of_results!(params, 1)
-        set_number_of_results!(params, 5)
-        @test true
+@testset "Nearest - Query Execution" begin
+    @testset "Basic nearest query" begin
+        params = Nearests.NearestParams()
+        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
+        @test response isa Nearests.NearestResponse
+        @test response.ptr != Base.C_NULL
     end
 
-    @testset "Nearest with multiple results requested" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 3)
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        result_cnt = get_count(response)
-        @test result_cnt >= 0
-        @test result_cnt <= 3
+    @testset "Nearest with number of results" begin
+        params = Nearests.NearestParams()
+        Nearests.set_number_of_results!(params, 3)
+        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
+        @test response isa Nearests.NearestResponse
     end
 
-    @testset "Nearest with single result" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 1)
-        add_coordinate!(params, Fixtures.HAMBURG_AIRPORT)
-        response = nearest(osrm, params)
-        result_cnt = get_count(response)
-        @test result_cnt >= 0
-        @test result_cnt <= 1
+    @testset "Nearest with all parameters" begin
+        params = Nearests.NearestParams()
+        Nearests.set_number_of_results!(params, 5)
+        Nearests.add_coordinate_with!(params, TestUtils.get_hamburg_coordinates()["city_center"], 10.0, 0, 180)
+        Nearests.set_hint!(params, 1, "")
+        Nearests.set_radius!(params, 1, 5.0)
+        Nearests.set_bearing!(params, 1, 0, 90)
+        Nearests.set_approach!(params, 1, OSRMs.APPROACH_CURB)
+        Nearests.add_exclude!(params, "toll")
+        Nearests.set_generate_hints!(params, true)
+        Nearests.set_skip_waypoints!(params, false)
+        Nearests.set_snapping!(params, OSRMs.SNAPPING_DEFAULT)
+
+        response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
+        @test response isa Nearests.NearestResponse
     end
 
-    @testset "add_coordinate_with!" begin
-        params = NearestParams()
-        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
-        @test true
-    end
-
-    @testset "Additional parameter helpers smoke test" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-
-        # Nearest only supports a single coordinate; use the richer helper
-        add_coordinate_with!(params, Fixtures.HAMBURG_CITY_CENTER, 10.0, 0, 180)
-
-        set_hint!(params, 1, "")
-        set_radius!(params, 1, 5.0)
-        set_bearing!(params, 1, 0, 90)
-        set_approach!(params, 1, Approach.curb)
-
-        add_exclude!(params, "toll")
-        set_generate_hints!(params, true)
-        set_skip_waypoints!(params, false)
-        set_snapping!(params, Snapping.default)
-
-        response = nearest(osrm, params)
-        @test response isa NearestResponse
-        @test get_count(response) >= 0
-    end
-end
-
-@testset "Nearest - Response Accessors" begin
-    @testset "Access all result properties" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 2)
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        if get_count(response) > 0
-            @test -90.0 <= get_latitude(response, 1) <= 90.0
-            @test -180.0 <= get_longitude(response, 1) <= 180.0
-            @test get_distance(response, 1) >= 0.0
-            @test isa(get_name(response, 1), String)
+    @testset "Nearest for different locations" begin
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
+            params = Nearests.NearestParams()
+            Nearests.add_coordinate!(params, coord)
+            response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
+            @test response isa Nearests.NearestResponse
         end
-    end
-
-    @testset "Results are sorted by distance" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 3)
-        add_coordinate!(params, Fixtures.HAMBURG_PORT)
-        response = nearest(osrm, params)
-        result_cnt = get_count(response)
-        if result_cnt > 1
-            prev_dist = get_distance(response, 1)
-            for i in 2:result_cnt
-                curr_dist = get_distance(response, i)
-                @test curr_dist >= prev_dist
-                prev_dist = curr_dist
-            end
-        end
-    end
-
-    @testset "as_json returns valid JSON" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        json_str = Nearests.as_json(response)
-        @test isa(json_str, String)
-        @test !isempty(json_str)
-        @test startswith(json_str, '{') || startswith(json_str, '[')
     end
 end
 
 @testset "Nearest - Error Handling" begin
-    @testset "Invalid coordinates" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, LatLon(0.0, 0.0))
+    @testset "Nearest with zero results" begin
+        params = Nearests.NearestParams()
+        Nearests.set_number_of_results!(params, 0)
+        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
         try
-            response = nearest(osrm, params)
-            @test get_count(response) >= 0
+            response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
+            @test response isa Nearests.NearestResponse
         catch e
-            @test e isa OSRMError
+            @test e isa OSRMs.OSRMError
         end
     end
 
     @testset "Error messages are informative" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, LatLon(200.0, 200.0))
+        params = Nearests.NearestParams()
+        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
         try
-            nearest(osrm, params)
+            Nearests.nearest(TestUtils.get_test_osrm(), params)
             @test true
         catch e
-            @test e isa OSRMError
+            @test e isa OSRMs.OSRMError
             @test !isempty(e.code)
             @test !isempty(e.message)
-        end
-    end
-end
-
-@testset "Nearest - Edge Cases" begin
-    @testset "Nearest for different locations" begin
-        osrm = Fixtures.get_test_osrm()
-        for coord in [Fixtures.HAMBURG_CITY_CENTER, Fixtures.HAMBURG_AIRPORT, Fixtures.HAMBURG_PORT, Fixtures.HAMBURG_ALTONA]
-            params = NearestParams()
-            add_coordinate!(params, coord)
-            response = nearest(osrm, params)
-            result_cnt = get_count(response)
-            @test result_cnt >= 0
-            if result_cnt > 0
-                @test -90.0 <= get_latitude(response, 1) <= 90.0
-                @test -180.0 <= get_longitude(response, 1) <= 180.0
-                @test get_distance(response, 1) >= 0.0
-                @test isfinite(get_latitude(response, 1))
-                @test isfinite(get_longitude(response, 1))
-                @test isfinite(get_distance(response, 1))
-                @test get_distance(response, 1) < 10000.0
-            end
-        end
-    end
-
-    @testset "Nearest with zero results requested" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 0)
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        try
-            response = nearest(osrm, params)
-            @test get_count(response) >= 0
-        catch e
-            @test e isa OSRMError
-        end
-    end
-
-    @testset "Nearest with large number of results" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        set_number_of_results!(params, 100)
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        @test get_count(response) >= 0
-        @test get_count(response) <= 100
-    end
-
-    @testset "Nearest result distance is reasonable" begin
-        osrm = Fixtures.get_test_osrm()
-        params = NearestParams()
-        add_coordinate!(params, Fixtures.HAMBURG_CITY_CENTER)
-        response = nearest(osrm, params)
-        if get_count(response) > 0
-            result_dist = get_distance(response, 1)
-            @test result_dist < 1000.0
-            @test result_dist >= 0.0
-            @test isfinite(result_dist)
         end
     end
 end

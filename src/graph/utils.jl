@@ -9,29 +9,15 @@ struct OSRMCommandError <: Exception
     exitcode::Int32
 end
 
-@enumx Profile::Int begin
-    car = 0
-    bicycle = 1
-    foot = 2
-end
-
-const ProfileType = Profile.T
-
-_profile_symbol(profile::ProfileType) = profile === Profile.car ? :car :
-    profile === Profile.bicycle ? :bicycle :
-    :foot
-
 """
-    profile_lua_path(profile::ProfileType) -> String
+    profile_path(profile::Profile) -> String
 
 Return the absolute path to the Lua profile corresponding to the provided
 `Profile` value, even when the artifact relocates files, so callers never hard
 code resource paths.
 """
-function profile_lua_path(profile::ProfileType)::String
-    symbol = _profile_symbol(profile)
-    lua_field = Symbol(string(symbol), "_lua")
-
+function profile_path(profile::Profile)::String
+    lua_field = Symbol(Symbol(profile), :_lua)
     if hasproperty(OSRM_jll, lua_field)
         lua_path = getproperty(OSRM_jll, lua_field)
         if !isempty(lua_path) && isfile(lua_path)
@@ -39,9 +25,11 @@ function profile_lua_path(profile::ProfileType)::String
         end
     end
 
+    # Convert PROFILE_CAR -> car, PROFILE_BICYCLE -> bicycle, PROFILE_FOOT -> foot
+    profile_name = lowercase(replace(string(profile), "PROFILE_" => ""))
     artifact_dir = dirname(dirname(OSRM_jll.osrm_extract_path))
-    candidate = joinpath(artifact_dir, "profiles", string(symbol) * ".lua")
-    isfile(candidate) || error("Could not find Lua profile for $(symbol): looked in artifact at $candidate")
+    candidate = joinpath(artifact_dir, "profiles", profile_name * ".lua")
+    isfile(candidate) || error("Could not find Lua profile for $(string(profile)): looked in artifact at $candidate")
     return candidate
 end
 

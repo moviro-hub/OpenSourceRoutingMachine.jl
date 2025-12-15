@@ -1,34 +1,101 @@
 module Matches
 
-using ..Utils: Utils, with_error, error_pointer, as_cstring, as_cstring_or_null, as_cint, normalize_enum, to_cint
+using CEnum
+using ..OpenSourceRoutingMachine:
+    # modules
+    libosrmc,
+    # types
+    OSRM,
+    Position,
+    OSRMError,
+    # enums
+    Approach,
+    Snapping,
+    Overview,
+    Annotations,
+    Geometries,
+    # error helpers
+    with_error, error_pointer, check_error,
+    # string helpers
+    as_cstring_or_null,
+    # finalize helpers
+    finalize,
+    # response deserializers
+    as_struct
+
 import ..OpenSourceRoutingMachine:
-    OSRM, get_distance, add_timestamp!, set_gaps!, set_tidy!, libosrmc,
-    add_coordinate!, add_coordinate_with!, set_hint!, set_radius!, set_bearing!,
-    set_approach!, add_exclude!, set_generate_hints!, set_skip_waypoints!,
-    set_snapping!, LatLon, Approach, Snapping
+    # parameters
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
+    set_steps!,
+    set_alternatives!,
+    set_geometries!,
+    set_overview!,
+    set_continue_straight!,
+    set_number_of_alternatives!,
+    set_annotations!,
+    add_waypoint!,
+    clear_waypoints!,
+    add_coordinate!,
+    add_coordinate_with!,
+    set_hint!,
+    set_radius!,
+    set_bearing!,
+    set_approach!,
+    add_exclude!,
+    set_generate_hints!,
+    set_skip_waypoints!,
+    set_snapping!
+
 import Base: match
+
+"""
+    MatchGaps
+
+Controls how OSRM handles gaps in map matching traces (`MATCH_GAPS_SPLIT`, `MATCH_GAPS_IGNORE`).
+"""
+@cenum(
+    MatchGaps::Int32, begin
+        MATCH_GAPS_SPLIT = 0
+        MATCH_GAPS_IGNORE = 1
+    end
+)
 
 include("response.jl")
 include("params.jl")
 
 """
-    match(osrm::OSRM, params::MatchParams) -> MatchResponse
+    match_response(osrm::OSRM, params::MatchParams) -> MatchResponse
 
-Extends `Base.match` so callers can invoke OSRM's native matcher directly and
-receive a typed response without HTTP hops.
+Calls the libosrm Match module and returns the response as a MatchResponse object.
 """
-function match(osrm::OSRM, params::MatchParams)
+function match_response(osrm::OSRM, params::MatchParams)::MatchResponse
     ptr = with_error() do err
         ccall((:osrmc_match, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    return MatchResponse(ptr)
+    response = MatchResponse(ptr)
+    return response
 end
 
-## Parameter exports
+"""
+    match(osrm::OSRM, params::MatchParams) -> Union{FBResult, Vector{UInt8}}
+
+Calls the libosrm Match module and returns the response as FlatBuffers.
+"""
+function match(osrm::OSRM, params::MatchParams; deserialize::Bool = true)
+    response = match_response(osrm, params)
+    # Always use zero-copy FlatBuffer transfer
+    fb_data = get_flatbuffer(response)
+    return deserialize ? as_struct(fb_data) : fb_data
+end
+
+## Parameter setter exports
 export
     MatchParams,
-    add_steps!,
-    add_alternatives!,
+    MatchGaps,
+    set_steps!,
+    set_alternatives!,
     set_geometries!,
     set_overview!,
     set_continue_straight!,
@@ -50,17 +117,38 @@ export
     set_skip_waypoints!,
     set_snapping!
 
-## Response exports
+## Parameter getter exports
 export
-    MatchResponse,
-    match,
-    as_json,
-    get_route_count,
-    get_route_distance,
-    get_route_duration,
-    get_route_confidence,
-    get_tracepoint_count,
-    get_tracepoint_coordinate,
-    get_tracepoint_is_null
+    get_steps,
+    get_alternatives,
+    get_geometries,
+    get_overview,
+    get_continue_straight,
+    get_number_of_alternatives,
+    get_annotations,
+    get_waypoints,
+    get_timestamps,
+    get_gaps,
+    get_tidy,
+    get_coordinates,
+    get_hints,
+    get_radii,
+    get_bearings,
+    get_approaches,
+    get_coordinates_with,
+    get_excludes,
+    get_generate_hints,
+    get_skip_waypoints,
+    get_snapping
+
+## compute response exports
+export match_response
+
+## Response getter exports
+export MatchResponse,
+    get_flatbuffer
+
+# compute match result exports
+export match
 
 end # module Matches

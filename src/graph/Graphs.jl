@@ -1,12 +1,29 @@
 module Graphs
 
-using EnumX: @enumx
-using ..OpenSourceRoutingMachine: OSRM_jll
+using CEnum
+using ..OpenSourceRoutingMachine: OSRM_jll, Verbosity, verbosity_enum_to_string,
+    VERBOSITY_NONE, VERBOSITY_ERROR, VERBOSITY_WARNING, VERBOSITY_INFO, VERBOSITY_DEBUG
+
+"""
+    Profile
+
+Selects the routing profile for OSRM dataset generation (`PROFILE_CAR`, `PROFILE_BICYCLE`, `PROFILE_FOOT`).
+"""
+@cenum(
+    Profile::Int32, begin
+        PROFILE_CAR = 0
+        PROFILE_BICYCLE = 1
+        PROFILE_FOOT = 2
+    end
+)
 
 export
-    Profile,
+    # enums
+    Profile, PROFILE_CAR, PROFILE_BICYCLE, PROFILE_FOOT,
+    # Types
     OSRMCommandError,
-    profile_lua_path,
+    # functions
+    profile_path,
     extract,
     partition,
     customize,

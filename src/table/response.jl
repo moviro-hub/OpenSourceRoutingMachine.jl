@@ -1,8 +1,7 @@
 """
     TableResponse
 
-Owns the libosrmc table response pointer and releases it when the Julia object
-gets garbage collected.
+Owns the libosrmc table response pointer with automatic cleanup.
 """
 function _table_response_destruct(ptr::Ptr{Cvoid})
     ccall((:osrmc_table_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
@@ -15,104 +14,39 @@ mutable struct TableResponse
     function TableResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TableResponse from NULL pointer")
         response = new(ptr)
-        Utils.finalize(response, _table_response_destruct)
+        finalize(response, _table_response_destruct)
         return response
     end
 end
 
 """
-    as_json(response::TableResponse) -> String
+    get_flatbuffer(response::TableResponse) -> Vector{UInt8}
 
-Retrieve the entire response as JSON string.
+Get response as FlatBuffers binary data (zero-copy transfer).
 """
-function as_json(response::TableResponse)
-    blob = with_error() do err
-        ccall((:osrmc_table_response_json, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end
-    return Utils.as_string(blob)
-end
-
-"""
-    get_source_count(response) -> Int
-
-Helps verify how many origins OSRM accepted before attempting to read matrices.
-"""
-get_source_count(response::TableResponse) =
-    Int(
+function get_flatbuffer(response::TableResponse)
+    data_ptr_ref = Ref{Ptr{UInt8}}()
+    size_ref = Ref{Csize_t}(0)
+    # deleter is a pointer to a function pointer: void (**deleter)(void*)
+    # Note: The C code always sets deleter to std::free (via osrmc_free_deleter).
+    # We use unsafe_wrap with own=true which uses free() by default, matching the C deleter.
+    # The deleter_pp_ref is passed for API completeness but not used since we know it's always free.
+    deleter_pp_ref = Ref{Ptr{Cvoid}}(C_NULL)
     with_error() do err
-        ccall((:osrmc_table_response_source_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)
-
-"""
-    get_destination_count(response) -> Int
-
-Same as `source_count` but for destinations, keeping sanity checks symmetric.
-"""
-get_destination_count(response::TableResponse) =
-    Int(
-    with_error() do err
-        ccall((:osrmc_table_response_destination_count, libosrmc), Cuint, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), response.ptr, error_pointer(err))
-    end,
-)
-
-"""
-    get_duration(response, from, to) -> Float64
-
-Return OSRM's travel time between two matrix indices so we stay consistent with
-the engine (returns `Inf` when no route exists).
-"""
-function get_duration(response::TableResponse, from::Integer, to::Integer)
-    return with_error() do err
-        ccall((:osrmc_table_response_duration, libosrmc), Cdouble, (Ptr{Cvoid}, Culong, Culong, Ptr{Ptr{Cvoid}}), response.ptr, Culong(from - 1), Culong(to - 1), error_pointer(err))
+        ccall(
+            (:osrmc_table_response_transfer_flatbuffer, libosrmc),
+            Cvoid,
+            (Ptr{Cvoid}, Ref{Ptr{UInt8}}, Ref{Csize_t}, Ref{Ptr{Cvoid}}, Ptr{Ptr{Cvoid}}),
+            response.ptr, data_ptr_ref, size_ref, deleter_pp_ref, error_pointer(err)
+        )
     end
-end
 
-"""
-    get_distance(response, from, to) -> Float64
-
-Expose the meters-between calculation OSRM already computed for the matrix.
-"""
-function get_distance(response::TableResponse, from::Integer, to::Integer)
-    return with_error() do err
-        ccall((:osrmc_table_response_distance, libosrmc), Cdouble, (Ptr{Cvoid}, Culong, Culong, Ptr{Ptr{Cvoid}}), response.ptr, Culong(from - 1), Culong(to - 1), error_pointer(err))
+    # Validate that we received valid data
+    # The C code should set an error if data is invalid, but we check defensively
+    if data_ptr_ref[] == C_NULL || size_ref[] == 0
+        return UInt8[]
     end
-end
 
-"""
-    get_duration_matrix(response) -> Matrix{Float64}
-
-Fill an existing `Float64` buffer (vector or matrix, row-major) with durations
-so callers can avoid allocations when repeatedly querying OSRM.
-"""
-function get_duration_matrix(response::TableResponse)
-    n = get_source_count(response)
-    m = get_destination_count(response)
-    expected = n * m
-    buffer = Vector{Float64}(undef, expected)
-    count = with_error() do err
-        ccall((:osrmc_table_response_get_duration_matrix, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Cdouble}, Csize_t, Ptr{Ptr{Cvoid}}), response.ptr, pointer(buffer), Csize_t(expected), error_pointer(err))
-    end
-    count == expected || error("Duration matrix: expected $expected elements, got $count")
-    # Julia uses column-major order, whereas OSRM uses row-major order
-    return transpose(reshape(buffer, m, n))
-end
-
-"""
-    get_distance_matrix(response) -> Matrix{Float64}
-
-In-place variant for distances, mirroring `duration_matrix` to support
-allocation-free bulk work.
-"""
-function get_distance_matrix(response::TableResponse)
-    n = get_source_count(response)
-    m = get_destination_count(response)
-    expected = n * m
-    buffer = Vector{Float64}(undef, expected)
-    count = with_error() do err
-        ccall((:osrmc_table_response_get_distance_matrix, libosrmc), Cint, (Ptr{Cvoid}, Ptr{Cdouble}, Csize_t, Ptr{Ptr{Cvoid}}), response.ptr, pointer(buffer), Csize_t(expected), error_pointer(err))
-    end
-    count == expected || error("Distance matrix: expected $expected elements, got $count")
-    # Julia uses column-major order, whereas OSRM uses row-major order
-    return transpose(reshape(buffer, m, n))
+    # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd via free())
+    return unsafe_wrap(Array, data_ptr_ref[], size_ref[]; own = true)
 end
