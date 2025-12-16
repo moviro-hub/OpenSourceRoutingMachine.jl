@@ -61,7 +61,7 @@ Constructor for Position that accepts real numbers (converts to Float32).
 Position(lon::Real, lat::Real) = Position(Float32(lon), Float32(lat))
 
 # types
-export OSRM, OSRMConfig, Position, OSRMError
+export OSRM, OSRMConfig, OSRMError
 # enums
 export Algorithm, ALGORITHM_CH, ALGORITHM_MLD,
     Snapping, SNAPPING_DEFAULT, SNAPPING_ANY,
@@ -72,6 +72,19 @@ export Algorithm, ALGORITHM_CH, ALGORITHM_MLD,
     ANNOTATIONS_DISTANCE, ANNOTATIONS_WEIGHT, ANNOTATIONS_DATASOURCES,
     ANNOTATIONS_SPEED, ANNOTATIONS_ALL,
     Verbosity, VERBOSITY_NONE, VERBOSITY_ERROR, VERBOSITY_WARNING, VERBOSITY_INFO, VERBOSITY_DEBUG
+# FlatBuffer enums
+export ManeuverType, MANEUVER_TYPE_TURN, MANEUVER_TYPE_NEW_NAME, MANEUVER_TYPE_DEPART,
+    MANEUVER_TYPE_ARRIVE, MANEUVER_TYPE_MERGE, MANEUVER_TYPE_ON_RAMP, MANEUVER_TYPE_OFF_RAMP,
+    MANEUVER_TYPE_FORK, MANEUVER_TYPE_END_OF_ROAD, MANEUVER_TYPE_CONTINUE,
+    MANEUVER_TYPE_ROUNDABOUT, MANEUVER_TYPE_ROTARY, MANEUVER_TYPE_ROUNDABOUT_TURN,
+    MANEUVER_TYPE_NOTIFICATION, MANEUVER_TYPE_EXIT_ROUNDABOUT, MANEUVER_TYPE_EXIT_ROTARY
+export Turn, TURN_NONE, TURN_U_TURN, TURN_SHARP_RIGHT, TURN_RIGHT, TURN_SLIGHT_RIGHT,
+    TURN_STRAIGHT, TURN_SLIGHT_LEFT, TURN_LEFT, TURN_SHARP_LEFT
+# FlatBuffer structs
+export Position, Uint64Pair
+# FlatBuffer tables
+export StepManeuver, Error, Waypoint, Lane, Metadata, TableResult, Intersection,
+    Annotation, Step, Leg, RouteObject, FBResult
 # helper
 export get_version, is_abi_compatible
 # setter
