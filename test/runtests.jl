@@ -3,10 +3,10 @@ using OpenSourceRoutingMachine
 
 include("TestUtils.jl")
 
-TURN_OFF_GRAPH_TESTS = true
+TURN_ON_GRAPH_TESTS = true
 
 @testset "OpenSourceRoutingMachine" begin
-    if !TURN_OFF_GRAPH_TESTS
+    if TURN_ON_GRAPH_TESTS
         include("graph_tests.jl")
     end
     include("instance_tests.jl")

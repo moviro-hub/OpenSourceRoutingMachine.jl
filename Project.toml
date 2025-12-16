@@ -18,5 +18,5 @@ libosrmc_jll = {rev = "main", url = "https://github.com/jrklasen/libosrmc_jll.jl
 CEnum = "0.5.0"
 FlatBuffers = "0.6.2"
 OSRM_jll = "6.0.0"
-julia = "1.10"
+julia = "1.11"
 libosrmc_jll = "6.0.0"

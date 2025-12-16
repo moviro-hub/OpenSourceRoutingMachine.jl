@@ -480,6 +480,11 @@ function get_verbosity(config::OSRMConfig)
 end
 get_verbosity(osrm::OSRM) = get_verbosity(osrm.config)
 
+"""
+    disable_feature_dataset!(config::OSRMConfig, dataset_name)
+
+Disable a feature dataset by name.
+"""
 function disable_feature_dataset!(config::OSRMConfig, dataset_name::AbstractString)
     with_error() do error_ptr
         ccall((:osrmc_config_disable_feature_dataset, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, Base.unsafe_convert(Cstring, Base.cconvert(Cstring, dataset_name)), error_pointer(error_ptr))
@@ -521,6 +526,11 @@ function get_disabled_feature_dataset_at(config::OSRMConfig, index::Integer)
 end
 get_disabled_feature_dataset_at(osrm::OSRM, index::Integer) = get_disabled_feature_dataset_at(osrm.config, index)
 
+"""
+    clear_disabled_feature_datasets!(config::OSRMConfig)
+
+Clear all disabled feature datasets.
+"""
 function clear_disabled_feature_datasets!(config::OSRMConfig)
     with_error() do error_ptr
         ccall((:osrmc_config_clear_disabled_feature_datasets, libosrmc), Cvoid, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), config.ptr, error_pointer(error_ptr))

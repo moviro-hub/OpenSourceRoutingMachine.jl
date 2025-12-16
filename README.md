@@ -8,7 +8,7 @@ The package structure consists of a core module and service submodules.
 
 The core module `OpenSourceRoutingMachine` provides the constructor `OSRM` for creating an OSRM instance and setter and getter functions for basic configuration.
 
-The rest of the functionality is organized in submodules. The submodules have the following scope:
+The rest of the functionality is organized in service submodules with the following scope:
 
 - **Graph module**: Builds OSRM graphs from OpenStreetMap data
 - **Nearest**: Find the nearest waypoint in a road network for a given position
@@ -17,7 +17,6 @@ The rest of the functionality is organized in submodules. The submodules have th
 - **Match**: Find a route by map matching noisy GPS traces to a road network
 - **Trip**: Find a route by solving the traveling salesman problem
 - **Tile**: Retrieve road network geometry as vector tiles
-
 
 All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions, providing fine-grained control over query behavior.
 The output format is restricted to FlatBuffers for all modules except the Tile module.
@@ -39,7 +38,8 @@ It wraps the OSRM graph CLI commands.
 
 OSRM can handle different OSM data formats, including OSM XML and PBF (Protocol Buffer Format).
 
-OSRM supports two graph types: MLD (Multi-Level Dijkstra) and CH (Contraction Hierarchies). MLD is the recommended graph type for most use cases.
+OSRM supports two graph types: MLD (Multi-Level Dijkstra) and CH (Contraction Hierarchies).
+MLD is the recommended graph type for most use cases.
 
 Each graph is tailored for a specific routing profile that defines how different road types and conditions are weighted.
 OSRM provides three built-in profiles: car, bicycle, and foot, which can be specified using the `Profile` enum type.
@@ -109,7 +109,7 @@ With `deserialize = false`, the response is a `Vector{UInt8}` containing the Fla
 response = nearest(osrm, params; deserialize = false)
 ```
 
-This deserialization option applies to the following modules: `nearest`, `route`, `match`, `table`, and `trip`.
+This deserialization option applies to modules that return FlatBuffers: `nearest`, `route`, `match`, `table`, and `trip`.
 
 ### Route query
 
@@ -214,8 +214,6 @@ response = trip(osrm, params)
 The Tile module provides the functionality to retrieve road network geometry as vector tiles in MVT format.
 
 The main function is `tile(osrm, params)`, which takes the OSRM instance and a tile-specific parameters object as input.
-
-It returns the vector tile data in MVT format.
 
 ```julia
 using OpenSourceRoutingMachine.Tiles

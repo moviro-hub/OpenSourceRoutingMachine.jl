@@ -238,7 +238,6 @@ function clear_waypoints!(params::RouteParams)
     return nothing
 end
 
-
 function get_waypoint_count(params::RouteParams)
     out_count = Ref{Csize_t}(0)
     with_error() do error_ptr
@@ -247,7 +246,6 @@ function get_waypoint_count(params::RouteParams)
     end
     return Int(out_count[])
 end
-
 
 function get_waypoint(params::RouteParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
