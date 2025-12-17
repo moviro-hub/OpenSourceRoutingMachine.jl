@@ -4,6 +4,7 @@ using OpenSourceRoutingMachine.Routes: Routes
 
 if !isdefined(Main, :TestUtils)
     include("TestUtils.jl")
+    using TestUtils: TestUtils
 end
 
 @testset "Route - Setters and Getters" begin
@@ -125,9 +126,9 @@ end
     @testset "Waypoints" begin
         params = Routes.RouteParams()
         # Add coordinates first
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["port"])
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_PORT)
 
         # Initially no waypoints
         @test Routes.get_waypoint_count(params) == 0
@@ -154,12 +155,12 @@ end
         params = Routes.RouteParams()
         @test Routes.get_coordinate_count(params) == 0
 
-        coord1 = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord1)
         @test Routes.get_coordinate_count(params) == 1
         @test Routes.get_coordinate(params, 1) == coord1
 
-        coord2 = Main.TestUtils.get_hamburg_coordinates()["port"]
+        coord2 = TestUtils.HAMBURG_PORT
         Routes.add_coordinate!(params, coord2)
         @test Routes.get_coordinate_count(params) == 2
         @test Routes.get_coordinate(params, 1) == coord1
@@ -173,7 +174,7 @@ end
 
     @testset "Coordinate With Radius and Bearing" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate_with!(params, coord, 10.0, 0, 180)
 
         @test Routes.get_coordinate_count(params) == 1
@@ -191,7 +192,7 @@ end
 
     @testset "Hints" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord)
 
         # Initially no hint (may be nothing or empty string)
@@ -216,7 +217,7 @@ end
 
     @testset "Radius" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord)
 
         # Initially no radius set
@@ -238,7 +239,7 @@ end
 
     @testset "Bearing" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord)
 
         # Initially no bearing set
@@ -266,7 +267,7 @@ end
 
     @testset "Approach" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord)
 
         # Initially no approach set
@@ -362,9 +363,9 @@ end
 @testset "Route - Query Execution" begin
     @testset "Basic route query" begin
         params = Routes.RouteParams()
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
         @test response.ptr != Base.C_NULL
     end
@@ -372,31 +373,31 @@ end
     @testset "Route with steps enabled" begin
         params = Routes.RouteParams()
         Routes.set_steps!(params, true)
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["altona"])
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_ALTONA)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
     end
 
     @testset "Route with alternatives enabled" begin
         params = Routes.RouteParams()
         Routes.set_alternatives!(params, true)
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
     end
 
     @testset "Route with all parameters" begin
         params = Routes.RouteParams()
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
 
         Routes.set_geometries!(params, OSRMs.GEOMETRIES_GEOJSON)
         Routes.set_overview!(params, OSRMs.OVERVIEW_FULL)
         Routes.set_continue_straight!(params, true)
         Routes.set_number_of_alternatives!(params, 2)
-        Routes.set_annotations!(params, Annotations(OSRMs.ANNOTATIONS_DURATION | OSRMs.ANNOTATIONS_DISTANCE))
+        Routes.set_annotations!(params, OSRMs.Annotations(OSRMs.ANNOTATIONS_DURATION | OSRMs.ANNOTATIONS_DISTANCE))
         Routes.set_steps!(params, true)
         Routes.set_alternatives!(params, true)
 
@@ -411,27 +412,27 @@ end
         Routes.set_skip_waypoints!(params, false)
         Routes.set_snapping!(params, OSRMs.SNAPPING_DEFAULT)
 
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
     end
 
     @testset "Route with multiple waypoints" begin
         params = Routes.RouteParams()
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Routes.add_coordinate!(params, coord)
         end
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
     end
 
     @testset "Route with waypoint selection" begin
         params = Routes.RouteParams()
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        Routes.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["port"])
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Routes.add_coordinate!(params, TestUtils.HAMBURG_PORT)
         Routes.add_waypoint!(params, 2)
         try
-            response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+            response = Routes.route_response(TestUtils.get_test_osrm(), params)
             @test response isa Routes.RouteResponse
         catch e
             # Waypoint selection may fail if the route cannot be computed
@@ -446,7 +447,7 @@ end
         Routes.add_coordinate!(params, OSRMs.Position(0.0, 0.0))
         Routes.add_coordinate!(params, OSRMs.Position(1.0, 1.0))
         try
-            response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+            response = Routes.route_response(TestUtils.get_test_osrm(), params)
             @test response isa Routes.RouteResponse
         catch e
             @test e isa OSRMs.OSRMError
@@ -458,7 +459,7 @@ end
         Routes.add_coordinate!(params, OSRMs.Position(200.0, 200.0))
         Routes.add_coordinate!(params, OSRMs.Position(201.0, 201.0))
         try
-            Routes.route(Main.TestUtils.get_test_osrm(), params)
+            Routes.route(TestUtils.get_test_osrm(), params)
             @test true
         catch e
             @test e isa OSRMs.OSRMError
@@ -471,11 +472,11 @@ end
 @testset "Route - Edge Cases" begin
     @testset "Same start and end point" begin
         params = Routes.RouteParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Routes.add_coordinate!(params, coord)
         Routes.add_coordinate!(params, coord)
         try
-            response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+            response = Routes.route_response(TestUtils.get_test_osrm(), params)
             @test response isa Routes.RouteResponse
         catch e
             @test e isa OSRMs.OSRMError
@@ -484,11 +485,11 @@ end
 
     @testset "Very short route" begin
         params = Routes.RouteParams()
-        coord1 = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         coord2 = OSRMs.Position(coord1.longitude + 0.001, coord1.latitude + 0.001)
         Routes.add_coordinate!(params, coord1)
         Routes.add_coordinate!(params, coord2)
-        response = Routes.route_response(Main.TestUtils.get_test_osrm(), params)
+        response = Routes.route_response(TestUtils.get_test_osrm(), params)
         @test response isa Routes.RouteResponse
     end
 end

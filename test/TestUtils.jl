@@ -9,24 +9,35 @@ using Base.Math: deg2rad, tan, log, cos
 using OpenSourceRoutingMachine: OSRM, OSRMConfig, Position
 using OpenSourceRoutingMachine.Graphs: extract, partition, customize, Profile, PROFILE_CAR
 
+# ============================================================================
+# Constants
+# ============================================================================
+
 # Test data paths
 const TEST_DATA_DIR = joinpath(@__DIR__, "data")
 const HAMBURG_OSM_PATH = joinpath(TEST_DATA_DIR, "hamburg-latest.osm.pbf")
-let name = basename(HAMBURG_OSM_PATH)
-    while true
-        name_no_ext, ext = splitext(name)
-        isempty(ext) && break
-        name = name_no_ext
+
+# Strip all extensions from filename to get base name
+const HAMBURG_OSRM_BASE = let
+    name = basename(HAMBURG_OSM_PATH)
+    while !isempty(splitext(name)[2])
+        name = splitext(name)[1]
     end
-    global const HAMBURG_OSRM_BASE = joinpath(TEST_DATA_DIR, name)
+    joinpath(TEST_DATA_DIR, name)
 end
 
 # Known coordinates in Hamburg for testing
+const HAMBURG_CITY_CENTER = Position(9.9937, 53.5511)
+const HAMBURG_AIRPORT = Position(10.006, 53.6325)
+const HAMBURG_PORT = Position(9.9691, 53.5301)
+const HAMBURG_ALTONA = Position(9.9362, 53.5522)
+
+# Dictionary for backward compatibility
 const HAMBURG_COORDINATES = Dict(
-    "city_center" => Position(9.9937, 53.5511),
-    "airport" => Position(10.006, 53.6325),
-    "port" => Position(9.9691, 53.5301),
-    "altona" => Position(9.9362, 53.5522),
+    "city_center" => HAMBURG_CITY_CENTER,
+    "airport" => HAMBURG_AIRPORT,
+    "port" => HAMBURG_PORT,
+    "altona" => HAMBURG_ALTONA,
 )
 
 # Match test coordinates - trace from city center to altona
@@ -68,6 +79,92 @@ const TRACE_COORDS_CITY_CENTER_TO_PORT = [
     Position(9.988, 53.548),
     Position(9.9691, 53.5301),
 ]
+
+# ============================================================================
+# File and Path Manipulation Functions
+# ============================================================================
+
+"""
+    get_osrm_base_path(osm_path::String) -> String
+
+Get the base path (without .osrm extension) for OSRM files created from an OSM file.
+"""
+function get_osrm_base_path(osm_path::String)::String
+    name = basename(osm_path)
+    while true
+        name_no_ext, ext = splitext(name)
+        isempty(ext) && break
+        name = name_no_ext
+    end
+    return joinpath(dirname(osm_path), name)
+end
+
+"""
+    get_all_osrm_files(base_path::String) -> Vector{String}
+
+Get all .osrm.* files (excluding .pbf) for a given base path.
+"""
+function get_all_osrm_files(base_path::String)::Vector{String}
+    dir = dirname(base_path)
+    base_name = basename(base_path)
+    all_files = readdir(dir)
+    # Match files that start with base_name and contain .osrm. or end with .osrm
+    matching_files = filter(
+        f -> startswith(f, base_name) &&
+            (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
+        all_files
+    )
+    return [joinpath(dir, f) for f in matching_files]
+end
+
+"""
+    delete_osrm_files(base_path::String)
+
+Delete all .osrm.* files (excluding .pbf) for a given base path.
+"""
+function delete_osrm_files(base_path::String)
+    files = get_all_osrm_files(base_path)
+    for file in files
+        if isfile(file)
+            rm(file)
+        end
+    end
+    return
+end
+
+"""
+    get_or_create_test_pbf(name::String) -> String
+
+Get or create a temporary test PBF file by copying HAMBURG_OSM_PATH.
+Takes a name like "test_ch" or "test_mld" and returns the full path to the PBF file.
+"""
+function get_or_create_test_pbf(name::String)::String
+    test_pbf = joinpath(TEST_DATA_DIR, "$(name)_hamburg-latest.osm.pbf")
+    if !isfile(test_pbf)
+        cp(HAMBURG_OSM_PATH, test_pbf)
+    end
+    return test_pbf
+end
+
+"""
+    ensure_only_pbf_exists(osm_path::String) -> Bool
+
+Ensure only the .pbf file exists, deleting all other .osrm.* files.
+Returns true if the PBF file exists and all OSRM files have been deleted.
+"""
+function ensure_only_pbf_exists(osm_path::String)::Bool
+    if !isfile(osm_path)
+        return false
+    end
+    base_path = get_osrm_base_path(osm_path)
+    delete_osrm_files(base_path)
+    files = get_all_osrm_files(base_path)
+    return isempty(files)
+end
+
+# ============================================================================
+# Graph Building and Checking Functions
+# ============================================================================
 
 """
     build_osrm_graph(osm_path::String) -> String
@@ -146,6 +243,95 @@ function get_test_osrm()
 end
 
 """
+    check_extract_files_exist(base_path::String) -> Bool
+
+Check that all files created by extract() exist.
+Returns true if all required files exist, false otherwise.
+"""
+function check_extract_files_exist(base_path::String)::Bool
+    osrm_base = "$base_path.osrm"
+    required_files = [
+        "$osrm_base.ebg",
+        "$osrm_base.ebg_nodes",
+        "$osrm_base.enw",
+        "$osrm_base.fileIndex",
+        "$osrm_base.geometry",
+        "$osrm_base.icd",
+        "$osrm_base.names",
+        "$osrm_base.nbg_nodes",
+        "$osrm_base.properties",
+        "$osrm_base.ramIndex",
+        "$osrm_base.restrictions",
+        "$osrm_base.timestamp",
+        "$osrm_base.edges",
+    ]
+    for file in required_files
+        if !isfile(file)
+            return false
+        end
+    end
+    return true
+end
+
+"""
+    check_contract_files_exist(base_path::String) -> Bool
+
+Check that all files created by contract() exist.
+Returns true if all required files exist, false otherwise.
+"""
+function check_contract_files_exist(base_path::String)::Bool
+    osrm_base = "$base_path.osrm"
+    required_file = "$osrm_base.hsgr"
+    return isfile(required_file)
+end
+
+"""
+    check_partition_files_exist(base_path::String) -> Bool
+
+Check that all files created by partition() exist.
+Returns true if all required files exist, false otherwise.
+"""
+function check_partition_files_exist(base_path::String)::Bool
+    osrm_base = "$base_path.osrm"
+    required_files = [
+        "$osrm_base.partition",
+        "$osrm_base.cells",
+        "$osrm_base.cnbg",
+        "$osrm_base.cnbg_to_ebg",
+    ]
+    for file in required_files
+        if !isfile(file)
+            return false
+        end
+    end
+    return true
+end
+
+"""
+    check_customize_files_exist(base_path::String) -> Bool
+
+Check that all files created by customize() exist.
+Returns true if all required files exist, false otherwise.
+"""
+function check_customize_files_exist(base_path::String)::Bool
+    osrm_base = "$base_path.osrm"
+    required_files = [
+        "$osrm_base.cell_metrics",
+        "$osrm_base.mldgr",
+    ]
+    for file in required_files
+        if !isfile(file)
+            return false
+        end
+    end
+    return true
+end
+
+# ============================================================================
+# Coordinate and Trace Functions
+# ============================================================================
+
+"""
     get_hamburg_coordinates() -> Dict{String, Position}
 
 Get known coordinates in Hamburg for testing.
@@ -194,21 +380,39 @@ function slippy_tile(lat::Float64, lon::Float64, zoom::Integer)
     return xtile, ytile
 end
 
+# ============================================================================
 # Exports
+# ============================================================================
+
 export
     # Paths
     TEST_DATA_DIR,
     HAMBURG_OSM_PATH,
     HAMBURG_OSRM_BASE,
     # Coordinates
+    HAMBURG_CITY_CENTER,
+    HAMBURG_AIRPORT,
+    HAMBURG_PORT,
+    HAMBURG_ALTONA,
     HAMBURG_COORDINATES,
     TRACE_COORDS_CITY_CENTER_TO_ALTONA,
     TRACE_COORDS_CITY_CENTER_TO_AIRPORT,
     TRACE_COORDS_CITY_CENTER_TO_PORT,
-    # Functions
+    # File and Path Functions
+    get_osrm_base_path,
+    get_all_osrm_files,
+    delete_osrm_files,
+    get_or_create_test_pbf,
+    ensure_only_pbf_exists,
+    # Graph Building Functions
     build_osrm_graph,
     get_test_osrm_base_path,
     get_test_osrm,
+    check_extract_files_exist,
+    check_contract_files_exist,
+    check_partition_files_exist,
+    check_customize_files_exist,
+    # Coordinate and Trace Functions
     get_hamburg_coordinates,
     get_trace_coords_city_center_to_altona,
     get_trace_coords_city_center_to_airport,

@@ -4,6 +4,7 @@ using OpenSourceRoutingMachine.Trips: Trips
 
 if !isdefined(Main, :TestUtils)
     include("TestUtils.jl")
+    using TestUtils: TestUtils
 end
 
 @testset "Trip - Setters and Getters" begin
@@ -167,9 +168,9 @@ end
     @testset "Waypoints" begin
         params = Trips.TripParams()
         # Add coordinates first
-        Trips.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Trips.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        Trips.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["port"])
+        Trips.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Trips.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Trips.add_coordinate!(params, TestUtils.HAMBURG_PORT)
 
         # Initially no waypoints
         @test Trips.get_waypoint_count(params) == 0
@@ -196,12 +197,12 @@ end
         params = Trips.TripParams()
         @test Trips.get_coordinate_count(params) == 0
 
-        coord1 = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate!(params, coord1)
         @test Trips.get_coordinate_count(params) == 1
         @test Trips.get_coordinate(params, 1) == coord1
 
-        coord2 = Main.TestUtils.get_hamburg_coordinates()["port"]
+        coord2 = TestUtils.HAMBURG_PORT
         Trips.add_coordinate!(params, coord2)
         @test Trips.get_coordinate_count(params) == 2
         @test Trips.get_coordinate(params, 1) == coord1
@@ -215,7 +216,7 @@ end
 
     @testset "Coordinate With Radius and Bearing" begin
         params = Trips.TripParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate_with!(params, coord, 10.0, 0, 180)
 
         @test Trips.get_coordinate_count(params) == 1
@@ -233,7 +234,7 @@ end
 
     @testset "Hints" begin
         params = Trips.TripParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate!(params, coord)
 
         # Initially no hint (may be nothing or empty string)
@@ -258,7 +259,7 @@ end
 
     @testset "Radius" begin
         params = Trips.TripParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate!(params, coord)
 
         # Initially no radius set
@@ -280,7 +281,7 @@ end
 
     @testset "Bearing" begin
         params = Trips.TripParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate!(params, coord)
 
         # Initially no bearing set
@@ -308,7 +309,7 @@ end
 
     @testset "Approach" begin
         params = Trips.TripParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Trips.add_coordinate!(params, coord)
 
         # Initially no approach set
@@ -404,10 +405,10 @@ end
 @testset "Trip - Query Execution" begin
     @testset "Basic trip query" begin
         params = Trips.TripParams()
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
         @test response.ptr != Base.C_NULL
     end
@@ -415,21 +416,21 @@ end
     @testset "Trip with roundtrip enabled" begin
         params = Trips.TripParams()
         Trips.set_roundtrip!(params, true)
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
     end
 
     @testset "Trip with roundtrip disabled" begin
         params = Trips.TripParams()
         Trips.set_roundtrip!(params, false)
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
         try
-            response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+            response = Trips.trip_response(TestUtils.get_test_osrm(), params)
             @test response isa Trips.TripResponse
         catch e
             # Trip may fail if roundtrip disabled and coordinates cannot form a valid trip
@@ -440,37 +441,37 @@ end
     @testset "Trip with source set to first" begin
         params = Trips.TripParams()
         Trips.set_source!(params, Trips.TRIP_SOURCE_FIRST)
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
     end
 
     @testset "Trip with destination set to last" begin
         params = Trips.TripParams()
         Trips.set_destination!(params, Trips.TRIP_DESTINATION_LAST)
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
     end
 
     @testset "Trip with waypoints" begin
         params = Trips.TripParams()
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
         Trips.add_waypoint!(params, 1)
         Trips.add_waypoint!(params, 2)
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
     end
 
     @testset "Trip with all parameters" begin
         params = Trips.TripParams()
-        for (name, coord) in Main.TestUtils.get_hamburg_coordinates()
+        for (name, coord) in TestUtils.get_hamburg_coordinates()
             Trips.add_coordinate!(params, coord)
         end
 
@@ -496,7 +497,7 @@ end
         Trips.set_skip_waypoints!(params, false)
         Trips.set_snapping!(params, OSRMs.SNAPPING_DEFAULT)
 
-        response = Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+        response = Trips.trip_response(TestUtils.get_test_osrm(), params)
         @test response isa Trips.TripResponse
     end
 end
@@ -508,7 +509,7 @@ end
         Trips.add_coordinate!(params, OSRMs.Position(1.0, 1.0))
 
         maybe_response = try
-            Trips.trip_response(Main.TestUtils.get_test_osrm(), params)
+            Trips.trip_response(TestUtils.get_test_osrm(), params)
         catch e
             @test e isa OSRMs.OSRMError
             nothing
@@ -523,7 +524,7 @@ end
         Trips.add_coordinate!(params, OSRMs.Position(200.0, 200.0))
         Trips.add_coordinate!(params, OSRMs.Position(201.0, 201.0))
         try
-            Trips.trip(Main.TestUtils.get_test_osrm(), params)
+            Trips.trip(TestUtils.get_test_osrm(), params)
             @test true
         catch e
             @test e isa OSRMs.OSRMError

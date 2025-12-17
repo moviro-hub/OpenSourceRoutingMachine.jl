@@ -234,10 +234,12 @@ end
 Clear all waypoint selections.
 """
 function clear_waypoints!(params::RouteParams)
-    ccall((:osrmc_route_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid},), params.ptr)
+    with_error() do error_ptr
+        ccall((:osrmc_route_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), params.ptr, error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
-
 
 function get_waypoint_count(params::RouteParams)
     out_count = Ref{Csize_t}(0)
@@ -247,7 +249,6 @@ function get_waypoint_count(params::RouteParams)
     end
     return Int(out_count[])
 end
-
 
 function get_waypoint(params::RouteParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
@@ -680,7 +681,10 @@ end
 Enable or disable hint generation for reuse in follow-up queries.
 """
 function set_generate_hints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -704,7 +708,10 @@ end
 Enable or disable omitting waypoint objects from the response.
 """
 function set_skip_waypoints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 

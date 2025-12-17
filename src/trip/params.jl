@@ -303,7 +303,10 @@ end
 Clear all waypoint selections.
 """
 function clear_waypoints!(params::TripParams)
-    ccall((:osrmc_trip_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid},), params.ptr)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), params.ptr, error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -749,7 +752,10 @@ end
 Enable or disable hint generation for reuse in follow-up queries.
 """
 function set_generate_hints!(params::TripParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -773,7 +779,10 @@ end
 Enable or disable omitting waypoint objects from the response.
 """
 function set_skip_waypoints!(params::TripParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 

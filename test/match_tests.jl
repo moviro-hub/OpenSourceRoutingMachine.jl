@@ -126,9 +126,9 @@ end
     @testset "Waypoints" begin
         params = Matches.MatchParams()
         # Add coordinates first
-        Matches.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Matches.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
-        Matches.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["port"])
+        Matches.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Matches.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Matches.add_coordinate!(params, TestUtils.HAMBURG_PORT)
 
         # Initially no waypoints
         @test Matches.get_waypoint_count(params) == 0
@@ -154,8 +154,8 @@ end
     @testset "Timestamps" begin
         params = Matches.MatchParams()
         # Add coordinates first
-        Matches.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["city_center"])
-        Matches.add_coordinate!(params, Main.TestUtils.get_hamburg_coordinates()["airport"])
+        Matches.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Matches.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
 
         # Initially no timestamps
         @test Matches.get_timestamp_count(params) == 0
@@ -211,12 +211,12 @@ end
         params = Matches.MatchParams()
         @test Matches.get_coordinate_count(params) == 0
 
-        coord1 = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord1)
         @test Matches.get_coordinate_count(params) == 1
         @test Matches.get_coordinate(params, 1) == coord1
 
-        coord2 = Main.TestUtils.get_hamburg_coordinates()["port"]
+        coord2 = TestUtils.HAMBURG_PORT
         Matches.add_coordinate!(params, coord2)
         @test Matches.get_coordinate_count(params) == 2
         @test Matches.get_coordinate(params, 1) == coord1
@@ -230,7 +230,7 @@ end
 
     @testset "Coordinate With Radius and Bearing" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate_with!(params, coord, 10.0, 0, 180)
 
         @test Matches.get_coordinate_count(params) == 1
@@ -248,7 +248,7 @@ end
 
     @testset "Hints" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord)
 
         # Initially no hint (may be nothing or empty string)
@@ -273,7 +273,7 @@ end
 
     @testset "Radius" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord)
 
         # Initially no radius set
@@ -295,7 +295,7 @@ end
 
     @testset "Bearing" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord)
 
         # Initially no bearing set
@@ -323,7 +323,7 @@ end
 
     @testset "Approach" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord)
 
         # Initially no approach set
@@ -419,45 +419,45 @@ end
 @testset "Match - Query Execution" begin
     @testset "Basic match query" begin
         params = Matches.MatchParams()
-        for coord in Main.TestUtils.get_trace_coords_city_center_to_airport()
+        for coord in TestUtils.get_trace_coords_city_center_to_airport()
             Matches.add_coordinate!(params, coord)
         end
-        response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+        response = Matches.match_response(TestUtils.get_test_osrm(), params)
         @test response isa Matches.MatchResponse
         @test response.ptr != Base.C_NULL
     end
 
     @testset "Match with timestamps" begin
         params = Matches.MatchParams()
-        coords = Main.TestUtils.get_trace_coords_city_center_to_altona()
+        coords = TestUtils.get_trace_coords_city_center_to_altona()
         for coord in coords
             Matches.add_coordinate!(params, coord)
         end
         for i in 1:length(coords)
             Matches.add_timestamp!(params, (i - 1) * 10)
         end
-        response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+        response = Matches.match_response(TestUtils.get_test_osrm(), params)
         @test response isa Matches.MatchResponse
     end
 
     @testset "Match with gaps set to split" begin
         params = Matches.MatchParams()
         Matches.set_gaps!(params, Matches.MATCH_GAPS_SPLIT)
-        for coord in Main.TestUtils.get_trace_coords_city_center_to_airport()
+        for coord in TestUtils.get_trace_coords_city_center_to_airport()
             Matches.add_coordinate!(params, coord)
         end
-        response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+        response = Matches.match_response(TestUtils.get_test_osrm(), params)
         @test response isa Matches.MatchResponse
     end
 
     @testset "Match with gaps set to ignore" begin
         params = Matches.MatchParams()
         Matches.set_gaps!(params, Matches.MATCH_GAPS_IGNORE)
-        for coord in Main.TestUtils.get_trace_coords_city_center_to_port()
+        for coord in TestUtils.get_trace_coords_city_center_to_port()
             Matches.add_coordinate!(params, coord)
         end
         try
-            response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+            response = Matches.match_response(TestUtils.get_test_osrm(), params)
             @test response isa Matches.MatchResponse
         catch e
             # Match may fail if coordinates cannot be matched
@@ -468,11 +468,11 @@ end
     @testset "Match with tidy enabled" begin
         params = Matches.MatchParams()
         Matches.set_tidy!(params, true)
-        for coord in Main.TestUtils.get_trace_coords_city_center_to_port()
+        for coord in TestUtils.get_trace_coords_city_center_to_port()
             Matches.add_coordinate!(params, coord)
         end
         try
-            response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+            response = Matches.match_response(TestUtils.get_test_osrm(), params)
             @test response isa Matches.MatchResponse
         catch e
             # Match may fail if coordinates cannot be matched
@@ -482,7 +482,7 @@ end
 
     @testset "Match with all parameters" begin
         params = Matches.MatchParams()
-        coords = Main.TestUtils.get_trace_coords_city_center_to_altona()
+        coords = TestUtils.get_trace_coords_city_center_to_altona()
         for coord in coords
             Matches.add_coordinate!(params, coord)
         end
@@ -510,7 +510,7 @@ end
         Matches.set_skip_waypoints!(params, false)
         Matches.set_snapping!(params, OSRMs.SNAPPING_DEFAULT)
 
-        response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+        response = Matches.match_response(TestUtils.get_test_osrm(), params)
         @test response isa Matches.MatchResponse
     end
 end
@@ -521,7 +521,7 @@ end
         Matches.add_coordinate!(params, OSRMs.Position(0.0, 0.0))
         Matches.add_coordinate!(params, OSRMs.Position(1.0, 1.0))
         try
-            response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+            response = Matches.match_response(TestUtils.get_test_osrm(), params)
             @test response isa Matches.MatchResponse
         catch e
             @test e isa OSRMs.OSRMError
@@ -533,7 +533,7 @@ end
         Matches.add_coordinate!(params, OSRMs.Position(200.0, 200.0))
         Matches.add_coordinate!(params, OSRMs.Position(201.0, 201.0))
         try
-            Matches.match(Main.TestUtils.get_test_osrm(), params)
+            Matches.match(TestUtils.get_test_osrm(), params)
             @test true
         catch e
             @test e isa OSRMs.OSRMError
@@ -546,11 +546,11 @@ end
 @testset "Match - Edge Cases" begin
     @testset "Same start and end point" begin
         params = Matches.MatchParams()
-        coord = Main.TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Matches.add_coordinate!(params, coord)
         Matches.add_coordinate!(params, coord)
         try
-            response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+            response = Matches.match_response(TestUtils.get_test_osrm(), params)
             @test response isa Matches.MatchResponse
         catch e
             @test e isa OSRMs.OSRMError
@@ -559,11 +559,11 @@ end
 
     @testset "Very short trace" begin
         params = Matches.MatchParams()
-        coords = Main.TestUtils.get_trace_coords_city_center_to_airport()
+        coords = TestUtils.get_trace_coords_city_center_to_airport()
         for coord in coords[1:min(5, length(coords))]
             Matches.add_coordinate!(params, coord)
         end
-        response = Matches.match_response(Main.TestUtils.get_test_osrm(), params)
+        response = Matches.match_response(TestUtils.get_test_osrm(), params)
         @test response isa Matches.MatchResponse
     end
 end

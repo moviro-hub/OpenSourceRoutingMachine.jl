@@ -46,7 +46,6 @@ end
 
 @inline error_pointer(error_ref::Ref{Ptr{Cvoid}}) = Base.unsafe_convert(Ptr{Ptr{Cvoid}}, error_ref)
 
-
 function take_error!(error_ref::Ref{Ptr{Cvoid}})
     error_obj = error_ref[]
     error_obj == C_NULL && return nothing
@@ -61,7 +60,8 @@ end
 
 function check_error(error_ref::Ref{Ptr{Cvoid}})
     err = take_error!(error_ref)
-    return err !== nothing && throw(err)
+    err !== nothing && throw(err)
+    return nothing
 end
 
 function with_error(f::Function)
