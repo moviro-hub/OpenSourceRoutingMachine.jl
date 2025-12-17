@@ -678,7 +678,10 @@ end
 Enable or disable hint generation for reuse in follow-up queries.
 """
 function set_generate_hints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_generate_hints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
@@ -702,7 +705,10 @@ end
 Enable or disable omitting waypoint objects from the response.
 """
 function set_skip_waypoints!(params::RouteParams, on::Bool)
-    ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint), params.ptr, Cint(on))
+    with_error() do error_ptr
+        ccall((:osrmc_params_set_skip_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Cint, Ptr{Ptr{Cvoid}}), params.ptr, Cint(on), error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
