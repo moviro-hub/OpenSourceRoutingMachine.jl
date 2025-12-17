@@ -10,7 +10,7 @@ The core module `OpenSourceRoutingMachine` provides the constructor `OSRM` for c
 
 The rest of the functionality is organized in service submodules with the following scope:
 
-- **Graph module**: Builds OSRM graphs from OpenStreetMap data
+- **Graph**: Builds OSRM graphs from OpenStreetMap data
 - **Nearest**: Find the nearest waypoint in a road network for a given position
 - **Route**: Find a route between waypoints containing detailed information
 - **Table**: Find distance/duration matrices between multiple source and destination waypoints

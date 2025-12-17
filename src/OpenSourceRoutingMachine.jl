@@ -1,8 +1,20 @@
 """
     OpenSourceRoutingMachine
 
-A Julia package for routing machine functionality.
-Thin wrapper around the libosrmc C API.
+A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
+
+This package provides a complete interface to OSRM's routing capabilities, including:
+- **Graph**: Builds OSRM graphs from OpenStreetMap data
+- **Nearest**: Find the nearest waypoint in a road network for a given position
+- **Route**: Find a route between waypoints containing detailed information
+- **Table**: Find distance/duration matrices between multiple source and destination waypoints
+- **Match**: Find a route by map matching noisy GPS traces to a road network
+- **Trip**: Find a route by solving the traveling salesman problem
+- **Tile**: Retrieve road network geometry as vector tiles
+
+All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions.
+They also provide fine-grained control over query behavior.
+The output format is restricted to FlatBuffers for all modules except the Tile module, which returns road network geometry in MVT format.
 """
 module OpenSourceRoutingMachine
 
@@ -75,9 +87,15 @@ export Algorithm, ALGORITHM_CH, ALGORITHM_MLD,
 # helper
 export get_version, is_abi_compatible
 # setter
-export set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!, set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!, set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!
+export set_algorithm!, set_max_locations_trip!, set_max_locations_viaroute!, set_max_locations_distance_table!,
+    set_max_locations_map_matching!, set_max_radius_map_matching!, set_max_results_nearest!, set_default_radius!,
+    set_max_alternatives!, set_use_mmap!, set_use_shared_memory!, set_dataset_name!, set_memory_file!, set_verbosity!,
+    disable_feature_dataset!, clear_disabled_feature_datasets!
 # getter
-export get_algorithm, get_max_locations_trip, get_max_locations_viaroute, get_max_locations_distance_table, get_max_locations_map_matching, get_max_radius_map_matching, get_max_results_nearest, get_default_radius, get_max_alternatives, get_use_mmap, get_use_shared_memory, get_dataset_name
+export get_algorithm, get_max_locations_trip, get_max_locations_viaroute, get_max_locations_distance_table,
+    get_max_locations_map_matching, get_max_radius_map_matching, get_max_results_nearest, get_default_radius,
+    get_max_alternatives, get_use_mmap, get_use_shared_memory, get_dataset_name, get_memory_file, get_verbosity,
+    get_disabled_feature_dataset_count, get_disabled_feature_dataset_at
 
 # FlatBuffer enums
 public ManeuverType, MANEUVER_TYPE_TURN, MANEUVER_TYPE_NEW_NAME, MANEUVER_TYPE_DEPART, MANEUVER_TYPE_ARRIVE,
