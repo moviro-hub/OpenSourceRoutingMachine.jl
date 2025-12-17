@@ -227,6 +227,6 @@ set_z!(params, 13)    # Zoom level
 response = tile(osrm, params)
 ```
 
-Copyright (c) 2025, Moviro GmbH
+Copyright (c) 2025 MOVIRO GmbH
 
 Licensed under the MIT License.
