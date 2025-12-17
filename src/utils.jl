@@ -60,7 +60,8 @@ end
 
 function check_error(error_ref::Ref{Ptr{Cvoid}})
     err = take_error!(error_ref)
-    return err !== nothing && throw(err)
+    err !== nothing && throw(err)
+    return nothing
 end
 
 function with_error(f::Function)

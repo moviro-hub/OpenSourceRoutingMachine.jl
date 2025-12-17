@@ -303,7 +303,10 @@ end
 Clear all waypoint selections.
 """
 function clear_waypoints!(params::TripParams)
-    ccall((:osrmc_trip_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid},), params.ptr)
+    with_error() do error_ptr
+        ccall((:osrmc_trip_params_clear_waypoints, libosrmc), Cvoid, (Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), params.ptr, error_pointer(error_ptr))
+        nothing
+    end
     return nothing
 end
 
