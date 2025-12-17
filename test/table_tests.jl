@@ -11,9 +11,9 @@ end
     @testset "Sources" begin
         params = Tables.TableParams()
         # Add coordinates first
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["airport"])
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["port"])
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_PORT)
 
         # Initially no sources
         @test Tables.get_source_count(params) == 0
@@ -35,9 +35,9 @@ end
     @testset "Destinations" begin
         params = Tables.TableParams()
         # Add coordinates first
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["airport"])
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["port"])
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_AIRPORT)
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_PORT)
 
         # Initially no destinations
         @test Tables.get_destination_count(params) == 0
@@ -123,12 +123,12 @@ end
         params = Tables.TableParams()
         @test Tables.get_coordinate_count(params) == 0
 
-        coord1 = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate!(params, coord1)
         @test Tables.get_coordinate_count(params) == 1
         @test Tables.get_coordinate(params, 1) == coord1
 
-        coord2 = TestUtils.get_hamburg_coordinates()["port"]
+        coord2 = TestUtils.HAMBURG_PORT
         Tables.add_coordinate!(params, coord2)
         @test Tables.get_coordinate_count(params) == 2
         @test Tables.get_coordinate(params, 1) == coord1
@@ -142,7 +142,7 @@ end
 
     @testset "Coordinate With Radius and Bearing" begin
         params = Tables.TableParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate_with!(params, coord, 10.0, 0, 180)
 
         @test Tables.get_coordinate_count(params) == 1
@@ -160,7 +160,7 @@ end
 
     @testset "Hints" begin
         params = Tables.TableParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate!(params, coord)
 
         # Initially no hint (may be nothing or empty string)
@@ -185,7 +185,7 @@ end
 
     @testset "Radius" begin
         params = Tables.TableParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate!(params, coord)
 
         # Initially no radius set
@@ -207,7 +207,7 @@ end
 
     @testset "Bearing" begin
         params = Tables.TableParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate!(params, coord)
 
         # Initially no bearing set
@@ -235,7 +235,7 @@ end
 
     @testset "Approach" begin
         params = Tables.TableParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Tables.add_coordinate!(params, coord)
 
         # Initially no approach set
@@ -374,8 +374,8 @@ end
 
     @testset "Table with all parameters" begin
         params = Tables.TableParams()
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
-        Tables.add_coordinate_with!(params, TestUtils.get_hamburg_coordinates()["airport"], 10.0, 0, 180)
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Tables.add_coordinate_with!(params, TestUtils.HAMBURG_AIRPORT, 10.0, 0, 180)
 
         Tables.set_annotations!(params, Tables.TABLE_ANNOTATIONS_ALL)
         Tables.set_fallback_speed!(params, 50.0)
@@ -398,7 +398,7 @@ end
 
     @testset "Table with single coordinate" begin
         params = Tables.TableParams()
-        Tables.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        Tables.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
         Tables.set_annotations!(params, Tables.TABLE_ANNOTATIONS_ALL)
         response = Tables.table_response(TestUtils.get_test_osrm(), params)
         @test response isa Tables.TableResponse
@@ -409,7 +409,7 @@ end
     @testset "Invalid table request" begin
         params = Tables.TableParams()
         Tables.add_coordinate!(params, OSRMs.Position(200.0, 91.0))
-        @test_throws OSRMError Tables.table(TestUtils.get_test_osrm(), params)
+        @test_throws OSRMs.OSRMError Tables.table(TestUtils.get_test_osrm(), params)
     end
 
     @testset "Error messages are informative" begin

@@ -28,12 +28,12 @@ end
         params = Nearests.NearestParams()
         @test Nearests.get_coordinate_count(params) == 0
 
-        coord1 = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord1 = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate!(params, coord1)
         @test Nearests.get_coordinate_count(params) == 1
         @test Nearests.get_coordinate(params, 1) == coord1
 
-        coord2 = TestUtils.get_hamburg_coordinates()["port"]
+        coord2 = TestUtils.HAMBURG_PORT
         Nearests.add_coordinate!(params, coord2)
         @test Nearests.get_coordinate_count(params) == 2
         @test Nearests.get_coordinate(params, 1) == coord1
@@ -47,7 +47,7 @@ end
 
     @testset "Coordinate With Radius and Bearing" begin
         params = Nearests.NearestParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate_with!(params, coord, 10.0, 0, 180)
 
         @test Nearests.get_coordinate_count(params) == 1
@@ -65,7 +65,7 @@ end
 
     @testset "Hints" begin
         params = Nearests.NearestParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate!(params, coord)
 
         # Initially no hint (may be nothing or empty string)
@@ -91,7 +91,7 @@ end
 
     @testset "Radius" begin
         params = Nearests.NearestParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate!(params, coord)
 
         # Initially no radius set
@@ -113,7 +113,7 @@ end
 
     @testset "Bearing" begin
         params = Nearests.NearestParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate!(params, coord)
 
         # Initially no bearing set
@@ -141,7 +141,7 @@ end
 
     @testset "Approach" begin
         params = Nearests.NearestParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         Nearests.add_coordinate!(params, coord)
 
         # Initially no approach set
@@ -235,7 +235,7 @@ end
 @testset "Nearest - Query Execution" begin
     @testset "Basic nearest query" begin
         params = Nearests.NearestParams()
-        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        Nearests.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
         response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
         @test response isa Nearests.NearestResponse
         @test response.ptr != Base.C_NULL
@@ -244,7 +244,7 @@ end
     @testset "Nearest with number of results" begin
         params = Nearests.NearestParams()
         Nearests.set_number_of_results!(params, 3)
-        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        Nearests.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
         response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
         @test response isa Nearests.NearestResponse
     end
@@ -252,7 +252,7 @@ end
     @testset "Nearest with all parameters" begin
         params = Nearests.NearestParams()
         Nearests.set_number_of_results!(params, 5)
-        Nearests.add_coordinate_with!(params, TestUtils.get_hamburg_coordinates()["city_center"], 10.0, 0, 180)
+        Nearests.add_coordinate_with!(params, TestUtils.HAMBURG_CITY_CENTER, 10.0, 0, 180)
         Nearests.set_hint!(params, 1, "")
         Nearests.set_radius!(params, 1, 5.0)
         Nearests.set_bearing!(params, 1, 0, 90)
@@ -280,7 +280,7 @@ end
     @testset "Nearest with zero results" begin
         params = Nearests.NearestParams()
         Nearests.set_number_of_results!(params, 0)
-        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        Nearests.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
         try
             response = Nearests.nearest_response(TestUtils.get_test_osrm(), params)
             @test response isa Nearests.NearestResponse
@@ -291,7 +291,7 @@ end
 
     @testset "Error messages are informative" begin
         params = Nearests.NearestParams()
-        Nearests.add_coordinate!(params, TestUtils.get_hamburg_coordinates()["city_center"])
+        Nearests.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
         try
             Nearests.nearest(TestUtils.get_test_osrm(), params)
             @test true

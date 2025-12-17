@@ -6,54 +6,6 @@ if !isdefined(Main, :TestUtils)
     using TestUtils: TestUtils
 end
 
-"""
-    get_osrm_base_path(osm_path::String) -> String
-
-Get the base path (without .osrm extension) for OSRM files created from an OSM file.
-"""
-function get_osrm_base_path(osm_path::String)::String
-    name = basename(osm_path)
-    while true
-        name_no_ext, ext = splitext(name)
-        isempty(ext) && break
-        name = name_no_ext
-    end
-    return joinpath(dirname(osm_path), name)
-end
-
-"""
-    get_all_osrm_files(base_path::String) -> Vector{String}
-
-Get all .osrm.* files (excluding .pbf) for a given base path.
-"""
-function get_all_osrm_files(base_path::String)::Vector{String}
-    dir = dirname(base_path)
-    base_name = basename(base_path)
-    all_files = readdir(dir)
-    # Match files that start with base_name and contain .osrm. or end with .osrm
-    matching_files = filter(
-        f -> startswith(f, base_name) &&
-            (occursin(r"\.osrm\.", f) || endswith(f, ".osrm")),
-        all_files
-    )
-    return [joinpath(dir, f) for f in matching_files]
-end
-
-"""
-    delete_osrm_files(base_path::String)
-
-Delete all .osrm.* files (excluding .pbf) for a given base path.
-"""
-function delete_osrm_files(base_path::String)
-    files = get_all_osrm_files(base_path)
-    for file in files
-        if isfile(file)
-            rm(file)
-        end
-    end
-    return
-end
-
 @testset "Instance - Config Setters and Getters" begin
     # Create a config with nothing (shared memory mode) for testing setters/getters
     config = OSRMs.OSRMConfig(nothing)

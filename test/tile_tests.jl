@@ -61,7 +61,7 @@ end
 @testset "Tile - Query Execution" begin
     @testset "Basic tile query" begin
         params = Tiles.TileParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
         zoom = 14
         x, y = TestUtils.slippy_tile(Float64(coord.latitude), Float64(coord.longitude), zoom)
 
@@ -79,7 +79,7 @@ end
 
     @testset "Tile with different zoom levels" begin
         params = Tiles.TileParams()
-        coord = TestUtils.get_hamburg_coordinates()["city_center"]
+        coord = TestUtils.HAMBURG_CITY_CENTER
 
         for zoom in [10, 14, 18]
             x, y = TestUtils.slippy_tile(Float64(coord.latitude), Float64(coord.longitude), zoom)
