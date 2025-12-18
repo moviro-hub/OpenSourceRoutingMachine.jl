@@ -11,9 +11,6 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 OSRM_jll = "a74304e1-5a13-544f-adb7-0572470cee19"
 libosrmc_jll = "b012619c-76c7-5216-bb6b-491eaf671aba"
 
-[sources]
-libosrmc_jll = {rev = "main", url = "https://github.com/jrklasen/libosrmc_jll.jl"}
-
 [compat]
 CEnum = "0.5.0"
 FlatBuffers = "0.6.2"
