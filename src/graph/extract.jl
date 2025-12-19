@@ -38,7 +38,7 @@ function extract(
         disable_location_cache::Bool = false,
         dump_nbg_graph::Bool = false
     )
-    args = String[]
+    cmd = `$(OSRM_jll.osrm_extract())`
 
     # Profile (required)
     if isa(profile, Profile)
@@ -46,60 +46,53 @@ function extract(
     else
         profile_path_val = profile
     end
-    push!(args, "--profile")
-    push!(args, profile_path_val)
+    cmd = `$cmd --profile $profile_path_val`
 
     # Verbosity - convert enum to string
     verbosity_str = verbosity_enum_to_string(verbosity)
     if verbosity_str != "INFO"  # Only add if non-default
-        push!(args, "--verbosity")
-        push!(args, verbosity_str)
+        cmd = `$cmd --verbosity $verbosity_str`
     end
 
     # Data version
     if !isempty(data_version)
-        push!(args, "--data-version")
-        push!(args, data_version)
+        cmd = `$cmd --data-version $data_version`
     end
 
     # Threads
     if threads !== nothing
-        push!(args, "--threads")
-        push!(args, string(threads))
+        cmd = `$cmd --threads $(string(threads))`
     end
 
     # Small component size
     if small_component_size != 1000  # Only add if non-default
-        push!(args, "--small-component-size")
-        push!(args, string(small_component_size))
+        cmd = `$cmd --small-component-size $(string(small_component_size))`
     end
 
     # Boolean flags (only add if true)
     if with_osm_metadata
-        push!(args, "--with-osm-metadata")
+        cmd = `$cmd --with-osm-metadata`
     end
 
     if parse_conditional_restrictions
-        push!(args, "--parse-conditional-restrictions")
+        cmd = `$cmd --parse-conditional-restrictions`
     end
 
     if disable_location_cache
-        push!(args, "--disable-location-cache")
+        cmd = `$cmd --disable-location-cache`
     end
 
     if dump_nbg_graph
-        push!(args, "--dump-nbg-graph")
+        cmd = `$cmd --dump-nbg-graph`
     end
 
     # Location-dependent data (can be multiple)
     for path in location_dependent_data
-        push!(args, "--location-dependent-data")
-        push!(args, path)
+        cmd = `$cmd --location-dependent-data $path`
     end
 
     # Input file (positional, goes last)
-    push!(args, osm_path)
+    cmd = `$cmd $osm_path`
 
-    cmd = command_with_args(OSRM_jll.osrm_extract(), args)
-    run_or_throw(cmd)
+    return run(cmd)
 end
