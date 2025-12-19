@@ -29,7 +29,7 @@ The Tile module returns road network geometry in MVT format.
 
 ```julia
 using Pkg
-Pkg.add("OpenSourceRoutingMachine", url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
+Pkg.add(url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
 ```
 
 ## Usage examples
