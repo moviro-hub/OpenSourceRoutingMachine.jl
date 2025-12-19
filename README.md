@@ -2,6 +2,9 @@
 
 A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
 
+**Note:** The package is ready for testing, a release is targeted for early 2026. 
+The only obvious TODO is fixing the graph module data generation on Windows. For this, we need help from someone with Windows command line knowledge.
+
 ## Modules
 
 The package structure consists of a core module and service submodules.
