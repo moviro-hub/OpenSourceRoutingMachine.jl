@@ -5,13 +5,13 @@ Find the nearest road segment to a point.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Nearests]
+Modules = [OpenSourceRoutingMachine.Nearest]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Nearests]
+Modules = [OpenSourceRoutingMachine.Nearest]
 Order = [:type]
 ```

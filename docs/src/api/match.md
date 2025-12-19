@@ -5,13 +5,13 @@ Map GPS traces to road networks.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Matches]
+Modules = [OpenSourceRoutingMachine.Match]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Matches]
+Modules = [OpenSourceRoutingMachine.Match]
 Order = [:type]
 ```

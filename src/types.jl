@@ -51,7 +51,7 @@ FlatBuffers.@STRUCT struct Uint64Pair
     second::UInt64
 end
 
-# Tables (mutable reference types)
+# Table (mutable reference types)
 FlatBuffers.@with_kw mutable struct StepManeuver
     location::Union{Position, Nothing} = nothing
     bearing_before::Union{UInt16, Nothing} = nothing

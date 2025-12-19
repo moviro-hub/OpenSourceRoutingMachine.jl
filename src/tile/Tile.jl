@@ -1,4 +1,4 @@
-module Tiles
+module Tile
 
 using ..OpenSourceRoutingMachine:
     # modules
@@ -53,4 +53,4 @@ export
 # main function
 export tile
 
-end # module Tiles
+end # module Tile

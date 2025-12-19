@@ -5,13 +5,13 @@ Compute distance/duration matrices between multiple waypoints.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Tables]
+Modules = [OpenSourceRoutingMachine.Table]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Tables]
+Modules = [OpenSourceRoutingMachine.Table]
 Order = [:type]
 ```

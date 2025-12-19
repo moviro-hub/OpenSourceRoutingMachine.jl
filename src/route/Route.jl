@@ -1,6 +1,5 @@
-module Trips
+module Route
 
-using CEnum
 using ..OpenSourceRoutingMachine:
     # modules
     libosrmc,
@@ -23,11 +22,9 @@ using ..OpenSourceRoutingMachine:
     # response deserializers
     as_struct
 
+
 import ..OpenSourceRoutingMachine:
     # parameters
-    set_roundtrip!,
-    set_source!,
-    set_destination!,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -48,53 +45,29 @@ import ..OpenSourceRoutingMachine:
     set_skip_waypoints!,
     set_snapping!
 
-"""
-    TripSource
-
-Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`, `TRIP_SOURCE_FIRST`).
-"""
-@cenum(
-    TripSource::Int32, begin
-        TRIP_SOURCE_ANY_SOURCE = 0
-        TRIP_SOURCE_FIRST = 1
-    end
-)
-
-"""
-    TripDestination
-
-Selects the destination location strategy for trip queries (`TRIP_DESTINATION_ANY_DESTINATION`, `TRIP_DESTINATION_LAST`).
-"""
-@cenum(
-    TripDestination::Int32, begin
-        TRIP_DESTINATION_ANY_DESTINATION = 0
-        TRIP_DESTINATION_LAST = 1
-    end
-)
-
 include("response.jl")
 include("params.jl")
 
 """
-    trip_response(osrm::OSRM, params::TripParams) -> TripResponse
+    route_response(osrm::OSRM, params::RouteParams) -> RouteResponse
 
-Call Trip service and return response object.
+Call Route service and return response object.
 """
-function trip_response(osrm::OSRM, params::TripParams)::TripResponse
+function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
     ptr = with_error() do err
-        ccall((:osrmc_trip, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
+        ccall((:osrmc_route, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    response = TripResponse(ptr)
+    response = RouteResponse(ptr)
     return response
 end
 
 """
-    trip(osrm::OSRM, params::TripParams) -> Union{FBResult, Vector{UInt8}}
+    route(osrm::OSRM, params::RouteParams) -> Union{FBResult, Vector{UInt8}}
 
-Call Trip service and return FlatBuffers response.
+Call Route service and return FlatBuffers response.
 """
-function trip(osrm::OSRM, params::TripParams; deserialize::Bool = true)
-    response = trip_response(osrm, params)
+function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
+    response = route_response(osrm, params)
     # Always use zero-copy FlatBuffer transfer
     fb_data = get_flatbuffer(response)
     return deserialize ? as_struct(fb_data) : fb_data
@@ -102,9 +75,7 @@ end
 
 ## Parameter setter exports
 export
-    TripParams,
-    TripSource,
-    TripDestination,
+    RouteParams,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -112,11 +83,8 @@ export
     set_continue_straight!,
     set_number_of_alternatives!,
     set_annotations!,
-    set_roundtrip!,
-    set_source!,
-    set_destination!,
-    clear_waypoints!,
     add_waypoint!,
+    clear_waypoints!,
     add_coordinate!,
     add_coordinate_with!,
     set_hint!,
@@ -137,9 +105,6 @@ export
     get_continue_straight,
     get_number_of_alternatives,
     get_annotations,
-    get_roundtrip,
-    get_source,
-    get_destination,
     get_waypoints,
     get_coordinates,
     get_hints,
@@ -153,13 +118,13 @@ export
     get_snapping
 
 ## compute response exports
-export trip_response
+export route_response
 
 ## Response getter exports
-export TripResponse,
+export RouteResponse,
     get_flatbuffer
 
-# compute trip result exports
-export trip
+# compute route result exports
+export route
 
-end # module Trips
+end # module Route

@@ -5,13 +5,13 @@ Solve traveling salesman problems.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Trips]
+Modules = [OpenSourceRoutingMachine.Trip]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Trips]
+Modules = [OpenSourceRoutingMachine.Trip]
 Order = [:type]
 ```

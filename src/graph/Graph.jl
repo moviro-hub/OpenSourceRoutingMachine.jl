@@ -1,4 +1,4 @@
-module Graphs
+module Graph
 
 using CEnum
 using ..OpenSourceRoutingMachine: OSRM_jll, Verbosity, verbosity_enum_to_string,
@@ -48,4 +48,4 @@ include("partition.jl")
 include("customize.jl")
 include("contract.jl")
 
-end # module Graphs
+end # module Graph
