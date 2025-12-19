@@ -31,56 +31,48 @@ function partition(
         small_component_size::Int = 1000,
         max_cell_sizes::Vector{Int} = [128, 4096, 65536, 2097152],
     )
-    args = String[]
+    cmd = `$(OSRM_jll.osrm_partition())`
 
     # Verbosity - convert enum to string
     verbosity_str = verbosity_enum_to_string(verbosity)
     if verbosity_str != "INFO"  # Only add if non-default
-        push!(args, "--verbosity")
-        push!(args, verbosity_str)
+        cmd = `$cmd --verbosity $verbosity_str`
     end
 
     # Threads
     if threads !== nothing
-        push!(args, "--threads")
-        push!(args, string(threads))
+        cmd = `$cmd --threads $(string(threads))`
     end
 
     # Balance
     if balance != 1.2  # Only add if non-default
-        push!(args, "--balance")
-        push!(args, string(balance))
+        cmd = `$cmd --balance $(string(balance))`
     end
 
     # Boundary
     if boundary != 0.25  # Only add if non-default
-        push!(args, "--boundary")
-        push!(args, string(boundary))
+        cmd = `$cmd --boundary $(string(boundary))`
     end
 
     # Optimizing cuts
     if optimizing_cuts != 10  # Only add if non-default
-        push!(args, "--optimizing-cuts")
-        push!(args, string(optimizing_cuts))
+        cmd = `$cmd --optimizing-cuts $(string(optimizing_cuts))`
     end
 
     # Small component size
     if small_component_size != 1000  # Only add if non-default
-        push!(args, "--small-component-size")
-        push!(args, string(small_component_size))
+        cmd = `$cmd --small-component-size $(string(small_component_size))`
     end
 
     # Max cell sizes - convert vector to comma-separated string
     default_max_cell_sizes = [128, 4096, 65536, 2097152]
     if max_cell_sizes != default_max_cell_sizes
-        push!(args, "--max-cell-sizes")
         max_cell_sizes_str = join(string.(max_cell_sizes), ",")
-        push!(args, max_cell_sizes_str)
+        cmd = `$cmd --max-cell-sizes $max_cell_sizes_str`
     end
 
     # Input file (positional, goes last)
-    push!(args, osrm_base_path)
+    cmd = `$cmd $osrm_base_path`
 
-    cmd = command_with_args(OSRM_jll.osrm_partition(), args)
-    run_or_throw(cmd)
+    return run(cmd)
 end

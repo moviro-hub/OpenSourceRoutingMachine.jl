@@ -20,8 +20,6 @@ Selects the routing profile for OSRM dataset generation (`PROFILE_CAR`, `PROFILE
 export
     # enums
     Profile, PROFILE_CAR, PROFILE_BICYCLE, PROFILE_FOOT,
-    # Types
-    OSRMCommandError,
     # functions
     profile_path,
     extract,
