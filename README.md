@@ -2,7 +2,7 @@
 
 A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
 
-**Note:** The package is ready for testing, a release is targeted for early 2026. 
+**Note:** The package is ready for testing, a release is targeted for early 2026.
 The only obvious TODO is fixing the graph module data generation on Windows. For this, we need help from someone with Windows command line knowledge.
 
 ## Modules
@@ -52,7 +52,7 @@ The basic workflow for creating an MLD graph for car is as follows:
 
 ```julia
 using OpenSourceRoutingMachine
-using OpenSourceRoutingMachine.Graphs
+using OpenSourceRoutingMachine.Graph
 
 # input data
 osm_path = "hamburg-latest.osm.pbf"
@@ -94,7 +94,7 @@ The Nearest module provides the functionality to find the nearest waypoint in a 
 The main function is `nearest(osrm, params)`, which takes the OSRM instance and a nearest-specific parameters object as input.
 
 ```julia
-using OpenSourceRoutingMachine.Nearests
+using OpenSourceRoutingMachine.Nearest
 
 params = NearestParams()
 add_coordinate!(params, Position(9.9937, 53.5511))
@@ -123,7 +123,7 @@ The main function is `route(osrm, params)`, which takes the OSRM instance and a 
 For more details on the response options, see the Nearest example above.
 
 ```julia
-using OpenSourceRoutingMachine.Routes
+using OpenSourceRoutingMachine.Route
 
 # Create route parameters
 params = RouteParams()
@@ -148,7 +148,7 @@ The main function is `table(osrm, params)`, which takes the OSRM instance and a 
 For more details on the response options, see the Nearest example above.
 
 ```julia
-using OpenSourceRoutingMachine.Tables
+using OpenSourceRoutingMachine.Table
 
 params = TableParams()
 # Add coordinates first
@@ -175,7 +175,7 @@ The main function is `match(osrm, params)`, which takes the OSRM instance and a 
 For more details on the response options, see the Nearest example above.
 
 ```julia
-using OpenSourceRoutingMachine.Matches
+using OpenSourceRoutingMachine.Match
 
 params = MatchParams()
 set_geometries!(params, GEOMETRIES_GEOJSON) # geometry in uncompressed format
@@ -198,7 +198,7 @@ The main function is `trip(osrm, params)`, which takes the OSRM instance and a t
 For more details on the response options, see the Nearest example above.
 
 ```julia
-using OpenSourceRoutingMachine.Trips
+using OpenSourceRoutingMachine.Trip
 
 params = TripParams()
 set_geometries!(params, GEOMETRIES_GEOJSON) # geometry in uncompressed format
@@ -219,7 +219,7 @@ The Tile module provides the functionality to retrieve road network geometry as 
 The main function is `tile(osrm, params)`, which takes the OSRM instance and a tile-specific parameters object as input.
 
 ```julia
-using OpenSourceRoutingMachine.Tiles
+using OpenSourceRoutingMachine.Tile
 
 params = TileParams()
 set_x!(params, 4500)  # Tile X coordinate

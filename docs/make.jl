@@ -3,13 +3,13 @@ Pkg.activate(@__DIR__)
 
 using Documenter
 using OpenSourceRoutingMachine
-using OpenSourceRoutingMachine.Graphs
-using OpenSourceRoutingMachine.Nearests
-using OpenSourceRoutingMachine.Routes
-using OpenSourceRoutingMachine.Matches
-using OpenSourceRoutingMachine.Tables
-using OpenSourceRoutingMachine.Trips
-using OpenSourceRoutingMachine.Tiles
+using OpenSourceRoutingMachine.Graph
+using OpenSourceRoutingMachine.Nearest
+using OpenSourceRoutingMachine.Route
+using OpenSourceRoutingMachine.Match
+using OpenSourceRoutingMachine.Table
+using OpenSourceRoutingMachine.Trip
+using OpenSourceRoutingMachine.Tile
 
 DocMeta.setdocmeta!(
     OpenSourceRoutingMachine,
@@ -22,13 +22,13 @@ makedocs(;
     sitename = "OpenSourceRoutingMachine.jl",
     modules = [
         OpenSourceRoutingMachine,
-        OpenSourceRoutingMachine.Graphs,
-        OpenSourceRoutingMachine.Nearests,
-        OpenSourceRoutingMachine.Routes,
-        OpenSourceRoutingMachine.Matches,
-        OpenSourceRoutingMachine.Tables,
-        OpenSourceRoutingMachine.Trips,
-        OpenSourceRoutingMachine.Tiles,
+        OpenSourceRoutingMachine.Graph,
+        OpenSourceRoutingMachine.Nearest,
+        OpenSourceRoutingMachine.Route,
+        OpenSourceRoutingMachine.Match,
+        OpenSourceRoutingMachine.Table,
+        OpenSourceRoutingMachine.Trip,
+        OpenSourceRoutingMachine.Tile,
     ],
     format = Documenter.HTML(),
     checkdocs = :none,  # Disable strict docstring checking for minimal docs
@@ -37,7 +37,7 @@ makedocs(;
         "Examples" => "examples.md",
         "API Reference" => [
             "api/core.md",
-            "api/graphs.md",
+            "api/graph.md",
             "api/nearest.md",
             "api/route.md",
             "api/match.md",

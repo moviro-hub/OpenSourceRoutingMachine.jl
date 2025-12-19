@@ -36,7 +36,7 @@ See the `Examples` section for end-to-end usage patterns.
 ```@contents
 Pages = [
     "api/core.md",
-    "api/graphs.md",
+    "api/graph.md",
     "api/nearest.md",
     "api/route.md",
     "api/match.md",

@@ -113,7 +113,7 @@ function generate_code(parser::FBSParser, target_files::Set{String})::String
     # Generate tables
     table_names = [name for (name, file) in parser.table_files if file in target_files]
     if !isempty(table_names)
-        push!(lines, "# Tables (mutable reference types)")
+        push!(lines, "# Table (mutable reference types)")
         for table_name in topological_sort_tables(parser, table_names, struct_names)
             generate_table_code(parser, table_name, lines)
         end

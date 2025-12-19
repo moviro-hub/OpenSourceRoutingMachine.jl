@@ -1,4 +1,4 @@
-module Nearests
+module Nearest
 
 using ..OpenSourceRoutingMachine:
     # modules
@@ -102,4 +102,4 @@ export NearestResponse,
 # compute nearest result exports
 export nearest
 
-end # module Nearests
+end # module Nearest

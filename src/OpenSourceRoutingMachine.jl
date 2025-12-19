@@ -57,13 +57,13 @@ include("shared.jl")
 include("utils.jl")
 include("instance.jl")
 
-include("route/Routes.jl")
-include("table/Tables.jl")
-include("nearest/Nearests.jl")
-include("match/Matches.jl")
-include("trip/Trips.jl")
-include("tile/Tiles.jl")
-include("graph/Graphs.jl")
+include("route/Route.jl")
+include("table/Table.jl")
+include("nearest/Nearest.jl")
+include("match/Match.jl")
+include("trip/Trip.jl")
+include("tile/Tile.jl")
+include("graph/Graph.jl")
 
 """
     Position(lon::Real, lat::Real) -> Position

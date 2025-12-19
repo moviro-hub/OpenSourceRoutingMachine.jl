@@ -1,6 +1,6 @@
 using Test
 using OpenSourceRoutingMachine: OpenSourceRoutingMachine as OSRMs
-using OpenSourceRoutingMachine.Tiles: Tiles
+using OpenSourceRoutingMachine.Tile: Tile
 using Base: length, isempty
 
 if !isdefined(Main, :TestUtils)
@@ -10,116 +10,116 @@ end
 
 @testset "Tile - Setters and Getters" begin
     @testset "X Coordinate" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         # Default value
-        initial_x = Tiles.get_x(params)
+        initial_x = Tile.get_x(params)
         @test initial_x isa Int
 
-        Tiles.set_x!(params, 100)
-        @test Tiles.get_x(params) == 100
+        Tile.set_x!(params, 100)
+        @test Tile.get_x(params) == 100
 
-        Tiles.set_x!(params, 200)
-        @test Tiles.get_x(params) == 200
+        Tile.set_x!(params, 200)
+        @test Tile.get_x(params) == 200
 
-        Tiles.set_x!(params, 0)
-        @test Tiles.get_x(params) == 0
+        Tile.set_x!(params, 0)
+        @test Tile.get_x(params) == 0
     end
 
     @testset "Y Coordinate" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         # Default value
-        initial_y = Tiles.get_y(params)
+        initial_y = Tile.get_y(params)
         @test initial_y isa Int
 
-        Tiles.set_y!(params, 50)
-        @test Tiles.get_y(params) == 50
+        Tile.set_y!(params, 50)
+        @test Tile.get_y(params) == 50
 
-        Tiles.set_y!(params, 150)
-        @test Tiles.get_y(params) == 150
+        Tile.set_y!(params, 150)
+        @test Tile.get_y(params) == 150
 
-        Tiles.set_y!(params, 0)
-        @test Tiles.get_y(params) == 0
+        Tile.set_y!(params, 0)
+        @test Tile.get_y(params) == 0
     end
 
     @testset "Z (Zoom Level)" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         # Default value
-        initial_z = Tiles.get_z(params)
+        initial_z = Tile.get_z(params)
         @test initial_z isa Int
 
-        Tiles.set_z!(params, 10)
-        @test Tiles.get_z(params) == 10
+        Tile.set_z!(params, 10)
+        @test Tile.get_z(params) == 10
 
-        Tiles.set_z!(params, 14)
-        @test Tiles.get_z(params) == 14
+        Tile.set_z!(params, 14)
+        @test Tile.get_z(params) == 14
 
-        Tiles.set_z!(params, 18)
-        @test Tiles.get_z(params) == 18
+        Tile.set_z!(params, 18)
+        @test Tile.get_z(params) == 18
     end
 end
 
 @testset "Tile - Query Execution" begin
     @testset "Basic tile query" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         coord = TestUtils.HAMBURG_CITY_CENTER
         zoom = 14
         x, y = TestUtils.slippy_tile(Float64(coord.latitude), Float64(coord.longitude), zoom)
 
-        Tiles.set_x!(params, x)
-        Tiles.set_y!(params, y)
-        Tiles.set_z!(params, zoom)
+        Tile.set_x!(params, x)
+        Tile.set_y!(params, y)
+        Tile.set_z!(params, zoom)
 
-        response = Tiles.tile(TestUtils.get_test_osrm(), params)
-        @test response isa Tiles.TileResponse
+        response = Tile.tile(TestUtils.get_test_osrm(), params)
+        @test response isa Tile.TileResponse
 
-        raw = Tiles.get_data(response)
+        raw = Tile.get_data(response)
         @test !isempty(raw)
-        @test length(raw) == Tiles.get_size(response)
+        @test length(raw) == Tile.get_size(response)
     end
 
     @testset "Tile with different zoom levels" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         coord = TestUtils.HAMBURG_CITY_CENTER
 
         for zoom in [10, 14, 18]
             x, y = TestUtils.slippy_tile(Float64(coord.latitude), Float64(coord.longitude), zoom)
-            Tiles.set_x!(params, x)
-            Tiles.set_y!(params, y)
-            Tiles.set_z!(params, zoom)
+            Tile.set_x!(params, x)
+            Tile.set_y!(params, y)
+            Tile.set_z!(params, zoom)
 
-            response = Tiles.tile(TestUtils.get_test_osrm(), params)
-            @test response isa Tiles.TileResponse
+            response = Tile.tile(TestUtils.get_test_osrm(), params)
+            @test response isa Tile.TileResponse
         end
     end
 end
 
 @testset "Tile - Error Handling" begin
     @testset "Invalid zoom level" begin
-        params = Tiles.TileParams()
+        params = Tile.TileParams()
         # Deliberately request a tile outside the allowed zoom range to trigger an error
-        Tiles.set_x!(params, 0)
-        Tiles.set_y!(params, 0)
-        Tiles.set_z!(params, 30)
+        Tile.set_x!(params, 0)
+        Tile.set_y!(params, 0)
+        Tile.set_z!(params, 30)
 
         maybe_tile = try
-            Tiles.tile(TestUtils.get_test_osrm(), params)
+            Tile.tile(TestUtils.get_test_osrm(), params)
         catch e
             @test e isa OSRMs.OSRMError
             nothing
         end
         if maybe_tile !== nothing
-            bytes = Tiles.get_data(maybe_tile)
+            bytes = Tile.get_data(maybe_tile)
             @test isa(bytes, Vector{UInt8})
         end
     end
 
     @testset "Error messages are informative" begin
-        params = Tiles.TileParams()
-        Tiles.set_x!(params, 999999)
-        Tiles.set_y!(params, 999999)
-        Tiles.set_z!(params, 30)
+        params = Tile.TileParams()
+        Tile.set_x!(params, 999999)
+        Tile.set_y!(params, 999999)
+        Tile.set_z!(params, 30)
         try
-            Tiles.tile(TestUtils.get_test_osrm(), params)
+            Tile.tile(TestUtils.get_test_osrm(), params)
             @test true
         catch e
             @test e isa OSRMs.OSRMError

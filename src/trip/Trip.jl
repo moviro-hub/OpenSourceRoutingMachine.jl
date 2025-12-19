@@ -1,4 +1,4 @@
-module Matches
+module Trip
 
 using CEnum
 using ..OpenSourceRoutingMachine:
@@ -25,9 +25,9 @@ using ..OpenSourceRoutingMachine:
 
 import ..OpenSourceRoutingMachine:
     # parameters
-    add_timestamp!,
-    set_gaps!,
-    set_tidy!,
+    set_roundtrip!,
+    set_source!,
+    set_destination!,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -48,17 +48,27 @@ import ..OpenSourceRoutingMachine:
     set_skip_waypoints!,
     set_snapping!
 
-import Base: match
-
 """
-    MatchGaps
+    TripSource
 
-Controls how OSRM handles gaps in map matching traces (`MATCH_GAPS_SPLIT`, `MATCH_GAPS_IGNORE`).
+Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`, `TRIP_SOURCE_FIRST`).
 """
 @cenum(
-    MatchGaps::Int32, begin
-        MATCH_GAPS_SPLIT = 0
-        MATCH_GAPS_IGNORE = 1
+    TripSource::Int32, begin
+        TRIP_SOURCE_ANY_SOURCE = 0
+        TRIP_SOURCE_FIRST = 1
+    end
+)
+
+"""
+    TripDestination
+
+Selects the destination location strategy for trip queries (`TRIP_DESTINATION_ANY_DESTINATION`, `TRIP_DESTINATION_LAST`).
+"""
+@cenum(
+    TripDestination::Int32, begin
+        TRIP_DESTINATION_ANY_DESTINATION = 0
+        TRIP_DESTINATION_LAST = 1
     end
 )
 
@@ -66,25 +76,25 @@ include("response.jl")
 include("params.jl")
 
 """
-    match_response(osrm::OSRM, params::MatchParams) -> MatchResponse
+    trip_response(osrm::OSRM, params::TripParams) -> TripResponse
 
-Calls the libosrm Match module and returns the response as a MatchResponse object.
+Call Trip service and return response object.
 """
-function match_response(osrm::OSRM, params::MatchParams)::MatchResponse
+function trip_response(osrm::OSRM, params::TripParams)::TripResponse
     ptr = with_error() do err
-        ccall((:osrmc_match, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
+        ccall((:osrmc_trip, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    response = MatchResponse(ptr)
+    response = TripResponse(ptr)
     return response
 end
 
 """
-    match(osrm::OSRM, params::MatchParams) -> Union{FBResult, Vector{UInt8}}
+    trip(osrm::OSRM, params::TripParams) -> Union{FBResult, Vector{UInt8}}
 
-Calls the libosrm Match module and returns the response as FlatBuffers.
+Call Trip service and return FlatBuffers response.
 """
-function match(osrm::OSRM, params::MatchParams; deserialize::Bool = true)
-    response = match_response(osrm, params)
+function trip(osrm::OSRM, params::TripParams; deserialize::Bool = true)
+    response = trip_response(osrm, params)
     # Always use zero-copy FlatBuffer transfer
     fb_data = get_flatbuffer(response)
     return deserialize ? as_struct(fb_data) : fb_data
@@ -92,8 +102,9 @@ end
 
 ## Parameter setter exports
 export
-    MatchParams,
-    MatchGaps,
+    TripParams,
+    TripSource,
+    TripDestination,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -101,11 +112,11 @@ export
     set_continue_straight!,
     set_number_of_alternatives!,
     set_annotations!,
-    add_waypoint!,
+    set_roundtrip!,
+    set_source!,
+    set_destination!,
     clear_waypoints!,
-    add_timestamp!,
-    set_gaps!,
-    set_tidy!,
+    add_waypoint!,
     add_coordinate!,
     add_coordinate_with!,
     set_hint!,
@@ -126,10 +137,10 @@ export
     get_continue_straight,
     get_number_of_alternatives,
     get_annotations,
+    get_roundtrip,
+    get_source,
+    get_destination,
     get_waypoints,
-    get_timestamps,
-    get_gaps,
-    get_tidy,
     get_coordinates,
     get_hints,
     get_radii,
@@ -142,13 +153,13 @@ export
     get_snapping
 
 ## compute response exports
-export match_response
+export trip_response
 
 ## Response getter exports
-export MatchResponse,
+export TripResponse,
     get_flatbuffer
 
-# compute match result exports
-export match
+# compute trip result exports
+export trip
 
-end # module Matches
+end # module Trip

@@ -1,4 +1,4 @@
-module Tables
+module Table
 
 using CEnum
 using ..OpenSourceRoutingMachine:
@@ -150,4 +150,4 @@ export TableResponse,
 # compute table result exports
 export table
 
-end # module Tables
+end # module Table

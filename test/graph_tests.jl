@@ -1,5 +1,5 @@
 using Test
-using OpenSourceRoutingMachine.Graphs: extract, contract, partition, customize, Profile, PROFILE_CAR
+using OpenSourceRoutingMachine.Graph: extract, contract, partition, customize, Profile, PROFILE_CAR
 
 if !isdefined(Main, :TestUtils)
     include("TestUtils.jl")

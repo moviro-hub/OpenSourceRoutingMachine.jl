@@ -7,7 +7,7 @@ using SHA
 using Base.MathConstants: π
 using Base.Math: deg2rad, tan, log, cos
 using OpenSourceRoutingMachine: OSRM, OSRMConfig, Position
-using OpenSourceRoutingMachine.Graphs: extract, partition, customize, Profile, PROFILE_CAR
+using OpenSourceRoutingMachine.Graph: extract, partition, customize, Profile, PROFILE_CAR
 
 # ============================================================================
 # Constants

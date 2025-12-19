@@ -5,13 +5,13 @@ Generate vector tiles for visualization.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Tiles]
+Modules = [OpenSourceRoutingMachine.Tile]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Tiles]
+Modules = [OpenSourceRoutingMachine.Tile]
 Order = [:type]
 ```

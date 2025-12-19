@@ -5,13 +5,13 @@ Calculate routes between multiple waypoints.
 ## Functions
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Routes]
+Modules = [OpenSourceRoutingMachine.Route]
 Order = [:function]
 ```
 
 ## Types
 
 ```@autodocs
-Modules = [OpenSourceRoutingMachine.Routes]
+Modules = [OpenSourceRoutingMachine.Route]
 Order = [:type]
 ```

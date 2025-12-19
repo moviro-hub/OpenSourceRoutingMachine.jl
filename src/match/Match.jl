@@ -1,5 +1,6 @@
-module Routes
+module Match
 
+using CEnum
 using ..OpenSourceRoutingMachine:
     # modules
     libosrmc,
@@ -22,9 +23,11 @@ using ..OpenSourceRoutingMachine:
     # response deserializers
     as_struct
 
-
 import ..OpenSourceRoutingMachine:
     # parameters
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -45,29 +48,43 @@ import ..OpenSourceRoutingMachine:
     set_skip_waypoints!,
     set_snapping!
 
+import Base: match
+
+"""
+    MatchGaps
+
+Controls how OSRM handles gaps in map matching traces (`MATCH_GAPS_SPLIT`, `MATCH_GAPS_IGNORE`).
+"""
+@cenum(
+    MatchGaps::Int32, begin
+        MATCH_GAPS_SPLIT = 0
+        MATCH_GAPS_IGNORE = 1
+    end
+)
+
 include("response.jl")
 include("params.jl")
 
 """
-    route_response(osrm::OSRM, params::RouteParams) -> RouteResponse
+    match_response(osrm::OSRM, params::MatchParams) -> MatchResponse
 
-Call Route service and return response object.
+Calls the libosrm Match module and returns the response as a MatchResponse object.
 """
-function route_response(osrm::OSRM, params::RouteParams)::RouteResponse
+function match_response(osrm::OSRM, params::MatchParams)::MatchResponse
     ptr = with_error() do err
-        ccall((:osrmc_route, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
+        ccall((:osrmc_match, libosrmc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Ptr{Cvoid}}), osrm.ptr, params.ptr, error_pointer(err))
     end
-    response = RouteResponse(ptr)
+    response = MatchResponse(ptr)
     return response
 end
 
 """
-    route(osrm::OSRM, params::RouteParams) -> Union{FBResult, Vector{UInt8}}
+    match(osrm::OSRM, params::MatchParams) -> Union{FBResult, Vector{UInt8}}
 
-Call Route service and return FlatBuffers response.
+Calls the libosrm Match module and returns the response as FlatBuffers.
 """
-function route(osrm::OSRM, params::RouteParams; deserialize::Bool = true)
-    response = route_response(osrm, params)
+function match(osrm::OSRM, params::MatchParams; deserialize::Bool = true)
+    response = match_response(osrm, params)
     # Always use zero-copy FlatBuffer transfer
     fb_data = get_flatbuffer(response)
     return deserialize ? as_struct(fb_data) : fb_data
@@ -75,7 +92,8 @@ end
 
 ## Parameter setter exports
 export
-    RouteParams,
+    MatchParams,
+    MatchGaps,
     set_steps!,
     set_alternatives!,
     set_geometries!,
@@ -85,6 +103,9 @@ export
     set_annotations!,
     add_waypoint!,
     clear_waypoints!,
+    add_timestamp!,
+    set_gaps!,
+    set_tidy!,
     add_coordinate!,
     add_coordinate_with!,
     set_hint!,
@@ -106,6 +127,9 @@ export
     get_number_of_alternatives,
     get_annotations,
     get_waypoints,
+    get_timestamps,
+    get_gaps,
+    get_tidy,
     get_coordinates,
     get_hints,
     get_radii,
@@ -118,13 +142,13 @@ export
     get_snapping
 
 ## compute response exports
-export route_response
+export match_response
 
 ## Response getter exports
-export RouteResponse,
+export MatchResponse,
     get_flatbuffer
 
-# compute route result exports
-export route
+# compute match result exports
+export match
 
-end # module Routes
+end # module Match
