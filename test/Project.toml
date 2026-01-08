@@ -2,3 +2,6 @@
 OpenSourceRoutingMachine = "19e5a071-0e58-4e20-9e36-393e8533d14d"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+OpenSourceRoutingMachine = {path = ".."}

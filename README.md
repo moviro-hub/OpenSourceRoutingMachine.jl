@@ -2,16 +2,13 @@
 
 A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
 
-**Note:** The package is ready for testing, a release is targeted for early 2026.
-The only obvious TODO is fixing the graph module data generation on Windows. For this, we need help from someone with Windows command line knowledge.
-
 ## Modules
 
-The package structure consists of a core module and service submodules.
+The package structure consists of a core module and several submodules.
 
 The core module `OpenSourceRoutingMachine` provides the constructor `OSRM` for creating an OSRM instance and setter and getter functions for basic configuration.
 
-The rest of the functionality is organized in service submodules with the following scope:
+The rest of the functionality is organized in submodules with the following features:
 
 - **Graph**: Builds OSRM graphs from OpenStreetMap data
 - **Nearest**: Find the nearest waypoint in a road network for a given position
@@ -23,7 +20,7 @@ The rest of the functionality is organized in service submodules with the follow
 
 All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions, providing fine-grained control over query behavior.
 The output format is restricted to FlatBuffers for all modules except the Tile module.
-The Tile module returns road network geometry in MVT format.
+The Tile module returns road network geometry in MVT format (Protocol Buffer Format).
 
 ## Installation
 
@@ -85,7 +82,7 @@ get_default_radius(osrm)
 # see the documentation for more parameters
 ```
 
-This instance can then be used with the service submodules for querying.
+This instance can then be used with the submodule functionalities for querying.
 
 ### Nearest query
 

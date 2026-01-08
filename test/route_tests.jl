@@ -397,7 +397,7 @@ end
         Route.set_overview!(params, OSRMs.OVERVIEW_FULL)
         Route.set_continue_straight!(params, true)
         Route.set_number_of_alternatives!(params, 2)
-        Route.set_annotations!(params, OSRMs.Annotations(OSRMs.ANNOTATIONS_DURATION | OSRMs.ANNOTATIONS_DISTANCE))
+        Route.set_annotations!(params, OSRMs.ANNOTATIONS_DURATION | OSRMs.ANNOTATIONS_DISTANCE)
         Route.set_steps!(params, true)
         Route.set_alternatives!(params, true)
 

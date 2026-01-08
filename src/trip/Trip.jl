@@ -1,6 +1,6 @@
 module Trip
 
-using CEnum
+using EnumX
 using ..OpenSourceRoutingMachine:
     # modules
     libosrmc,
@@ -53,11 +53,10 @@ import ..OpenSourceRoutingMachine:
 
 Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`, `TRIP_SOURCE_FIRST`).
 """
-@cenum(
-    TripSource::Int32, begin
-        TRIP_SOURCE_ANY_SOURCE = 0
-        TRIP_SOURCE_FIRST = 1
-    end
+EnumX.@enum(
+    TripSource::Int32,
+    TRIP_SOURCE_ANY_SOURCE = 0,
+    TRIP_SOURCE_FIRST = 1
 )
 
 """
@@ -65,11 +64,10 @@ Selects the source location strategy for trip queries (`TRIP_SOURCE_ANY_SOURCE`,
 
 Selects the destination location strategy for trip queries (`TRIP_DESTINATION_ANY_DESTINATION`, `TRIP_DESTINATION_LAST`).
 """
-@cenum(
-    TripDestination::Int32, begin
-        TRIP_DESTINATION_ANY_DESTINATION = 0
-        TRIP_DESTINATION_LAST = 1
-    end
+EnumX.@enum(
+    TripDestination::Int32,
+    TRIP_DESTINATION_ANY_DESTINATION = 0,
+    TRIP_DESTINATION_LAST = 1
 )
 
 include("response.jl")
