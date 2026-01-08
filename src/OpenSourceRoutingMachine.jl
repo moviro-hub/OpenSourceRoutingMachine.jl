@@ -22,7 +22,7 @@ module OpenSourceRoutingMachine
 using OSRM_jll
 using libosrmc_jll
 using Libdl
-using CEnum
+using EnumX
 using FlatBuffers
 
 function __init__()

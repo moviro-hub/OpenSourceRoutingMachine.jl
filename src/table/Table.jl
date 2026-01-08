@@ -1,6 +1,6 @@
 module Table
 
-using CEnum
+using EnumX
 using ..OpenSourceRoutingMachine:
     # modules
     libosrmc,
@@ -50,25 +50,29 @@ The enum values correspond to bit positions:
 - `TABLE_ANNOTATIONS_DISTANCE = 2` (bit 1): Request distance annotations
 - `TABLE_ANNOTATIONS_ALL = 3`: All annotations (TABLE_ANNOTATIONS_DURATION | TABLE_ANNOTATIONS_DISTANCE)
 """
-@cenum(
-    TableAnnotations::Int32, begin
-        TABLE_ANNOTATIONS_NONE = 0
-        TABLE_ANNOTATIONS_DURATION = 1
-        TABLE_ANNOTATIONS_DISTANCE = 2
-        TABLE_ANNOTATIONS_ALL = 3  # TABLE_ANNOTATIONS_DURATION | TABLE_ANNOTATIONS_DISTANCE
-    end
+EnumX.@enum(
+    TableAnnotations::Int32,
+    TABLE_ANNOTATIONS_NONE = 0,
+    TABLE_ANNOTATIONS_DURATION = 1,
+    TABLE_ANNOTATIONS_DISTANCE = 2,
+    TABLE_ANNOTATIONS_ALL = 3  # TABLE_ANNOTATIONS_DURATION | TABLE_ANNOTATIONS_DISTANCE
 )
+
+# Bitwise operations for TableAnnotations enum (bit flags)
+# Use reinterpret to allow arbitrary Int32 values (for combined bit flags)
+Base.:|(a::TableAnnotations, b::TableAnnotations) = reinterpret(TableAnnotations, Int32(a) | Int32(b))
+Base.:|(a::TableAnnotations, b::Integer) = reinterpret(TableAnnotations, Int32(a) | Int32(b))
+Base.:|(a::Integer, b::TableAnnotations) = reinterpret(TableAnnotations, Int32(a) | Int32(b))
 
 """
     TableFallbackCoordinate
 
 Controls whether fallback results use input coordinates or snapped coordinates (`TABLE_FALLBACK_COORDINATE_INPUT`, `TABLE_FALLBACK_COORDINATE_SNAPPED`).
 """
-@cenum(
-    TableFallbackCoordinate::Int32, begin
-        TABLE_FALLBACK_COORDINATE_INPUT = 0
-        TABLE_FALLBACK_COORDINATE_SNAPPED = 1
-    end
+EnumX.@enum(
+    TableFallbackCoordinate::Int32,
+    TABLE_FALLBACK_COORDINATE_INPUT = 0,
+    TABLE_FALLBACK_COORDINATE_SNAPPED = 1
 )
 
 include("response.jl")

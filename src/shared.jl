@@ -4,11 +4,10 @@
 
 Selects the routing algorithm OSRM should use for a given dataset (`ALGORITHM_CH`, `ALGORITHM_MLD`).
 """
-@cenum(
-    Algorithm::Int32, begin
-        ALGORITHM_CH = 0
-        ALGORITHM_MLD = 1
-    end
+EnumX.@enum(
+    Algorithm::Int32,
+    ALGORITHM_CH = 0,
+    ALGORITHM_MLD = 1
 )
 
 """
@@ -16,11 +15,10 @@ Selects the routing algorithm OSRM should use for a given dataset (`ALGORITHM_CH
 
 Selects the snapping behavior OSRM should use for a given dataset (`SNAPPING_DEFAULT`, `SNAPPING_ANY`).
 """
-@cenum(
-    Snapping::Int32, begin
-        SNAPPING_DEFAULT = 0
-        SNAPPING_ANY = 1
-    end
+EnumX.@enum(
+    Snapping::Int32,
+    SNAPPING_DEFAULT = 0,
+    SNAPPING_ANY = 1
 )
 
 """
@@ -28,12 +26,11 @@ Selects the snapping behavior OSRM should use for a given dataset (`SNAPPING_DEF
 
 Selects the approach behavior OSRM should use for a given dataset (`APPROACH_CURB`, `APPROACH_UNRESTRICTED`, `APPROACH_OPPOSITE`).
 """
-@cenum(
-    Approach::Int32, begin
-        APPROACH_CURB = 0
-        APPROACH_UNRESTRICTED = 1
-        APPROACH_OPPOSITE = 2
-    end
+EnumX.@enum(
+    Approach::Int32,
+    APPROACH_CURB = 0,
+    APPROACH_UNRESTRICTED = 1,
+    APPROACH_OPPOSITE = 2
 )
 
 """
@@ -41,12 +38,11 @@ Selects the approach behavior OSRM should use for a given dataset (`APPROACH_CUR
 
 Selects the geometry encoding format for route geometries (`GEOMETRIES_POLYLINE`, `GEOMETRIES_POLYLINE6`, `GEOMETRIES_GEOJSON`).
 """
-@cenum(
-    Geometries::Int32, begin
-        GEOMETRIES_POLYLINE = 0
-        GEOMETRIES_POLYLINE6 = 1
-        GEOMETRIES_GEOJSON = 2
-    end
+EnumX.@enum(
+    Geometries::Int32,
+    GEOMETRIES_POLYLINE = 0,
+    GEOMETRIES_POLYLINE6 = 1,
+    GEOMETRIES_GEOJSON = 2
 )
 
 """
@@ -54,12 +50,11 @@ Selects the geometry encoding format for route geometries (`GEOMETRIES_POLYLINE`
 
 Controls how much geometry detail OSRM should include (`OVERVIEW_SIMPLIFIED`, `OVERVIEW_FULL`, `OVERVIEW_FALSE`).
 """
-@cenum(
-    Overview::Int32, begin
-        OVERVIEW_SIMPLIFIED = 0
-        OVERVIEW_FULL = 1
-        OVERVIEW_FALSE = 2
-    end
+EnumX.@enum(
+    Overview::Int32,
+    OVERVIEW_SIMPLIFIED = 0,
+    OVERVIEW_FULL = 1,
+    OVERVIEW_FALSE = 2
 )
 
 """
@@ -77,32 +72,36 @@ The enum values correspond to bit positions:
 - `ANNOTATIONS_SPEED = 32` (bit 5): Request speed annotations
 - `ANNOTATIONS_ALL = 63`: All annotations (bitwise OR of all flags)
 """
-@cenum(
-    Annotations::Int32, begin
-        ANNOTATIONS_NONE = 0
-        ANNOTATIONS_DURATION = 1
-        ANNOTATIONS_NODES = 2
-        ANNOTATIONS_DISTANCE = 4
-        ANNOTATIONS_WEIGHT = 8
-        ANNOTATIONS_DATASOURCES = 16
-        ANNOTATIONS_SPEED = 32
-        ANNOTATIONS_ALL = 63 # ANNOTATIONS_DURATION | ANNOTATIONS_NODES | ANNOTATIONS_DISTANCE | ANNOTATIONS_WEIGHT | ANNOTATIONS_DATASOURCES | ANNOTATIONS_SPEED
-    end
+EnumX.@enum(
+    Annotations::Int32,
+    ANNOTATIONS_NONE = 0,
+    ANNOTATIONS_DURATION = 1,
+    ANNOTATIONS_NODES = 2,
+    ANNOTATIONS_DISTANCE = 4,
+    ANNOTATIONS_WEIGHT = 8,
+    ANNOTATIONS_DATASOURCES = 16,
+    ANNOTATIONS_SPEED = 32,
+    ANNOTATIONS_ALL = 63 # ANNOTATIONS_DURATION | ANNOTATIONS_NODES | ANNOTATIONS_DISTANCE | ANNOTATIONS_WEIGHT | ANNOTATIONS_DATASOURCES | ANNOTATIONS_SPEED
 )
+
+# Bitwise operations for Annotations enum (bit flags)
+# Use reinterpret to allow arbitrary Int32 values (for combined bit flags)
+Base.:|(a::Annotations, b::Annotations) = reinterpret(Annotations, Int32(a) | Int32(b))
+Base.:|(a::Annotations, b::Integer) = reinterpret(Annotations, Int32(a) | Int32(b))
+Base.:|(a::Integer, b::Annotations) = reinterpret(Annotations, Int32(a) | Int32(b))
 
 """
     Verbosity
 
 Log verbosity level for OSRM tools (`VERBOSITY_NONE`, `VERBOSITY_ERROR`, `VERBOSITY_WARNING`, `VERBOSITY_INFO`, `VERBOSITY_DEBUG`).
 """
-@cenum(
-    Verbosity::Int32, begin
-        VERBOSITY_NONE = 0
-        VERBOSITY_ERROR = 1
-        VERBOSITY_WARNING = 2
-        VERBOSITY_INFO = 3
-        VERBOSITY_DEBUG = 4
-    end
+EnumX.@enum(
+    Verbosity::Int32,
+    VERBOSITY_NONE = 0,
+    VERBOSITY_ERROR = 1,
+    VERBOSITY_WARNING = 2,
+    VERBOSITY_INFO = 3,
+    VERBOSITY_DEBUG = 4
 )
 
 # Parameter helper declarations

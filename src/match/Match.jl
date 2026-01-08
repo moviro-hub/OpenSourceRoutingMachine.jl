@@ -1,6 +1,6 @@
 module Match
 
-using CEnum
+using EnumX
 using ..OpenSourceRoutingMachine:
     # modules
     libosrmc,
@@ -55,11 +55,10 @@ import Base: match
 
 Controls how OSRM handles gaps in map matching traces (`MATCH_GAPS_SPLIT`, `MATCH_GAPS_IGNORE`).
 """
-@cenum(
-    MatchGaps::Int32, begin
-        MATCH_GAPS_SPLIT = 0
-        MATCH_GAPS_IGNORE = 1
-    end
+EnumX.@enum(
+    MatchGaps::Int32,
+    MATCH_GAPS_SPLIT = 0,
+    MATCH_GAPS_IGNORE = 1
 )
 
 include("response.jl")
