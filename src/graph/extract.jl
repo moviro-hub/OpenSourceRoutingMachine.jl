@@ -38,7 +38,7 @@ function extract(
         disable_location_cache::Bool = false,
         dump_nbg_graph::Bool = false
     )
-    cmd = `$(OSRM_jll.osrm_extract())`
+    args = String[]
 
     # Profile (required)
     if isa(profile, Profile)
@@ -46,53 +46,53 @@ function extract(
     else
         profile_path_val = profile
     end
-    cmd = `$cmd --profile $profile_path_val`
+    push!(args, "--profile", profile_path_val)
 
     # Verbosity - convert enum to string
     verbosity_str = verbosity_enum_to_string(verbosity)
     if verbosity_str != "INFO"  # Only add if non-default
-        cmd = `$cmd --verbosity $verbosity_str`
+        push!(args, "--verbosity", verbosity_str)
     end
 
     # Data version
     if !isempty(data_version)
-        cmd = `$cmd --data-version $data_version`
+        push!(args, "--data-version", data_version)
     end
 
     # Threads
     if threads !== nothing
-        cmd = `$cmd --threads $(string(threads))`
+        push!(args, "--threads", string(threads))
     end
 
     # Small component size
     if small_component_size != 1000  # Only add if non-default
-        cmd = `$cmd --small-component-size $(string(small_component_size))`
+        push!(args, "--small-component-size", string(small_component_size))
     end
 
     # Boolean flags (only add if true)
     if with_osm_metadata
-        cmd = `$cmd --with-osm-metadata`
+        push!(args, "--with-osm-metadata")
     end
 
     if parse_conditional_restrictions
-        cmd = `$cmd --parse-conditional-restrictions`
+        push!(args, "--parse-conditional-restrictions")
     end
 
     if disable_location_cache
-        cmd = `$cmd --disable-location-cache`
+        push!(args, "--disable-location-cache")
     end
 
     if dump_nbg_graph
-        cmd = `$cmd --dump-nbg-graph`
+        push!(args, "--dump-nbg-graph")
     end
 
     # Location-dependent data (can be multiple)
     for path in location_dependent_data
-        cmd = `$cmd --location-dependent-data $path`
+        push!(args, "--location-dependent-data", path)
     end
 
     # Input file (positional, goes last)
-    cmd = `$cmd $osm_path`
+    push!(args, osm_path)
 
-    return run(cmd)
+    return run(`$(OSRM_jll.osrm_extract()) $args`)
 end
