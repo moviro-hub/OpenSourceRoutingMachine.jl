@@ -17,3 +17,7 @@ FlatBuffers = "0.6.2"
 OSRM_jll = "~6.0.0"
 julia = "1.11.0"
 libosrmc_jll = "=6.0.2"
+
+[sources.OSRM_jll]
+url = "https://github.com/jrklasen/OSRM_jll.jl.git"
+rev = "main"
