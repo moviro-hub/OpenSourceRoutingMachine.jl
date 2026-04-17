@@ -12,12 +12,12 @@ for a specific version tag. Returns `true` if all downloads succeeded.
 - `output_dir::String`: Local directory to write downloaded files to
 """
 function download_flatbuffers(
-    version::String;
-    base_url::String,
-    subdir::String,
-    files::Vector{String},
-    output_dir::String,
-)::Bool
+        version::String;
+        base_url::String,
+        subdir::String,
+        files::Vector{String},
+        output_dir::String,
+    )::Bool
     mkpath(output_dir)
 
     failed_files = String[]
