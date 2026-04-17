@@ -140,6 +140,8 @@ FlatBuffers.@with_kw mutable struct Leg
     summary::Union{String, Nothing} = nothing
     annotations::Union{Annotation, Nothing} = nothing
     steps::Vector{Step} = []
+    polyline::Union{String, Nothing} = nothing
+    coordinates::Vector{Position} = []
 end
 
 FlatBuffers.@with_kw mutable struct RouteObject
