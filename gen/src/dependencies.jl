@@ -65,10 +65,10 @@ Only dependencies present in `names` are considered.
 Warns on cycles and appends remaining nodes in input order.
 """
 function topological_sort(
-    names::Vector{String},
-    get_deps::Function;
-    in_degree_names::Set{String} = Set(names),
-)::Vector{String}
+        names::Vector{String},
+        get_deps::Function;
+        in_degree_names::Set{String} = Set(names),
+    )::Vector{String}
     name_set = Set(names)
 
     # Build adjacency: name -> set of dependencies within `names`
