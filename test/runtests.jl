@@ -3,7 +3,7 @@ using OpenSourceRoutingMachine
 
 include("TestUtils.jl")
 
-TURN_ON_GRAPH_TESTS = true
+TURN_ON_GRAPH_TESTS = parse(Bool, get(ENV, "OSRM_TEST_GRAPH", "true"))
 
 @testset "OpenSourceRoutingMachine" begin
     if TURN_ON_GRAPH_TESTS

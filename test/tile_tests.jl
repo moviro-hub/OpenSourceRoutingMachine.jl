@@ -114,17 +114,21 @@ end
     end
 
     @testset "Error messages are informative" begin
+        # OSRM tile service returns empty tiles for out-of-range coords instead of erroring.
+        # This test documents that limitation — it will become un-broken if OSRM adds validation.
         params = Tile.TileParams()
         Tile.set_x!(params, 999999)
         Tile.set_y!(params, 999999)
         Tile.set_z!(params, 30)
+        threw = false
         try
             Tile.tile(TestUtils.get_test_osrm(), params)
-            @test true
         catch e
+            threw = true
             @test e isa OSRMs.OSRMError
             @test !isempty(e.code)
             @test !isempty(e.message)
         end
+        @test_broken threw
     end
 end

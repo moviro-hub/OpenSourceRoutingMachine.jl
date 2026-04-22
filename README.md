@@ -1,6 +1,7 @@
 # OpenSourceRoutingMachine.jl
 
-A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
+A thin Julia wrapper for [OSRM](https://project-osrm.org/) (Open Source Routing Machine), a high-performance routing engine for road networks.
+Use it to build routing graphs from OpenStreetMap data and query them for routes, distance matrices, map matching, and more — all within Julia.
 
 ## Modules
 
@@ -19,8 +20,16 @@ The rest of the functionality is organized in submodules with the following feat
 - **Tile**: Retrieve road network geometry as vector tiles
 
 All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions, providing fine-grained control over query behavior.
-The output format is restricted to FlatBuffers for all modules except the Tile module.
-The Tile module returns road network geometry in MVT format (Protocol Buffer Format).
+
+### Output format — why FlatBuffers?
+
+All query modules (Nearest, Route, Table, Match, Trip) return responses as FlatBuffers binary data rather than JSON. This is by design:
+
+- **Auto-generated types** — The Julia response types (`FBResult`, `RouteObject`, `Waypoint`, `TableResult`, etc.) are auto-generated directly from OSRM's official `.fbs` schema files (see `gen/generate.jl`). This guarantees they always match the upstream OSRM data model exactly, with no manual translation layer.
+- **Zero-copy deserialization** — The binary response is wrapped in an `IOBuffer` and read directly into native Julia structs, with no parsing overhead.
+- **Pipeline integration** — The resulting typed Julia structs plug directly into downstream data pipelines without conversion steps.
+
+The **Tile** module is the exception — it returns road network geometry in MVT format (Mapbox Vector Tiles).
 
 ## Installation
 
@@ -29,12 +38,19 @@ using Pkg
 Pkg.add(url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
 ```
 
+## Workflow
+
+Using this package follows three steps:
+
+1. **Build a routing graph** from OpenStreetMap data using the `Graph` module (one-time step per dataset/profile).
+2. **Create an `OSRM` instance** pointing to the built graph files.
+3. **Run queries** (route, table, nearest, match, trip, tile) by creating a parameters object, configuring it, and calling the query function.
+
 ## Usage examples
 
 ### Graph building
 
-The Graph module provides the functionality to build OSRM graphs from OpenStreetMap data.
-It wraps the OSRM graph CLI commands.
+The Graph module builds OSRM routing graphs from OpenStreetMap data by wrapping OSRM's CLI tools.
 
 OSRM can handle different OSM data formats, including OSM XML and PBF (Protocol Buffer Format).
 
@@ -62,7 +78,7 @@ partition(osrm_base_path)
 customize(osrm_base_path)
 ```
 
-The created graph files are automatically read when the OSRM instance is initialized.
+When you create an `OSRM` instance with the base path, it loads these graph files automatically.
 
 ### OSRM instance
 
@@ -84,11 +100,15 @@ get_default_radius(osrm)
 
 This instance can then be used with the submodule functionalities for querying.
 
+### Coordinate order
+
+> **Important:** `Position(longitude, latitude)` takes **longitude first**, then latitude.
+> This follows the GeoJSON convention but differs from the "latitude, longitude" order many mapping tools use.
+> For example, Hamburg city center is `Position(9.9937, 53.5511)` — longitude 9.99, latitude 53.55.
+
 ### Nearest query
 
-The Nearest module provides the functionality to find the nearest waypoint in a road network for a given position.
-
-The main function is `nearest(osrm, params)`, which takes the OSRM instance and a nearest-specific parameters object as input.
+Find the nearest point on the road network for a given position using `nearest(osrm, params)`.
 
 ```julia
 using OpenSourceRoutingMachine.Nearest
@@ -101,15 +121,14 @@ set_number_of_results!(params, 5)  # Get 5 nearest points
 response = nearest(osrm, params; deserialize = true)
 ```
 
-This results in a `FBResult` object containing the entire response as native Julia objects.
-
-With `deserialize = false`, the response is a `Vector{UInt8}` containing the FlatBuffers binary data.
+By default (`deserialize = true`), the FlatBuffers binary response is deserialized into an `FBResult` — a tree of native Julia structs you can inspect and traverse directly.
+Pass `deserialize = false` to get the raw `Vector{UInt8}` instead, useful for custom processing or forwarding without parsing:
 
 ```julia
-response = nearest(osrm, params; deserialize = false)
+response = nearest(osrm, params; deserialize = false)  # raw FlatBuffers bytes
 ```
 
-This deserialization option applies to modules that return FlatBuffers: `nearest`, `route`, `match`, `table`, and `trip`.
+This option applies to all FlatBuffers query functions: `nearest`, `route`, `match`, `table`, and `trip`.
 
 ### Route query
 

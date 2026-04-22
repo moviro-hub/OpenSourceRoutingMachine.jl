@@ -12,8 +12,6 @@ using ..OpenSourceRoutingMachine:
     Snapping,
     # error helpers
     with_error, error_pointer, check_error,
-    # string helpers
-    as_cstring_or_null,
     # finalize helpers
     finalize,
     # response deserializers

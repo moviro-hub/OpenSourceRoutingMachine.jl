@@ -79,8 +79,7 @@ end
         # Set a non-empty hint
         Nearest.set_hint!(params, 1, "test_hint")
         result = Nearest.get_hint(params, 1)
-        # Note: Some implementations may return empty string instead of the set value
-        @test result == "test_hint" || result == ""
+        @test_broken result == "test_hint"
 
         # Get all hints
         hints = Nearest.get_hints(params)
@@ -291,10 +290,10 @@ end
 
     @testset "Error messages are informative" begin
         params = Nearest.NearestParams()
-        Nearest.add_coordinate!(params, TestUtils.HAMBURG_CITY_CENTER)
+        Nearest.add_coordinate!(params, OSRMs.Position(200.0, 200.0))
         try
             Nearest.nearest(TestUtils.get_test_osrm(), params)
-            @test true
+            @test false # expected OSRMError was not thrown
         catch e
             @test e isa OSRMs.OSRMError
             @test !isempty(e.code)

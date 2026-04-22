@@ -48,13 +48,14 @@ EnumX.@enum(
 """
     Overview
 
-Controls how much geometry detail OSRM should include (`OVERVIEW_SIMPLIFIED`, `OVERVIEW_FULL`, `OVERVIEW_FALSE`).
+Controls how much geometry detail OSRM should include (`OVERVIEW_SIMPLIFIED`, `OVERVIEW_FULL`, `OVERVIEW_FALSE`, `OVERVIEW_BY_LEGS`).
 """
 EnumX.@enum(
     Overview::Int32,
     OVERVIEW_SIMPLIFIED = 0,
     OVERVIEW_FULL = 1,
-    OVERVIEW_FALSE = 2
+    OVERVIEW_FALSE = 2,
+    OVERVIEW_BY_LEGS = 3
 )
 
 """

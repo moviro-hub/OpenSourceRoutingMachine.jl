@@ -1,157 +1,141 @@
-"""Convert PascalCase to snake_case."""
-function pascal_to_snake_case(name::String)::String
-    if isempty(name)
-        return ""
-    end
-
-    result = ""
-    chars = collect(name)
-
-    for i in 1:length(chars)
-        c = chars[i]
+"""Convert PascalCase to UPPER_SNAKE_CASE (e.g. `"NewName"` -> `"NEW_NAME"`)."""
+function _pascal_to_upper_snake(name::String)::String
+    isempty(name) && return ""
+    buf = IOBuffer()
+    for (i, c) in enumerate(name)
         if isuppercase(c) && i > 1
-            # Insert underscore if:
-            # 1. Previous char was lowercase (e.g., "NewName" -> "new_name")
-            # 2. Previous char was uppercase but next char is lowercase (e.g., "UTurn" -> "u_turn")
-            prev_lower = islowercase(chars[i - 1])
-            next_lower = i < length(chars) && islowercase(chars[i + 1])
-            if prev_lower || (isuppercase(chars[i - 1]) && next_lower)
-                result *= "_"
+            prev_lower = islowercase(name[i - 1])
+            next_lower = i < length(name) && islowercase(name[i + 1])
+            if prev_lower || (isuppercase(name[i - 1]) && next_lower)
+                write(buf, '_')
             end
         end
-        result *= lowercase(c)
+        write(buf, uppercase(c))
     end
-    return result
+    return String(take!(buf))
 end
 
-"""Generate code for a single enum."""
-function generate_enum_code(parser::FBSParser, enum_name::String, lines::Vector{String})
+"""Generate Julia code for a single enum definition. Returns a string."""
+function _generate_enum(parser::FBSParser, enum_name::String)::String
     enum_def = parser.enums[enum_name]
-    enum_type = get(BASE_TYPE_MAP, enum_def.base_type, "Int32")
+    julia_base_type = get(ENUM_BASE_TYPE_MAP, enum_def.base_type, "Int32")
+    prefix = _pascal_to_upper_snake(enum_name)
 
-    push!(lines, "EnumX.@enum(")
-    push!(lines, "    $enum_name::$enum_type,")
+    buf = IOBuffer()
+    println(buf, "EnumX.@enum(")
+    println(buf, "    $enum_name::$julia_base_type,")
+
     current_value = 0
-    enum_prefix = uppercase(pascal_to_snake_case(enum_name))
     for (i, val) in enumerate(enum_def.values)
-        val_name = val["name"]
-        val_value = val["value"]
-        if val_value !== nothing
-            current_value = parse(Int, val_value)
+        if val.value !== nothing
+            current_value = val.value
         end
-        val_snake = uppercase(pascal_to_snake_case(val_name))
-        # Add comma after all but the last value
-        if i < length(enum_def.values)
-            push!(lines, "    $(enum_prefix)_$(val_snake) = $current_value,")
-        else
-            push!(lines, "    $(enum_prefix)_$(val_snake) = $current_value")
-        end
+        val_snake = _pascal_to_upper_snake(val.name)
+        trailing = i < length(enum_def.values) ? "," : ""
+        println(buf, "    $(prefix)_$(val_snake) = $current_value$trailing")
         current_value += 1
     end
-    push!(lines, ")")
-    return push!(lines, "")
+
+    println(buf, ")")
+    println(buf)
+    return String(take!(buf))
 end
 
-"""Generate code for a single struct."""
-function generate_struct_code(parser::FBSParser, struct_name::String, lines::Vector{String})
+"""Generate Julia code for a single struct definition. Returns a string."""
+function _generate_struct(parser::FBSParser, struct_name::String)::String
     struct_def = parser.structs[struct_name]
-    push!(lines, "FlatBuffers.@STRUCT struct $struct_name")
+    buf = IOBuffer()
+    println(buf, "FlatBuffers.@STRUCT struct $struct_name")
     for field in struct_def.fields
-        field_type = String(field["type"])
-        julia_type = resolve_type(parser, field_type)
-        field_name = String(field["name"])
-        push!(lines, "    $field_name::$julia_type")
+        julia_type = resolve_type(parser, field.type)
+        println(buf, "    $(field.name)::$julia_type")
     end
-    push!(lines, "end")
-    return push!(lines, "")
+    println(buf, "end")
+    println(buf)
+    return String(take!(buf))
 end
 
-"""Generate code for a single table."""
-function generate_table_code(parser::FBSParser, table_name::String, lines::Vector{String})
+"""Generate Julia code for a single table definition. Returns a string."""
+function _generate_table(parser::FBSParser, table_name::String)::String
     table_def = parser.tables[table_name]
-    push!(lines, "FlatBuffers.@with_kw mutable struct $table_name")
+    buf = IOBuffer()
+    println(buf, "FlatBuffers.@with_kw mutable struct $table_name")
     for field in table_def.fields
-        field_type = String(field["type"])
-        julia_type = resolve_type(parser, field_type)
-        field_name = String(field["name"])
-
-        if field["default"] !== nothing
-            default_val = String(field["default"])
-            push!(lines, "    $field_name::$julia_type = $default_val")
+        julia_type = resolve_type(parser, field.type)
+        if field.default !== nothing
+            println(buf, "    $(field.name)::$julia_type = $(field.default)")
         elseif startswith(julia_type, "Vector{")
-            push!(lines, "    $field_name::$julia_type = []")
+            println(buf, "    $(field.name)::$julia_type = []")
         else
-            push!(lines, "    $field_name::Union{$julia_type, Nothing} = nothing")
+            println(buf, "    $(field.name)::Union{$julia_type, Nothing} = nothing")
         end
     end
-    push!(lines, "end")
-    return push!(lines, "")
+    println(buf, "end")
+    println(buf)
+    return String(take!(buf))
 end
 
-"""Generate Julia code from parsed definitions, including only types from target_files."""
-function generate_code(parser::FBSParser, target_files::Set{String})::String
-    lines = String[]
-    push!(lines, "# Auto-generated Julia code from FlatBuffers schema files")
-    push!(lines, "# DO NOT EDIT MANUALLY - Generated by Generator.jl")
-    push!(lines, "")
-    push!(lines, "using FlatBuffers")
-    push!(lines, "using EnumX")
-    push!(lines, "")
+"""
+    generate_code(parser::FBSParser, target_files::Set{String}) -> String
 
-    # Generate enums
-    enum_names = [name for (name, file) in parser.enum_files if file in target_files]
+Generate complete Julia source code for all types defined in `target_files`.
+Enums are sorted alphabetically; structs and tables are topologically sorted.
+"""
+function generate_code(parser::FBSParser, target_files::Set{String})::String
+    buf = IOBuffer()
+    println(buf, "# Auto-generated Julia code from FlatBuffers schema files")
+    println(buf, "# DO NOT EDIT MANUALLY - Generated by Generator.jl")
+    println(buf)
+    println(buf, "using FlatBuffers")
+    println(buf, "using EnumX")
+    println(buf)
+
+    # Enums (alphabetical order)
+    enum_names = sort([name for (name, file) in parser.enum_files if file in target_files])
     if !isempty(enum_names)
-        push!(lines, "# Enums")
-        for enum_name in sort(enum_names)
-            generate_enum_code(parser, enum_name, lines)
+        println(buf, "# Enums")
+        for enum_name in enum_names
+            print(buf, _generate_enum(parser, enum_name))
         end
     end
 
-    # Generate structs
+    # Structs (topological order)
     struct_names = [name for (name, file) in parser.struct_files if file in target_files]
     if !isempty(struct_names)
-        push!(lines, "# Structs (immutable value types)")
+        println(buf, "# Structs (immutable value types)")
         for struct_name in topological_sort_structs(parser, struct_names)
-            generate_struct_code(parser, struct_name, lines)
+            print(buf, _generate_struct(parser, struct_name))
         end
     end
 
-    # Generate tables
+    # Tables (topological order)
     table_names = [name for (name, file) in parser.table_files if file in target_files]
     if !isempty(table_names)
-        push!(lines, "# Table (mutable reference types)")
-        for table_name in topological_sort_tables(parser, table_names, struct_names)
-            generate_table_code(parser, table_name, lines)
+        println(buf, "# Table (mutable reference types)")
+        for table_name in topological_sort_tables(parser, table_names)
+            print(buf, _generate_table(parser, table_name))
         end
     end
 
-    return join(lines, "\n")
+    return rstrip(String(take!(buf))) * "\n"
 end
 
 """
     generate_julia_code(input_file::String, output_file::String) -> Bool
 
-Generate Julia code from FlatBuffers schema files. Processes input_file and all its includes.
-Returns true if generation succeeded, false otherwise.
-
-Arguments:
-- input_file: Full path to the root .fbs file to process (e.g., "/path/to/fbresult.fbs")
-- output_file: Full path to the output Julia file (e.g., "/path/to/output.jl")
+Parse the FlatBuffers schema at `input_file` (and its includes) and write
+generated Julia type definitions to `output_file`.
+Returns `true` on success, `false` on failure.
 """
 function generate_julia_code(input_file::String, output_file::String)::Bool
-    # Extract schema directory from input file path
     schema_dir = dirname(input_file)
     input_filename = basename(input_file)
-
-    # Ensure output directory exists
-    output_dir = dirname(output_file)
-    mkpath(output_dir)
+    mkpath(dirname(output_file))
 
     if !isdir(schema_dir)
         println("Error: Schema directory not found: $schema_dir")
         return false
     end
-
     if !isfile(input_file)
         println("Error: Input file not found: $input_file")
         return false
@@ -162,22 +146,16 @@ function generate_julia_code(input_file::String, output_file::String)::Bool
     println("Output file: $output_file")
     println()
 
-    # Parse all files to build complete type registry (needed for includes)
     parser = FBSParser(schema_dir)
-    parse_all(parser)
+    parse_all!(parser)
 
     println("Found $(length(parser.enums)) enums, $(length(parser.structs)) structs, $(length(parser.tables)) tables")
     println()
 
-    # Get all related files (input_filename and its includes)
-    # Note: get_related_files expects filename relative to schema_dir
     related_files = get_related_files(parser, input_filename)
-
-    # Generate code for input_file and all its dependencies
     code = generate_code(parser, related_files)
-
-    # Write output file
     write(output_file, code)
+
     println("Generated: $output_file")
     println()
     println("Successfully generated $(basename(output_file))")
