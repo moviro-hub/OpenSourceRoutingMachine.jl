@@ -79,7 +79,9 @@ function get_alternatives(params::MatchParams)
 end
 
 """
-    set_geometries!(params::MatchParams, geometries)
+    set_geometries!(params::MatchParams, geometries::Geometries)
+
+Set geometry encoding format (e.g. GeoJSON, polyline6).
 """
 function set_geometries!(params::MatchParams, geometries::Geometries)
     code = Cint(geometries)
@@ -105,7 +107,9 @@ function get_geometries(params::MatchParams)
 end
 
 """
-    set_overview!(params::MatchParams, overview)
+    set_overview!(params::MatchParams, overview::Overview)
+
+Set geometry detail level (full, simplified, or none).
 """
 function set_overview!(params::MatchParams, overview::Overview)
     code = Cint(overview)
@@ -131,7 +135,9 @@ function get_overview(params::MatchParams)
 end
 
 """
-    set_continue_straight!(params::MatchParams, on)
+    set_continue_straight!(params::MatchParams, on::Bool)
+
+Set whether vehicles should continue straight at roundabouts.
 """
 function set_continue_straight!(params::MatchParams, on::Bool)
     with_error() do error_ptr
@@ -157,7 +163,9 @@ function get_continue_straight(params::MatchParams)
 end
 
 """
-    set_number_of_alternatives!(params::MatchParams, count)
+    set_number_of_alternatives!(params::MatchParams, count::Integer)
+
+Set the maximum number of alternate routes to compute.
 """
 function set_number_of_alternatives!(params::MatchParams, count::Integer)
     with_error() do error_ptr
@@ -182,7 +190,9 @@ function get_number_of_alternatives(params::MatchParams)
 end
 
 """
-    set_annotations!(params::MatchParams, annotations)
+    set_annotations!(params::MatchParams, annotations::Annotations)
+
+Set which annotation data to include in match metadata.
 """
 function set_annotations!(params::MatchParams, annotations::Annotations)
     code = Cint(annotations)
@@ -208,7 +218,9 @@ function get_annotations(params::MatchParams)
 end
 
 """
-    add_waypoint!(params::MatchParams, index)
+    add_waypoint!(params::MatchParams, index::Integer)
+
+Add a coordinate index as an explicit waypoint for matching.
 """
 function add_waypoint!(params::MatchParams, index::Integer)
     @assert index >= 1 "Julia uses 1-based indexing"
@@ -306,8 +318,9 @@ end
 Get all timestamps added to the Match request.
 """
 function get_timestamps(params::MatchParams)
-    out_timestamps = Vector{Int}(undef, get_timestamp_count(params))
-    for i in 1:get_timestamp_count(params)
+    count = get_timestamp_count(params)
+    out_timestamps = Vector{Int}(undef, count)
+    for i in 1:count
         out_timestamps[i] = get_timestamp(params, i)
     end
     return out_timestamps
@@ -421,8 +434,9 @@ end
 Get all coordinates added to the Match request.
 """
 function get_coordinates(params::MatchParams)
-    out_coordinates = Vector{Position}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_coordinates = Vector{Position}(undef, count)
+    for i in 1:count
         out_coordinates[i] = get_coordinate(params, i)
     end
     return out_coordinates
@@ -470,8 +484,9 @@ end
 Get all precomputed hints for the coordinates added to the Match request.
 """
 function get_hints(params::MatchParams)
-    out_hints = Vector{Union{String, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_hints = Vector{Union{String, Nothing}}(undef, count)
+    for i in 1:count
         out_hints[i] = get_hint(params, i)
     end
     return out_hints
@@ -520,8 +535,9 @@ end
 Get all per-coordinate snapping radii in meters (or `nothing` if not set).
 """
 function get_radii(params::MatchParams)
-    out_radii = Vector{Union{Float64, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_radii = Vector{Union{Float64, Nothing}}(undef, count)
+    for i in 1:count
         out_radii[i] = get_radius(params, i)
     end
     return out_radii
@@ -573,8 +589,9 @@ end
 Get all bearing constraints for the coordinates added to the Match request.
 """
 function get_bearings(params::MatchParams)
-    out_bearings = Vector{Union{Tuple{Int, Int}, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_bearings = Vector{Union{Tuple{Int, Int}, Nothing}}(undef, count)
+    for i in 1:count
         out_bearings[i] = get_bearing(params, i)
     end
     return out_bearings
@@ -624,8 +641,9 @@ end
 Get all approach constraints for the coordinates added to the Match request.
 """
 function get_approaches(params::MatchParams)
-    out_approaches = Vector{Union{Approach, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_approaches = Vector{Union{Approach, Nothing}}(undef, count)
+    for i in 1:count
         out_approaches[i] = get_approach(params, i)
     end
     return out_approaches
@@ -722,8 +740,9 @@ end
 Get all excluded traffic classes for the Match request.
 """
 function get_excludes(params::MatchParams)
-    out_excludes = Vector{String}(undef, get_exclude_count(params))
-    for i in 1:get_exclude_count(params)
+    count = get_exclude_count(params)
+    out_excludes = Vector{String}(undef, count)
+    for i in 1:count
         out_excludes[i] = get_exclude(params, i)
     end
     return out_excludes
@@ -826,8 +845,9 @@ end
 Get all waypoint coordinate indices configured for the match.
 """
 function get_waypoints(params::MatchParams)
-    out_waypoints = Vector{Int}(undef, get_waypoint_count(params))
-    for i in 1:get_waypoint_count(params)
+    count = get_waypoint_count(params)
+    out_waypoints = Vector{Int}(undef, count)
+    for i in 1:count
         out_waypoints[i] = get_waypoint(params, i)
     end
     return out_waypoints

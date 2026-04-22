@@ -38,6 +38,11 @@ function extract(
         disable_location_cache::Bool = false,
         dump_nbg_graph::Bool = false
     )
+    isfile(osm_path) || throw(ArgumentError("OSM file not found: $osm_path"))
+    if profile isa String
+        isfile(profile) || throw(ArgumentError("Profile file not found: $profile"))
+    end
+
     args = String[]
 
     # Profile (required)

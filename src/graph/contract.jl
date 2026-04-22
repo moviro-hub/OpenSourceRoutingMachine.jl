@@ -30,6 +30,8 @@ function contract(
         parse_conditionals_from_now::Int64 = 0,
         time_zone_file::String = "",
     )
+    isfile("$osrm_base_path.ebg") || throw(ArgumentError("OSRM dataset not found at base path $osrm_base_path (run extract first)"))
+
     args = String[]
 
     # Verbosity - convert enum to string

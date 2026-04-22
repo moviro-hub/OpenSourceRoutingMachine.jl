@@ -104,8 +104,9 @@ end
 Get all query coordinates.
 """
 function get_coordinates(params::NearestParams)
-    out_coordinates = Vector{Position}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_coordinates = Vector{Position}(undef, count)
+    for i in 1:count
         out_coordinates[i] = get_coordinate(params, i)
     end
     return out_coordinates
@@ -158,8 +159,9 @@ end
 Get all precomputed hints.
 """
 function get_hints(params::NearestParams)
-    out_hints = Vector{Union{String, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_hints = Vector{Union{String, Nothing}}(undef, count)
+    for i in 1:count
         out_hints[i] = get_hint(params, i)
     end
     return out_hints
@@ -213,8 +215,9 @@ end
 Get all snapping radii in meters (or `nothing` if not set).
 """
 function get_radii(params::NearestParams)
-    out_radii = Vector{Union{Float64, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_radii = Vector{Union{Float64, Nothing}}(undef, count)
+    for i in 1:count
         out_radii[i] = get_radius(params, i)
     end
     return out_radii
@@ -271,8 +274,9 @@ end
 Get all bearing constraints.
 """
 function get_bearings(params::NearestParams)
-    out_bearings = Vector{Union{Tuple{Int, Int}, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_bearings = Vector{Union{Tuple{Int, Int}, Nothing}}(undef, count)
+    for i in 1:count
         out_bearings[i] = get_bearing(params, i)
     end
     return out_bearings
@@ -328,8 +332,9 @@ end
 Get all approach constraints.
 """
 function get_approaches(params::NearestParams)
-    out_approaches = Vector{Union{Approach, Nothing}}(undef, get_coordinate_count(params))
-    for i in 1:get_coordinate_count(params)
+    count = get_coordinate_count(params)
+    out_approaches = Vector{Union{Approach, Nothing}}(undef, count)
+    for i in 1:count
         out_approaches[i] = get_approach(params, i)
     end
     return out_approaches
@@ -436,8 +441,9 @@ end
 Get all excluded traffic classes.
 """
 function get_excludes(params::NearestParams)
-    out_excludes = Vector{String}(undef, get_exclude_count(params))
-    for i in 1:get_exclude_count(params)
+    count = get_exclude_count(params)
+    out_excludes = Vector{String}(undef, count)
+    for i in 1:count
         out_excludes[i] = get_exclude(params, i)
     end
     return out_excludes

@@ -31,6 +31,8 @@ function partition(
         small_component_size::Int = 1000,
         max_cell_sizes::Vector{Int} = [128, 4096, 65536, 2097152],
     )
+    isfile("$osrm_base_path.ebg") || throw(ArgumentError("OSRM dataset not found at base path $osrm_base_path (run extract first)"))
+
     args = String[]
 
     # Verbosity - convert enum to string

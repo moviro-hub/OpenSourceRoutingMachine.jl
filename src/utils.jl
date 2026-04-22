@@ -107,8 +107,9 @@ function verbosity_string_to_enum(verbosity::String)
     end
 end
 
+const _VERBOSITY_STRINGS = ("NONE", "ERROR", "WARNING", "INFO", "DEBUG")
+
 function verbosity_enum_to_string(verbosity::Verbosity)::String
-    verbosity_strings = ("NONE", "ERROR", "WARNING", "INFO", "DEBUG")
     idx = Int(verbosity) + 1
-    return idx <= length(verbosity_strings) ? verbosity_strings[idx] : "INFO"
+    return idx <= length(_VERBOSITY_STRINGS) ? _VERBOSITY_STRINGS[idx] : "INFO"
 end
