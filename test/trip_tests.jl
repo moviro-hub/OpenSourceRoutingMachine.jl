@@ -248,8 +248,7 @@ end
         # Set a non-empty hint
         Trip.set_hint!(params, 1, "test_hint")
         result = Trip.get_hint(params, 1)
-        # Note: Some implementations may return empty string instead of the set value
-        @test result == "test_hint" || result == ""
+        @test_broken result == "test_hint"
 
         # Get all hints
         hints = Trip.get_hints(params)
@@ -525,7 +524,7 @@ end
         Trip.add_coordinate!(params, OSRMs.Position(201.0, 201.0))
         try
             Trip.trip(TestUtils.get_test_osrm(), params)
-            @test true
+            @test false # expected OSRMError was not thrown
         catch e
             @test e isa OSRMs.OSRMError
             @test !isempty(e.code)

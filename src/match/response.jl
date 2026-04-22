@@ -42,10 +42,8 @@ function get_flatbuffer(response::MatchResponse)
         )
     end
 
-    # Validate that we received valid data
-    # The C code should set an error if data is invalid, but we check defensively
     if data_ptr_ref[] == C_NULL || size_ref[] == 0
-        return UInt8[]
+        error("FlatBuffer transfer returned no data (NULL pointer or zero size)")
     end
 
     # Zero-copy: Julia owns the memory (freed automatically when Array is GC'd via free())
