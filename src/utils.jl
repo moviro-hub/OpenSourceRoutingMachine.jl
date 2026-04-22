@@ -23,8 +23,15 @@ function as_struct(buffer::Vector{UInt8})::FBResult
 end
 
 # string helpers
-@inline function as_cstring_or_null(str::Union{AbstractString, Nothing})
-    return str === nothing ? C_NULL : Base.unsafe_convert(Cstring, Base.cconvert(Cstring, str))
+@inline function with_cstring_or_null(f, str::Union{AbstractString, Nothing})
+    if str === nothing
+        return f(Cstring(C_NULL))
+    else
+        cstr = Base.cconvert(Cstring, str)
+        GC.@preserve cstr begin
+            return f(Base.unsafe_convert(Cstring, cstr))
+        end
+    end
 end
 
 # data access helpers removed - now using direct access APIs
@@ -50,12 +57,14 @@ function take_error!(error_ref::Ref{Ptr{Cvoid}})
     error_obj = error_ref[]
     error_obj == C_NULL && return nothing
 
-    code_str = unsafe_string(ccall((:osrmc_error_code, libosrmc), Cstring, (Ptr{Cvoid},), error_obj))
-    msg_str = unsafe_string(ccall((:osrmc_error_message, libosrmc), Cstring, (Ptr{Cvoid},), error_obj))
-    ccall((:osrmc_error_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), error_obj)
-    error_ref[] = C_NULL
-
-    return OSRMError(code_str, msg_str)
+    try
+        code_str = unsafe_string(ccall((:osrmc_error_code, libosrmc), Cstring, (Ptr{Cvoid},), error_obj))
+        msg_str = unsafe_string(ccall((:osrmc_error_message, libosrmc), Cstring, (Ptr{Cvoid},), error_obj))
+        return OSRMError(code_str, msg_str)
+    finally
+        ccall((:osrmc_error_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), error_obj)
+        error_ref[] = C_NULL
+    end
 end
 
 function check_error(error_ref::Ref{Ptr{Cvoid}})

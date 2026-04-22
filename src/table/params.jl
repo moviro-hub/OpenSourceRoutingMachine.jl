@@ -316,7 +316,7 @@ function set_hint!(params::TableParams, coordinate_index::Integer, hint::Abstrac
             (Ptr{Cvoid}, Csize_t, Cstring, Ptr{Ptr{Cvoid}}),
             params.ptr,
             Csize_t(coordinate_index - 1),
-            Base.unsafe_convert(Cstring, Base.cconvert(Cstring, hint)),
+            hint,
             error_pointer(error_ptr),
         )
         nothing
@@ -583,7 +583,7 @@ function add_exclude!(params::TableParams, profile::AbstractString)
             Cvoid,
             (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}),
             params.ptr,
-            Base.unsafe_convert(Cstring, Base.cconvert(Cstring, profile)),
+            profile,
             error_pointer(error_ptr),
         )
         nothing

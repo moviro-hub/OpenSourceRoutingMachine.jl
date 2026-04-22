@@ -12,8 +12,8 @@ OSRM_jll = "a74304e1-5a13-544f-adb7-0572470cee19"
 libosrmc_jll = "b012619c-76c7-5216-bb6b-491eaf671aba"
 
 [compat]
+julia = "1.11"
 EnumX = "1.0.5"
 FlatBuffers = "0.6.2"
 OSRM_jll = "~26.4.0"
-julia = "1.11.0"
-libosrmc_jll = "=26.4.0"
+libosrmc_jll = "~26.4.0"
