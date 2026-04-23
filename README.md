@@ -1,6 +1,16 @@
 # OpenSourceRoutingMachine.jl
 
-A thin Julia wrapper for OSRM (Open Source Routing Machine), a high-performance tool for route planning in road networks.
+[License: MIT](LICENSE)
+[OSRM Version](https://github.com/Project-OSRM/osrm-backend/releases/tag/v26.4.0)
+
+A thin Julia wrapper for [OSRM](https://project-osrm.org/) (Open Source Routing Machine), a high-performance routing engine for road networks.
+Use it to build routing graphs from OpenStreetMap data and query them for routes, duration/distance matrices, map matching, and more — all from within Julia.
+
+## Compatibility
+
+- **Julia**: ≥ 1.11
+- **OSRM**: v26.4.0 (bundled via [OSRM_jll](https://github.com/JuliaBinaryWrappers/OSRM_jll.jl) and [libosrmc_jll](https://github.com/JuliaBinaryWrappers/libosrmc_jll.jl))
+- **Platforms**: Linux (x86_64), macOS (x86_64, aarch64). Windows support is planned.
 
 ## Modules
 
@@ -19,14 +29,16 @@ The rest of the functionality is organized in submodules with the following feat
 - **Tile**: Retrieve road network geometry as vector tiles
 
 All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions, providing fine-grained control over query behavior.
-The output format is restricted to FlatBuffers for all modules except the Tile module.
-The Tile module returns road network geometry in MVT format (Protocol Buffer Format).
+
+All query modules (Nearest, Route, Table, Match, Trip) return by default an object whose types are auto-generated (see `gen/generate.jl`) from OSRM's FlatBuffers schema files. Alternatively, one can receive the binary FlatBuffers response directly.
+
+The Tile module is the exception — it returns road network geometry in MVT format (Mapbox Vector Tiles).
 
 ## Installation
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
+Pkg.add("OpenSourceRoutingMachine")
 ```
 
 ## Usage examples
@@ -149,15 +161,15 @@ using OpenSourceRoutingMachine.Table
 
 params = TableParams()
 # Add coordinates first
-add_coordinate!(params, Position(9.9937, 53.5511))  # Index 0
-add_coordinate!(params, Position(9.9882, 53.6304))  # Index 1
-add_coordinate!(params, Position(9.9667, 53.5417))  # Index 2
-add_coordinate!(params, Position(9.9352, 53.5528))  # Index 3
+add_coordinate!(params, Position(9.9937, 53.5511))
+add_coordinate!(params, Position(9.9882, 53.6304))
+add_coordinate!(params, Position(9.9667, 53.5417))
+add_coordinate!(params, Position(9.9352, 53.5528))
 # Mark which coordinates are origins and destinations
-add_source!(params, 0)
-add_source!(params, 1)
-add_destination!(params, 2)
-add_destination!(params, 3)
+add_source!(params, 1)       # first coordinate
+add_source!(params, 2)       # second coordinate
+add_destination!(params, 3)  # third coordinate
+add_destination!(params, 4)  # fourth coordinate
 # see the documentation for more parameters
 
 response = table(osrm, params)
@@ -227,6 +239,6 @@ set_z!(params, 13)    # Zoom level
 response = tile(osrm, params)
 ```
 
-Copyright (c) 2025 MOVIRO GmbH
+Copyright (c) 2025–2026 MOVIRO GmbH
 
 Licensed under the MIT License.

@@ -118,15 +118,15 @@ using OpenSourceRoutingMachine.Table
 
 params = TableParams()
 # Add coordinates first
-add_coordinate!(params, Position(9.9937, 53.5511))  # Index 0
-add_coordinate!(params, Position(9.9882, 53.6304))  # Index 1
-add_coordinate!(params, Position(9.9667, 53.5417))  # Index 2
-add_coordinate!(params, Position(9.9352, 53.5528))  # Index 3
+add_coordinate!(params, Position(9.9937, 53.5511))
+add_coordinate!(params, Position(9.9882, 53.6304))
+add_coordinate!(params, Position(9.9667, 53.5417))
+add_coordinate!(params, Position(9.9352, 53.5528))
 # Mark which coordinates are origins and destinations
-add_source!(params, 0)
 add_source!(params, 1)
-add_destination!(params, 2)
+add_source!(params, 2)
 add_destination!(params, 3)
+add_destination!(params, 4)
 # see the documentation for more parameters
 
 response = table(osrm, params)
