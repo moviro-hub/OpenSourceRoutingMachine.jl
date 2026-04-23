@@ -41,15 +41,15 @@ response = route(osrm, params)</code></pre><h2 id="Table-query"><a class="docs-h
 
 params = TableParams()
 # Add coordinates first
-add_coordinate!(params, Position(9.9937, 53.5511))  # Index 0
-add_coordinate!(params, Position(9.9882, 53.6304))  # Index 1
-add_coordinate!(params, Position(9.9667, 53.5417))  # Index 2
-add_coordinate!(params, Position(9.9352, 53.5528))  # Index 3
+add_coordinate!(params, Position(9.9937, 53.5511))
+add_coordinate!(params, Position(9.9882, 53.6304))
+add_coordinate!(params, Position(9.9667, 53.5417))
+add_coordinate!(params, Position(9.9352, 53.5528))
 # Mark which coordinates are origins and destinations
-add_source!(params, 0)
 add_source!(params, 1)
-add_destination!(params, 2)
+add_source!(params, 2)
 add_destination!(params, 3)
+add_destination!(params, 4)
 # see the documentation for more parameters
 
 response = table(osrm, params)</code></pre><h2 id="Match-query"><a class="docs-heading-anchor" href="#Match-query">Match query</a><a id="Match-query-1"></a><a class="docs-heading-anchor-permalink" href="#Match-query" title="Permalink"></a></h2><p>The Match module provides the functionality to map noisy GPS traces to a road network.</p><p>The main function is <code>match(osrm, params)</code>, which takes the OSRM instance and a match-specific parameters object as input.</p><p>For more details on the response options, see the Nearest example above.</p><pre><code class="language-julia hljs">using OpenSourceRoutingMachine.Match
@@ -82,4 +82,4 @@ set_y!(params, 2700)  # Tile Y coordinate
 set_z!(params, 13)    # Zoom level
 # see the documentation for more parameters
 
-response = tile(osrm, params)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/core/">Core API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 22 April 2026 17:48">Wednesday 22 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+response = tile(osrm, params)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/core/">Core API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 23 April 2026 15:56">Thursday 23 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
