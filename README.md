@@ -1,7 +1,7 @@
 # OpenSourceRoutingMachine.jl
 
 A thin Julia wrapper for [OSRM](https://project-osrm.org/) (Open Source Routing Machine), a high-performance routing engine for road networks.
-Use it to build routing graphs from OpenStreetMap data and query them for routes, distance matrices, map matching, and more — all within Julia.
+Use it to build routing graphs from OpenStreetMap data and query them for routes, duration/distance matrices, map matching, and more — all within Julia.
 
 ## Modules
 
