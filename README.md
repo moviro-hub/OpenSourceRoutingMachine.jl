@@ -21,21 +21,15 @@ The rest of the functionality is organized in submodules with the following feat
 
 All modules expose the full configuration and parameter handling API of OSRM through setter and getter functions, providing fine-grained control over query behavior.
 
-### Output format — why FlatBuffers?
+All query modules (Nearest, Route, Table, Match, Trip) return by default an object whose types are auto-generated (see `gen/generate.jl`) from OSRM's FlatBuffers schema files. Alternatively, one can receive the binary FlatBuffers response directly.
 
-All query modules (Nearest, Route, Table, Match, Trip) return responses as FlatBuffers binary data rather than JSON. This is by design:
-
-- **Auto-generated types** — The Julia response types (`FBResult`, `RouteObject`, `Waypoint`, `TableResult`, etc.) are auto-generated directly from OSRM's official `.fbs` schema files (see `gen/generate.jl`). This guarantees they always match the upstream OSRM data model exactly, with no manual translation layer.
-- **Zero-copy deserialization** — The binary response is wrapped in an `IOBuffer` and read directly into native Julia structs, with no parsing overhead.
-- **Pipeline integration** — The resulting typed Julia structs plug directly into downstream data pipelines without conversion steps.
-
-The **Tile** module is the exception — it returns road network geometry in MVT format (Mapbox Vector Tiles).
+The Tile module is the exception — it returns road network geometry in MVT format (Mapbox Vector Tiles).
 
 ## Installation
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/moviro-hub/OpenSourceRoutingMachine.jl")
+Pkg.add("OpenSourceRoutingMachine")
 ```
 
 ## Workflow
@@ -168,15 +162,15 @@ using OpenSourceRoutingMachine.Table
 
 params = TableParams()
 # Add coordinates first
-add_coordinate!(params, Position(9.9937, 53.5511))  # Index 0
-add_coordinate!(params, Position(9.9882, 53.6304))  # Index 1
-add_coordinate!(params, Position(9.9667, 53.5417))  # Index 2
-add_coordinate!(params, Position(9.9352, 53.5528))  # Index 3
+add_coordinate!(params, Position(9.9937, 53.5511))
+add_coordinate!(params, Position(9.9882, 53.6304))
+add_coordinate!(params, Position(9.9667, 53.5417))
+add_coordinate!(params, Position(9.9352, 53.5528))
 # Mark which coordinates are origins and destinations
-add_source!(params, 0)
-add_source!(params, 1)
-add_destination!(params, 2)
-add_destination!(params, 3)
+add_source!(params, 1)       # first coordinate
+add_source!(params, 2)       # second coordinate
+add_destination!(params, 3)  # third coordinate
+add_destination!(params, 4)  # fourth coordinate
 # see the documentation for more parameters
 
 response = table(osrm, params)
@@ -246,6 +240,6 @@ set_z!(params, 13)    # Zoom level
 response = tile(osrm, params)
 ```
 
-Copyright (c) 2025 MOVIRO GmbH
+Copyright (c) 2025–2026 MOVIRO GmbH
 
 Licensed under the MIT License.
