@@ -174,8 +174,7 @@ end
         # Set a non-empty hint
         Table.set_hint!(params, 1, "test_hint")
         result = Table.get_hint(params, 1)
-        # Note: Some implementations may return empty string instead of the set value
-        @test result == "test_hint" || result == ""
+        @test_broken result == "test_hint"
 
         # Get all hints
         hints = Table.get_hints(params)
@@ -417,7 +416,7 @@ end
         Table.add_coordinate!(params, OSRMs.Position(200.0, 200.0))
         try
             Table.table(TestUtils.get_test_osrm(), params)
-            @test true
+            @test false # expected OSRMError was not thrown
         catch e
             @test e isa OSRMs.OSRMError
             @test !isempty(e.code)

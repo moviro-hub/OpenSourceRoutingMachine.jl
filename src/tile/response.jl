@@ -3,18 +3,18 @@
 
 Owns the libosrmc tile response pointer with automatic cleanup.
 """
+function _tile_response_destruct(ptr::Ptr{Cvoid})
+    ccall((:osrmc_tile_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), ptr)
+    return nothing
+end
+
 mutable struct TileResponse
     ptr::Ptr{Cvoid}
 
     function TileResponse(ptr::Ptr{Cvoid})
         ptr == C_NULL && error("Cannot construct TileResponse from NULL pointer")
         response = new(ptr)
-        finalizer(response) do r
-            if r.ptr != C_NULL
-                ccall((:osrmc_tile_response_destruct, libosrmc), Cvoid, (Ptr{Cvoid},), r.ptr)
-                r.ptr = C_NULL
-            end
-        end
+        finalize(response, _tile_response_destruct)
         return response
     end
 end
@@ -41,8 +41,10 @@ function get_data(response::TileResponse)
     ptr = with_error() do err
         ccall((:osrmc_tile_response_data, libosrmc), Ptr{Cchar}, (Ptr{Cvoid}, Ptr{Csize_t}, Ptr{Ptr{Cvoid}}), response.ptr, Base.unsafe_convert(Ptr{Csize_t}, len_ref), error_pointer(err))
     end
+    if ptr == C_NULL || len_ref[] == 0
+        return UInt8[]
+    end
     len = Int(len_ref[])
-    len == 0 && return UInt8[]
     buffer = Vector{UInt8}(undef, len)
     unsafe_copyto!(pointer(buffer), Ptr{UInt8}(ptr), len)
     return buffer

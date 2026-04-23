@@ -206,8 +206,7 @@ end
         # Set a non-empty hint
         Route.set_hint!(params, 1, "test_hint")
         result = Route.get_hint(params, 1)
-        # Note: Some implementations may return empty string instead of the set value
-        @test result == "test_hint" || result == ""
+        @test_broken result == "test_hint"
 
         # Get all hints
         hints = Route.get_hints(params)
@@ -460,7 +459,7 @@ end
         Route.add_coordinate!(params, OSRMs.Position(201.0, 201.0))
         try
             Route.route(TestUtils.get_test_osrm(), params)
-            @test true
+            @test false # expected OSRMError was not thrown
         catch e
             @test e isa OSRMs.OSRMError
             @test !isempty(e.code)

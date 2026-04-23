@@ -30,46 +30,48 @@ function customize(
         parse_conditionals_from_now::Int64 = 0,
         time_zone_file::String = "",
     )
-    cmd = `$(OSRM_jll.osrm_customize())`
+    isfile("$osrm_base_path.ebg") || throw(ArgumentError("OSRM dataset not found at base path $osrm_base_path (run extract first)"))
+
+    args = String[]
 
     # Verbosity - convert enum to string
     verbosity_str = verbosity_enum_to_string(verbosity)
     if verbosity_str != "INFO"  # Only add if non-default
-        cmd = `$cmd --verbosity $verbosity_str`
+        push!(args, "--verbosity", verbosity_str)
     end
 
     # Threads
     if threads !== nothing
-        cmd = `$cmd --threads $(string(threads))`
+        push!(args, "--threads", string(threads))
     end
 
     # Segment speed files (can be multiple)
     for path in segment_speed_file
-        cmd = `$cmd --segment-speed-file $path`
+        push!(args, "--segment-speed-file", path)
     end
 
     # Turn penalty files (can be multiple)
     for path in turn_penalty_file
-        cmd = `$cmd --turn-penalty-file $path`
+        push!(args, "--turn-penalty-file", path)
     end
 
     # Edge weight updates over factor
     if edge_weight_updates_over_factor != 0.0
-        cmd = `$cmd --edge-weight-updates-over-factor $(string(edge_weight_updates_over_factor))`
+        push!(args, "--edge-weight-updates-over-factor", string(edge_weight_updates_over_factor))
     end
 
     # Parse conditionals from now
     if parse_conditionals_from_now != 0
-        cmd = `$cmd --parse-conditionals-from-now $(string(parse_conditionals_from_now))`
+        push!(args, "--parse-conditionals-from-now", string(parse_conditionals_from_now))
     end
 
     # Time zone file
     if !isempty(time_zone_file)
-        cmd = `$cmd --time-zone-file $time_zone_file`
+        push!(args, "--time-zone-file", time_zone_file)
     end
 
     # Input file (positional, goes last)
-    cmd = `$cmd $osrm_base_path`
+    push!(args, osrm_base_path)
 
-    return run(cmd)
+    return run(`$(OSRM_jll.osrm_customize()) $args`)
 end

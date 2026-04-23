@@ -9,8 +9,10 @@ mutable struct OSRMConfig
     ptr::Ptr{Cvoid}
 
     function OSRMConfig(base_path::Union{String, Nothing})
-        ptr = with_error() do error_ptr
-            ccall((:osrmc_config_construct, libosrmc), Ptr{Cvoid}, (Cstring, Ptr{Ptr{Cvoid}}), as_cstring_or_null(base_path), error_pointer(error_ptr))
+        ptr = with_cstring_or_null(base_path) do cstr
+            with_error() do error_ptr
+                ccall((:osrmc_config_construct, libosrmc), Ptr{Cvoid}, (Cstring, Ptr{Ptr{Cvoid}}), cstr, error_pointer(error_ptr))
+            end
         end
 
         config = new(ptr)
@@ -390,9 +392,11 @@ get_use_shared_memory(osrm::OSRM) = get_use_shared_memory(osrm.config)
 Set dataset name for shared memory mode (or `nothing` to clear).
 """
 function set_dataset_name!(config::OSRMConfig, dataset_name::Union{AbstractString, Nothing})
-    with_error() do error_ptr
-        ccall((:osrmc_config_set_dataset_name, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(dataset_name), error_pointer(error_ptr))
-        nothing
+    with_cstring_or_null(dataset_name) do cstr
+        with_error() do error_ptr
+            ccall((:osrmc_config_set_dataset_name, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, cstr, error_pointer(error_ptr))
+            nothing
+        end
     end
     return nothing
 end
@@ -420,9 +424,11 @@ get_dataset_name(osrm::OSRM) = get_dataset_name(osrm.config)
 Set memory file path (or `nothing` to clear).
 """
 function set_memory_file!(config::OSRMConfig, memory_file::Union{AbstractString, Nothing})
-    with_error() do error_ptr
-        ccall((:osrmc_config_set_memory_file, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(memory_file), error_pointer(error_ptr))
-        nothing
+    with_cstring_or_null(memory_file) do cstr
+        with_error() do error_ptr
+            ccall((:osrmc_config_set_memory_file, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, cstr, error_pointer(error_ptr))
+            nothing
+        end
     end
     return nothing
 end
@@ -451,9 +457,11 @@ Set logging verbosity level (or `nothing` to clear).
 """
 function set_verbosity!(config::OSRMConfig, verbosity::Union{Verbosity, Nothing})
     verbosity_str = verbosity === nothing ? nothing : verbosity_enum_to_string(verbosity)
-    with_error() do error_ptr
-        ccall((:osrmc_config_set_verbosity, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, as_cstring_or_null(verbosity_str), error_pointer(error_ptr))
-        nothing
+    with_cstring_or_null(verbosity_str) do cstr
+        with_error() do error_ptr
+            ccall((:osrmc_config_set_verbosity, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, cstr, error_pointer(error_ptr))
+            nothing
+        end
     end
     return nothing
 end
@@ -487,7 +495,7 @@ Disable a feature dataset by name.
 """
 function disable_feature_dataset!(config::OSRMConfig, dataset_name::AbstractString)
     with_error() do error_ptr
-        ccall((:osrmc_config_disable_feature_dataset, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, Base.unsafe_convert(Cstring, Base.cconvert(Cstring, dataset_name)), error_pointer(error_ptr))
+        ccall((:osrmc_config_disable_feature_dataset, libosrmc), Cvoid, (Ptr{Cvoid}, Cstring, Ptr{Ptr{Cvoid}}), config.ptr, dataset_name, error_pointer(error_ptr))
         nothing
     end
     return nothing

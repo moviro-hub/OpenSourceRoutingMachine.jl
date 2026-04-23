@@ -1,34 +1,30 @@
 # FlatBuffers Type Generator
 
-Tools for automatically generating Julia type definitions from OSRM's [FlatBuffers](https://flatbuffers.dev/) schema files. The OSRM backend uses FlatBuffers to serialize API responses, and this generator parses the `.fbs` schema files to produce equivalent Julia type definitions.
-
-## Components
-
-- **`Generator.jl`**: Main module containing code for downloading schema files from the OSRM GitHub repository, parsing `.fbs` files to extract enums/structs/tables, mapping FlatBuffers types to Julia equivalents, and generating Julia code with proper dependency resolution.
-
-- **`generate.jl`**: Convenience script uses the Module to download schemas and generates `../src/types.jl`. Configured for OSRM `v6.0.0` by default; update `OSRM_VERSION` in the script for other versions.
+Generates Julia type definitions from OSRM's [FlatBuffers](https://flatbuffers.dev/) schema files. The OSRM backend uses FlatBuffers to serialize API responses; this generator parses the `.fbs` schemas and produces equivalent Julia types for use with `FlatBuffers.jl`.
 
 ## Usage
 
-Run from this directory:
-
 ```bash
+cd gen
 julia generate.jl
 ```
 
-This downloads schema files (`fbresult.fbs`, `route.fbs`, `table.fbs`, `position.fbs`, `waypoint.fbs`) to `flatbuffers/`, parses them and their includes, and generates `../src/types.jl`.
+This downloads schema files to `flatbuffers/`, parses them, and generates `../src/types.jl`.
 
-## How It Works
+## Structure
 
-1. **Download**: Fetches `.fbs` files from the OSRM repository at the specified version tag.
-2. **Parse**: Extracts enums, structs, and tables, tracking include relationships.
-3. **Generate**: Resolves dependencies, topologically sorts types, and generates Julia code with `@cenum` definitions, immutable structs, and mutable table structs.
-4. **Output**: Writes generated code to `src/types.jl`.
+| File | Responsibility |
+|------|---------------|
+| `generate.jl` | Entry script — configuration and orchestration |
+| `src/Generator.jl` | Module wrapper |
+| `src/types.jl` | Type maps (FBS -> Julia) and IR structs |
+| `src/download.jl` | Download `.fbs` files from GitHub |
+| `src/parsing.jl` | Parse `.fbs` files into IR |
+| `src/dependencies.jl` | Topological sorting of type definitions |
+| `src/generation.jl` | Emit Julia source code from IR |
 
-## Updating for New Versions
+## Updating for a new OSRM version
 
-1. Edit `OSRM_VERSION` in `generate.jl` (e.g., `"v6.1.0"`)
+1. Edit `OSRM_VERSION` in `generate.jl` (currently `v26.4.0`)
 2. Run `julia generate.jl`
 3. Review `src/types.jl` for breaking changes
-
-The generator handles includes automatically and ensures types are properly referenced across files.
