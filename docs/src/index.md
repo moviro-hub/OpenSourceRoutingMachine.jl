@@ -3,12 +3,6 @@
 A thin Julia wrapper for [OSRM](https://project-osrm.org/) (Open Source Routing Machine), a high-performance routing engine for road networks.
 Use it to build routing graphs from OpenStreetMap data and query them for routes, duration/distance matrices, map matching, and more — all from within Julia.
 
-## Compatibility
-
-- **Julia**: ≥ 1.11
-- **OSRM**: v26.4.0 (bundled via [OSRM_jll](https://github.com/JuliaBinaryWrappers/OSRM_jll.jl) and [libosrmc_jll](https://github.com/JuliaBinaryWrappers/libosrmc_jll.jl))
-- **Platforms**: Linux (x86_64), macOS (x86_64, aarch64). Windows support is planned.
-
 ## Modules
 
 The package structure consists of a core module and several submodules.
