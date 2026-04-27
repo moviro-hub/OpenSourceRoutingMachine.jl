@@ -2,6 +2,9 @@ name: CompatHelper
 on:
   schedule:
     - cron: 0 0 * * *
+  push:
+    paths:
+      - '.github/workflows/CompatHelper.yml'
   workflow_dispatch:
 permissions:
   contents: write
