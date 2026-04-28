@@ -62,7 +62,7 @@ function _run_osrm_cmd(exe::Cmd, args::Vector{String}, positional_path::String)
     dir = dirname(abs_path)
     base = basename(abs_path)
 
-    mktempdir() do tmp_dir
+    return mktempdir() do tmp_dir
         # Symlink the input file and all sibling files that share
         # the base name (e.g. *.osrm.* graph files).
         for f in readdir(dir)
