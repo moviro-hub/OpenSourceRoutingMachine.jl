@@ -106,7 +106,10 @@ end
         response = route(osrm, params)
         @test length(response.routes) >= 1
         @test response.routes[1].distance > 0
+        # Finalize the OSRM instance so file handles are released
+        # before cleanup — Windows locks open files (EBUSY).
+        finalize(osrm)
     end
 
-    rm(space_dir; recursive = true)
+    rm(space_dir; recursive = true, force = true)
 end
