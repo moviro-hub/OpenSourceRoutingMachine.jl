@@ -70,8 +70,5 @@ function customize(
         push!(args, "--time-zone-file", time_zone_file)
     end
 
-    # Input file (positional, goes last)
-    push!(args, osrm_base_path)
-
-    return run(`$(OSRM_jll.osrm_customize()) $args`)
+    return _run_osrm_cmd(`$(OSRM_jll.osrm_customize())`, args, osrm_base_path)
 end

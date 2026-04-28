@@ -70,8 +70,5 @@ function contract(
         push!(args, "--time-zone-file", time_zone_file)
     end
 
-    # Input file (positional, goes last)
-    push!(args, osrm_base_path)
-
-    return run(`$(OSRM_jll.osrm_contract()) $args`)
+    return _run_osrm_cmd(`$(OSRM_jll.osrm_contract())`, args, osrm_base_path)
 end
