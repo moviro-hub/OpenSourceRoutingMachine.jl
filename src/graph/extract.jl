@@ -96,8 +96,5 @@ function extract(
         push!(args, "--location-dependent-data", path)
     end
 
-    # Input file (positional, goes last)
-    push!(args, osm_path)
-
-    return run(`$(OSRM_jll.osrm_extract()) $args`)
+    return _run_osrm_cmd(`$(OSRM_jll.osrm_extract())`, args, osm_path)
 end

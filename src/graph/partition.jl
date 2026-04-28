@@ -73,8 +73,5 @@ function partition(
         push!(args, "--max-cell-sizes", max_cell_sizes_str)
     end
 
-    # Input file (positional, goes last)
-    push!(args, osrm_base_path)
-
-    return run(`$(OSRM_jll.osrm_partition()) $args`)
+    return _run_osrm_cmd(`$(OSRM_jll.osrm_partition())`, args, osrm_base_path)
 end
